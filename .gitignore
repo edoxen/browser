@@ -4,6 +4,7 @@ dist/
 coverage/
 TODO.browser/
 *.log
+*.tgz
 .DS_Store
 *.tsbuildinfo
 .vite/
