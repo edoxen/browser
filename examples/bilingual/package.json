@@ -1,0 +1,17 @@
+{
+  "name": "@edoxen/browser-example-bilingual",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bilingual @edoxen/browser example — EN + FR content via per-field LocalizedString.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.2.0",
+    "@edoxen/browser": "workspace:*",
+    "astro": "^5.0.0"
+  }
+}

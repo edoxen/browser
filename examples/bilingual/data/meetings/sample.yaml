@@ -1,0 +1,20 @@
+---
+meetings:
+  - identifier:
+      - prefix: BI
+        number: '2024'
+    type: plenary
+    status: completed
+    visibility: public
+    body_type: committee
+    urn: urn:example:bi:meeting:2024
+    date_range:
+      start: '2024-06-15'
+      end: '2024-06-20'
+    city: FRPAR
+    country_code: FR
+    title:
+      - spelling: eng
+        value: 2024 Plenary
+      - spelling: fra
+        value: Plénière 2024

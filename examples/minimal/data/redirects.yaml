@@ -1,0 +1,9 @@
+# Legacy URL redirects — OIML-style `/resolution/N` → URN-based URLs.
+# Optional. The integration emits these as Astro redirects (meta-refresh
+# for static builds).
+- from: /resolution/1
+  to: /decisions/urn:example:resolution:1
+  status: 301
+- from: /resolution/2
+  to: /decisions/urn:example:resolution:2
+  status: 301
