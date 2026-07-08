@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+coverage/
+TODO.browser/
+*.log
+.DS_Store
+*.tsbuildinfo
+.vite/
+dist-playground/
+.env
+.env.local
