@@ -1,0 +1,26 @@
+{
+  "name": "@edoxen/browser-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Astro-based browser package for edoxen YAML data — pnpm workspace root. NOT published; the publishable package lives at packages/browser.",
+  "license": "BSD-2-Clause",
+  "scripts": {
+    "dev": "pnpm -F @edoxen/browser dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish",
+    "publish:pkg": "pnpm -F @edoxen/browser --no-git-checks publish --access public --provenance"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.12",
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
