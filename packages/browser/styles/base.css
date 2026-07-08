@@ -1,0 +1,117 @@
+/* Edoxen base stylesheet — global defaults only.
+   Component styles live inside .astro files (Astro scopes them).
+   Every color, font, and radius goes through a --edoxen-* custom
+   property declared by `generateCssTokens` from config. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--edoxen-font-sans, system-ui, -apple-system, sans-serif);
+  color: var(--edoxen-color-text);
+  background: var(--edoxen-color-background);
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+.edoxen-header,
+.edoxen-main,
+.edoxen-footer {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 var(--edoxen-spacing-page, 1.5rem);
+}
+
+.edoxen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+
+.edoxen-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--edoxen-color-text);
+  font-weight: 600;
+}
+
+.edoxen-header__brand img {
+  height: 2rem;
+  width: auto;
+}
+
+.edoxen-header__nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.edoxen-main {
+  flex: 1;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+.edoxen-footer {
+  border-top: 1px solid var(--edoxen-color-border);
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: var(--edoxen-color-muted);
+  font-size: 0.9rem;
+}
+
+.edoxen-footer__social {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.edoxen-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--edoxen-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--edoxen-color-muted);
+  color: #fff;
+}
+
+:root[data-theme="dark"] body {
+  background: var(--edoxen-color-background);
+}
+
+@media print {
+  .edoxen-header,
+  .edoxen-footer {
+    display: none;
+  }
+}

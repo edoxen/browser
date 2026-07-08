@@ -1,0 +1,19 @@
+---
+interface Props {
+  message?: string
+}
+const { message = 'Nothing here.' } = Astro.props
+---
+
+<p class="edoxen-empty-state">{message}</p>
+
+<style>
+.edoxen-empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--edoxen-color-muted);
+  border: 1px dashed var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+}
+</style>

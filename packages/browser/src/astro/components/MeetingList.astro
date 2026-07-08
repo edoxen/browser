@@ -1,0 +1,63 @@
+---
+import type { MeetingListItem } from '../../data/index.js'
+
+interface Props {
+  items: readonly MeetingListItem[]
+  compact?: boolean
+}
+const { items, compact = false } = Astro.props
+const listClass = compact ? 'edoxen-meeting-list edoxen-meeting-list--compact' : 'edoxen-meeting-list'
+---
+
+{items.length === 0 ? (
+  <p class="edoxen-empty">No meetings.</p>
+) : (
+  <ul class={listClass}>
+    {items.map((m) => (
+      <li class="edoxen-meeting-list__item">
+        <a href={`/meetings/${encodeURIComponent(m.urn)}`}>{m.title}</a>
+        {!compact && (
+          <dl class="edoxen-meeting-list__meta">
+            <dt>URN</dt>
+            <dd><code>{m.urn}</code></dd>
+            {m.startDate && <><dt>Start</dt><dd>{m.startDate}</dd></>}
+            {m.city && <><dt>Venue</dt><dd>{m.city}{m.countryCode && ` (${m.countryCode})`}</dd></>}
+            {m.bodyType && <><dt>Body</dt><dd>{m.bodyType}</dd></>}
+          </dl>
+        )}
+      </li>
+    ))}
+  </ul>
+)}
+
+<style>
+.edoxen-meeting-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.edoxen-meeting-list__item {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+}
+.edoxen-meeting-list__item a {
+  font-weight: 500;
+  color: var(--edoxen-color-text);
+}
+.edoxen-meeting-list__meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-meeting-list__meta dt {
+  font-weight: 500;
+}
+</style>

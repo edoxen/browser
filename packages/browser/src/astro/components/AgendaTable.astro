@@ -1,0 +1,49 @@
+---
+import type { AgendaItem } from '@edoxen/edoxen'
+import { pickLocalizedValue } from '../../i18n/index.js'
+
+interface Props {
+  items: readonly AgendaItem[]
+  locale: string
+}
+const { items, locale } = Astro.props
+---
+
+<table class="edoxen-agenda">
+  <thead>
+    <tr><th scope="col">#</th><th scope="col">Title</th><th scope="col">Outcome</th></tr>
+  </thead>
+  <tbody>
+    {items.map((item) => (
+      <tr>
+        <td><code>{item.label}</code></td>
+        <td>{pickLocalizedValue(item.title, locale, item.label ?? '')}</td>
+        <td>{item.outcome ?? ''}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+<style>
+.edoxen-agenda {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.edoxen-agenda th,
+.edoxen-agenda td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+.edoxen-agenda th {
+  font-weight: 600;
+  color: var(--edoxen-color-muted);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+.edoxen-agenda code {
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+}
+</style>

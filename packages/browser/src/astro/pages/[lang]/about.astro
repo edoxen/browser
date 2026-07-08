@@ -1,0 +1,65 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+export function getStaticPaths() {
+  return cfg.locales
+    .filter((l) => (l.routePrefix ?? '') !== '')
+    .map((l) => ({ params: { lang: l.code } }))
+}
+
+const decisionCount = payloads.decisionsList.items.length
+const meetingCount = payloads.meetingsList.items.length
+---
+
+<BaseLayout config={cfg} title={`About — ${cfg.site.title}`}>
+  <h1>About</h1>
+
+  <section>
+    <h2>{cfg.site.title}</h2>
+    <p>{cfg.site.description}</p>
+    <dl class="edoxen-stats">
+      <div><dt>Decisions</dt><dd>{decisionCount}</dd></div>
+      <div><dt>Meetings</dt><dd>{meetingCount}</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Edoxen format</h2>
+    <p>
+      This site renders meeting and decision data using the
+      <a href="https://edoxen.github.io">Edoxen</a> information model — a
+      YAML-based schema for formal proceedings of standards bodies.
+    </p>
+  </section>
+
+  <section>
+    <h2>Using this site</h2>
+    <ul>
+      <li><strong>Decisions</strong> — browse the resolutions archive.</li>
+      <li><strong>Meetings</strong> — see meetings and their agendas, minutes, and adopted decisions.</li>
+      <li><strong>URNs</strong> — every entity has a stable URN for citation.</li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+.edoxen-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1rem 0 0;
+}
+.edoxen-stats dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.edoxen-stats dt {
+  font-size: 0.85rem;
+  color: var(--edoxen-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+</style>

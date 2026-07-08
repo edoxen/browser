@@ -1,0 +1,110 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import MeetingLayout from '../../layouts/MeetingLayout.astro'
+import UrnBar from '../../components/UrnBar.astro'
+import BodyBadge from '../../components/BodyBadge.astro'
+import AgendaTable from '../../components/AgendaTable.astro'
+import MinutesSection from '../../components/MinutesSection.astro'
+import { meetingJsonLd } from '../../../seo/index.js'
+import { pickLocalizedValue } from '../../../i18n/index.js'
+
+export function getStaticPaths() {
+  return Object.keys(payloads.meetingByUrn).map((urn) => ({
+    params: { urn },
+    props: { meeting: payloads.meetingByUrn[urn] },
+  }))
+}
+
+interface Props {
+  meeting: typeof payloads.meetingByUrn[string]
+}
+const { meeting } = Astro.props
+const locale = cfg.site.locale
+const title = pickLocalizedValue(meeting.title, locale, meeting.urn ?? '')
+const officers = meeting.officers ?? []
+const agenda = meeting.agenda
+const minutes = meeting.minutes ?? []
+const linkedDecisions = (meeting.decisions ?? []).map((id) =>
+  payloads.decisionsList.items.find((d) =>
+    d.identifier === `${id.prefix}-${id.number}`
+  )
+).filter((d): d is NonNullable<typeof d> => d !== undefined)
+const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale })
+---
+
+<MeetingLayout
+  config={cfg}
+  item={{
+    urn: meeting.urn ?? '',
+    identifier: (meeting.identifier[0]?.prefix ?? '') + '-' + (meeting.identifier[0]?.number ?? ''),
+    title,
+    startDate: meeting.date_range?.start,
+    endDate: meeting.date_range?.end,
+    bodyType: meeting.body_type,
+    city: meeting.city,
+    countryCode: meeting.country_code,
+    status: meeting.status,
+  }}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />
+  <UrnBar urn={meeting.urn ?? ''} />
+
+  {meeting.body_type && <p><BodyBadge code={meeting.body_type} /></p>}
+
+  {meeting.city && (
+    <section>
+      <h2>Venue</h2>
+      <p>{meeting.city}{meeting.country_code ? `, ${meeting.country_code}` : ''}</p>
+    </section>
+  )}
+
+  {officers.length > 0 && (
+    <section>
+      <h2>Officers</h2>
+      <ul>
+        {officers.map((o) => (
+          <li>{o.role}{o.person?.name ? `: ${o.person.name}` : ''}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {agenda && agenda.items && agenda.items.length > 0 && (
+    <section>
+      <h2>Agenda</h2>
+      <AgendaTable items={agenda.items} locale={locale} />
+    </section>
+  )}
+
+  {minutes.length > 0 && (
+    <section>
+      <h2>Minutes</h2>
+      {minutes.map((m) => (
+        <MinutesSection minutes={m} locale={locale} />
+      ))}
+    </section>
+  )}
+
+  {linkedDecisions.length > 0 && (
+    <section>
+      <h2>Adopted decisions</h2>
+      <ul>
+        {linkedDecisions.map((d) => (
+          <li><a href={`/decisions/${encodeURIComponent(d.urn)}`}>{d.title}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {(meeting.source_urls ?? []).length > 0 && (
+    <section>
+      <h2>Source documents</h2>
+      <ul>
+        {(meeting.source_urls ?? []).map((s) => (
+          <li><a href={s.ref}>{s.format ?? 'document'}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+</MeetingLayout>

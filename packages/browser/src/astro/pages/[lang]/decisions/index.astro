@@ -1,0 +1,27 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import DecisionList from '../../../components/DecisionList.astro'
+
+export function getStaticPaths() {
+  return cfg.locales
+    .filter((l) => (l.routePrefix ?? '') !== '')
+    .map((l) => ({ params: { lang: l.code } }))
+}
+
+const lang = Astro.params.lang ?? cfg.site.locale
+const locEntry = cfg.locales.find((l) => l.code === lang)
+const basePath = locEntry?.routePrefix ? `${locEntry.routePrefix}/decisions` : '/decisions'
+const items = payloads.decisionsList.items
+const endpoint = `${cfg.site.basePath}data/decisions.json`.replace(/\/+/g, '/')
+---
+
+<BaseLayout config={cfg} lang={lang} title={`Decisions — ${cfg.site.title}`}>
+  <h1>Decisions</h1>
+
+  <search-filter data-endpoint={endpoint} data-base-path={basePath}></search-filter>
+  <noscript>
+    <DecisionList items={items} />
+  </noscript>
+</BaseLayout>

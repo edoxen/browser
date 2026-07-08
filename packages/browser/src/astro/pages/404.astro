@@ -1,0 +1,10 @@
+---
+import cfg from 'virtual:edoxen-config'
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout config={cfg} title={`Not found — ${cfg.site.title}`}>
+  <h1>404</h1>
+  <p>The page you requested does not exist.</p>
+  <p><a href="/">Return to {cfg.site.title}</a></p>
+</BaseLayout>

@@ -1,0 +1,122 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import DecisionLayout from '../../layouts/DecisionLayout.astro'
+import UrnBar from '../../components/UrnBar.astro'
+import BodyBadge from '../../components/BodyBadge.astro'
+import LocaleTabs from '../../components/LocaleTabs.astro'
+import { decisionJsonLd } from '../../../seo/index.js'
+import { pickLocalizedValue, availableSpellings } from '../../../i18n/index.js'
+
+export function getStaticPaths() {
+  return Object.keys(payloads.decisionByUrn).map((urn) => ({
+    params: { urn },
+    props: { decision: payloads.decisionByUrn[urn] },
+  }))
+}
+
+interface Props {
+  decision: typeof payloads.decisionByUrn[string]
+}
+const { decision } = Astro.props
+const locale = cfg.site.locale
+const title = pickLocalizedValue(decision.title, locale, decision.urn ?? '')
+const subject = pickLocalizedValue(decision.subject, locale)
+const considering = pickLocalizedValue(decision.considering, locale)
+const actions = decision.actions ?? []
+const considerations = decision.considerations ?? []
+const approvals = decision.approvals ?? []
+const titleSpellings = availableSpellings(decision.title)
+const jsonld = decisionJsonLd(decision, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale })
+---
+
+<DecisionLayout
+  config={cfg}
+  item={{
+    urn: decision.urn ?? '',
+    identifier: (decision.identifier[0]?.prefix ?? '') + '-' + (decision.identifier[0]?.number ?? ''),
+    title,
+    kind: decision.kind ?? '',
+    dates: (decision.dates ?? []).map((d) => ({ type: d.type ?? '', date: d.date ?? '' })),
+    bodyType: decision.body_type,
+  }}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />
+  <UrnBar urn={decision.urn ?? ''} />
+
+  {decision.body_type && <p><BodyBadge code={decision.body_type} /></p>}
+
+  {titleSpellings.length > 1 && <LocaleTabs spellings={titleSpellings} active={locale} field="title" />}
+
+  {subject && (
+    <section>
+      <h2>Subject</h2>
+      <p>{subject}</p>
+    </section>
+  )}
+
+  {considering && (
+    <section>
+      <h2>Considering</h2>
+      <p>{considering}</p>
+    </section>
+  )}
+
+  {considerations.length > 0 && (
+    <section>
+      <h2>Considerations</h2>
+      <ul>
+        {considerations.map((c) => (
+          <li>{c.kind}{c.references && c.references.length > 0 ? `: ${c.references.map((r) => r.urn).join(', ')}` : ''}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {actions.length > 0 && (
+    <section>
+      <h2>Actions</h2>
+      <ul>
+        {actions.map((a) => (
+          <li>
+            <strong>{a.type}</strong>
+            {a.message && <div>{pickLocalizedValue(a.message, locale)}</div>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {approvals.length > 0 && (
+    <section>
+      <h2>Approvals</h2>
+      <ul>
+        {approvals.map((a) => (
+          <li>{a.degree}{a.body ? ` — ${a.body}` : ''}{a.date ? ` (${a.date})` : ''}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {(decision.dates ?? []).length > 0 && (
+    <section>
+      <h2>Dates</h2>
+      <ul>
+        {(decision.dates ?? []).map((d) => (
+          <li>{d.type}: {d.date}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {(decision.urls ?? []).length > 0 && (
+    <section>
+      <h2>Reference documents</h2>
+      <ul>
+        {(decision.urls ?? []).map((u) => (
+          <li><a href={u.ref}>{u.kind ?? 'document'}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+</DecisionLayout>

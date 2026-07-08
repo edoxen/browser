@@ -1,0 +1,38 @@
+---
+import type { SourceUrl, Url } from '@edoxen/edoxen'
+
+interface Props {
+  sources?: readonly SourceUrl[]
+  urls?: readonly Url[]
+}
+const { sources, urls } = Astro.props
+const items: { href: string; label: string; kind?: string }[] = []
+for (const s of sources ?? []) {
+  items.push({ href: s.ref, label: s.format ?? 'document', kind: s.kind })
+}
+for (const u of urls ?? []) {
+  items.push({ href: u.ref, label: u.kind ?? 'document', kind: u.kind })
+}
+---
+
+{items.length > 0 && (
+  <ul class="edoxen-reference-docs">
+    {items.map((item) => (
+      <li>
+        <a href={item.href} rel="noopener">
+          {item.label}{item.kind && item.kind !== 'document' ? ` (${item.kind})` : ''}
+        </a>
+      </li>
+    ))}
+  </ul>
+)}
+
+<style>
+.edoxen-reference-docs {
+  list-style: square;
+  padding-left: 1.5rem;
+}
+.edoxen-reference-docs li {
+  margin: 0.25rem 0;
+}
+</style>

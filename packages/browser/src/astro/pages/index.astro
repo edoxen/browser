@@ -1,0 +1,50 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+export function getStaticPaths() {
+  return cfg.locales
+    .filter((l) => (l.routePrefix ?? '') !== '')
+    .map((l) => ({ params: { lang: l.code } }))
+}
+
+const recentDecisions = payloads.decisionsList.items.slice(0, 5)
+const recentMeetings = payloads.meetingsList.items.slice(0, 3)
+const lang = Astro.params.lang
+const prefix = lang && cfg.locales.find((l) => l.code === lang)?.routePrefix
+const urlPrefix = prefix ?? ''
+---
+
+<BaseLayout config={cfg}>
+  <section>
+    <h1>{cfg.site.title}</h1>
+    <p>{cfg.site.description}</p>
+  </section>
+
+  <section>
+    <h2>Latest decisions</h2>
+    <ul>
+      {recentDecisions.map((d) => (
+        <li>
+          <a href={`${urlPrefix}/decisions/${encodeURIComponent(d.urn)}`}>{d.title}</a>
+          {d.bodyType && <span class="edoxen-badge">{d.bodyType}</span>}
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {recentMeetings.length > 0 && (
+    <section>
+      <h2>Recent meetings</h2>
+      <ul>
+        {recentMeetings.map((m) => (
+          <li>
+            <a href={`${urlPrefix}/meetings/${encodeURIComponent(m.urn)}`}>{m.title}</a>
+            {m.startDate && <span> — {m.startDate}</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>

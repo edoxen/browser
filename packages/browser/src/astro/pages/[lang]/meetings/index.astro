@@ -1,0 +1,27 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import MeetingList from '../../../components/MeetingList.astro'
+import DecadeTimeline from '../../../components/DecadeTimeline.astro'
+
+export function getStaticPaths() {
+  return cfg.locales
+    .filter((l) => (l.routePrefix ?? '') !== '')
+    .map((l) => ({ params: { lang: l.code } }))
+}
+
+const items = payloads.meetingsList.items
+const decades = payloads.meetingsList.facets.decades
+const lang = Astro.params.lang ?? cfg.site.locale
+---
+
+<BaseLayout config={cfg} lang={lang} title={`Meetings — ${cfg.site.title}`}>
+  <h1>Meetings</h1>
+
+  <decade-scroller>
+    <DecadeTimeline decades={decades} />
+  </decade-scroller>
+
+  <MeetingList items={items} />
+</BaseLayout>

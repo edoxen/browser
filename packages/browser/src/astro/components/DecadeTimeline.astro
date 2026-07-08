@@ -1,0 +1,52 @@
+---
+interface Props {
+  decades: readonly number[]
+  active?: number
+}
+const { decades, active } = Astro.props
+const sorted = [...decades].sort((a, b) => b - a)
+---
+
+{sorted.length > 0 && (
+  <nav class="edoxen-decade-timeline" aria-label="Browse by decade">
+    {sorted.map((d) => (
+      <a
+        href={`#decade-${d}`}
+        class={`edoxen-decade-timeline__link${active === d ? ' edoxen-decade-timeline__link--active' : ''}`}
+      >
+        <span class="edoxen-decade-timeline__decade">{d}s</span>
+      </a>
+    ))}
+  </nav>
+)}
+
+<style>
+.edoxen-decade-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+}
+.edoxen-decade-timeline__link {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  text-decoration: none;
+  color: var(--edoxen-color-text);
+  background: var(--edoxen-color-surface);
+}
+.edoxen-decade-timeline__link:hover {
+  background: var(--edoxen-color-accent);
+  color: #fff;
+  border-color: var(--edoxen-color-accent);
+}
+.edoxen-decade-timeline__link--active {
+  background: var(--edoxen-color-accent);
+  color: #fff;
+  border-color: var(--edoxen-color-accent);
+}
+.edoxen-decade-timeline__decade {
+  font-weight: 500;
+}
+</style>
