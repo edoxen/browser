@@ -1,0 +1,33 @@
+---
+meetings:
+  - identifier:
+      - prefix: EX
+        number: '2024'
+    type: plenary
+    status: completed
+    visibility: public
+    body_type: committee
+    urn: urn:example:meeting:2024
+    date_range:
+      start: '2024-06-15'
+      end: '2024-06-20'
+    city: USWAS
+    country_code: US
+    title:
+      - spelling: eng
+        value: 2024 Plenary
+    agenda:
+      status: final
+      items:
+        - label: '1'
+          kind: numbered
+          title:
+            - spelling: eng
+              value: Approval of minutes
+          outcome: adopted
+        - label: '2'
+          kind: numbered
+          title:
+            - spelling: eng
+              value: New business
+          outcome: discussed

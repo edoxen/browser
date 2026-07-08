@@ -1,0 +1,41 @@
+---
+metadata:
+  title:
+    - spelling: eng
+      value: Bilingual Committee — Decisions
+    - spelling: fra
+      value: Comité bilingue — Décisions
+  date: '2024-06-15'
+  source: Bilingual fixture
+decisions:
+  - identifier:
+      - prefix: BI
+        number: '1'
+    kind: resolution
+    status: decided
+    doi: 10.63493/example/bi-1
+    urn: urn:example:bi:resolution:1
+    body_type: committee
+    dates:
+      - date: '2024-06-15'
+        type: effective
+    title:
+      - spelling: eng
+        value: First bilingual decision
+      - spelling: fra
+        value: Première décision bilingue
+    subject:
+      - spelling: eng
+        value: Subject in English
+      - spelling: fra
+        value: Sujet en français
+    actions:
+      - type: publishes
+        date_effective:
+          date: '2024-06-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Publishes the standard in English.
+          - spelling: fra
+            value: Publie la norme en français.

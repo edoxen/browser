@@ -1,0 +1,34 @@
+---
+meetings:
+  - identifier:
+      - prefix: CIML
+        number: '2024'
+    type: plenary
+    status: completed
+    visibility: public
+    body_type: ciml
+    urn: urn:example:mb:ciml:meeting:2024
+    date_range:
+      start: '2024-06-15'
+      end: '2024-06-20'
+    city: CNSHA
+    country_code: DE
+    title:
+      - spelling: eng
+        value: CIML 2024 Plenary
+  - identifier:
+      - prefix: CONF
+        number: '2024'
+    type: conference
+    status: completed
+    visibility: public
+    body_type: conference
+    urn: urn:example:mb:conference:meeting:2024
+    date_range:
+      start: '2024-10-01'
+      end: '2024-10-05'
+    city: FRPAR
+    country_code: FR
+    title:
+      - spelling: eng
+        value: Conference 2024

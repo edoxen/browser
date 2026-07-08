@@ -1,0 +1,71 @@
+---
+metadata:
+  title:
+    - spelling: eng
+      value: Multi-body — Decisions
+  date: '2024-06-15'
+  source: Multi-body fixture
+decisions:
+  - identifier:
+      - prefix: CIML
+        number: '2024-1'
+    kind: resolution
+    status: decided
+    urn: urn:example:mb:ciml:resolution:2024-1
+    body_type: ciml
+    dates:
+      - date: '2024-06-15'
+        type: effective
+    title:
+      - spelling: eng
+        value: CIML decision on metrology training
+    actions:
+      - type: endorses
+        date_effective:
+          date: '2024-06-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Endorses the new training curriculum.
+  - identifier:
+      - prefix: CONF
+        number: '2024-2'
+    kind: resolution
+    status: decided
+    urn: urn:example:mb:conference:resolution:2024-2
+    body_type: conference
+    dates:
+      - date: '2024-10-01'
+        type: effective
+    title:
+      - spelling: eng
+        value: Conference resolution on member dues
+    actions:
+      - type: decides
+        date_effective:
+          date: '2024-10-01'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Decides to adjust member dues.
+  - identifier:
+      - prefix: DC
+        number: '2024-3'
+    kind: recommendation
+    status: decided
+    urn: urn:example:mb:dc:resolution:2024-3
+    body_type: dc
+    dates:
+      - date: '2024-03-15'
+        type: effective
+    title:
+      - spelling: eng
+        value: DC recommendation on emerging technologies
+    actions:
+      - type: recommends
+        date_effective:
+          date: '2024-03-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Recommends further study on AI in metrology.
