@@ -1,0 +1,44 @@
+---
+interface Props {
+  spellings: readonly string[]
+  active: string
+  field: string
+}
+const { spellings, active, field } = Astro.props
+---
+
+{spellings.length > 1 && (
+  <nav class="edoxen-locale-tabs" aria-label={`Available languages for ${field}`} data-field={field}>
+    {spellings.map((sp) => (
+      <button type="button" class="edoxen-locale-tabs__tab" data-spelling={sp} aria-pressed={sp === active}>
+        {sp}
+      </button>
+    ))}
+  </nav>
+)}
+
+<style>
+.edoxen-locale-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0.25rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+}
+.edoxen-locale-tabs__tab {
+  border: 0;
+  background: transparent;
+  color: var(--edoxen-color-muted);
+  padding: 0.25rem 0.6rem;
+  border-radius: calc(var(--edoxen-radius-sm) * 0.75);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+}
+.edoxen-locale-tabs__tab[aria-pressed='true'] {
+  background: var(--edoxen-color-accent);
+  color: #fff;
+}
+</style>

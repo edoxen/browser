@@ -1,0 +1,63 @@
+---
+meetings:
+  - identifier:
+      - prefix: TEST
+        number: "2024"
+    type: plenary
+    status: completed
+    visibility: public
+    body_type: committee
+    urn: urn:test:meeting:2024
+    date_range:
+      start: '2024-06-15'
+      end: '2024-06-20'
+    city: CNSHA
+    country_code: DE
+    title:
+      - spelling: eng
+        value: 2024 Plenary
+      - spelling: fra
+        value: Plénière 2024
+    agenda:
+      status: final
+      items:
+        - label: '1'
+          kind: numbered
+          title:
+            - spelling: eng
+              value: Approval of minutes
+          outcome: adopted
+        - label: '2'
+          kind: numbered
+          title:
+            - spelling: eng
+              value: Financial report
+          outcome: discussed
+    minutes:
+      - urn: urn:test:meeting:2024/minutes
+        spelling: eng
+        sections:
+          - number: '1'
+            title:
+              - spelling: eng
+                value: Opening
+            narrative:
+              - spelling: eng
+                value: |
+                  The Chair opened the meeting at 09:00.
+  - identifier:
+      - prefix: TEST
+        number: "2023"
+    type: plenary
+    status: completed
+    visibility: public
+    body_type: committee
+    urn: urn:test:meeting:2023
+    date_range:
+      start: '2023-09-12'
+      end: '2023-09-15'
+    city: FRPAR
+    country_code: FR
+    title:
+      - spelling: eng
+        value: 2023 Plenary

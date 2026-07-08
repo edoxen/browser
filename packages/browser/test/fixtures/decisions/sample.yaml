@@ -1,0 +1,66 @@
+---
+metadata:
+  title:
+    - spelling: eng
+      value: Test committee — decisions
+  date: 2024-06-15
+  source: Test fixture
+decisions:
+  - identifier:
+      - prefix: TEST
+        number: "1"
+    kind: resolution
+    status: decided
+    urn: urn:test:resolution:1
+    body_type: committee
+    dates:
+      - date: '2024-06-15'
+        type: effective
+      - date: '2024-06-20'
+        type: published
+    meeting:
+      date: '2024-06-15'
+    title:
+      - spelling: eng
+        value: First test decision
+      - spelling: fra
+        value: Première décision de test
+    subject:
+      - spelling: eng
+        value: Tests
+      - spelling: fra
+        value: Tests
+    actions:
+      - type: publishes
+        date_effective:
+          date: '2024-06-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Publishes the test standard.
+  - identifier:
+      - prefix: TEST
+        number: "2"
+    kind: recommendation
+    status: decided
+    urn: urn:test:resolution:2
+    body_type: committee
+    dates:
+      - date: '2023-09-12'
+        type: effective
+    meeting:
+      date: '2023-09-12'
+    title:
+      - spelling: eng
+        value: Second test decision
+    subject:
+      - spelling: eng
+        value: Recommendations
+    actions:
+      - type: recommends
+        date_effective:
+          date: '2023-09-12'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Recommends further study.

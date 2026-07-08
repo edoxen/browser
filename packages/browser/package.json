@@ -1,0 +1,82 @@
+{
+  "name": "@edoxen/browser",
+  "version": "0.1.0",
+  "description": "Astro-based browser for edoxen YAML data — drop in your data and ship a resolutions archive site.",
+  "type": "module",
+  "license": "BSD-2-Clause",
+  "author": "Edoxen Project contributors",
+  "homepage": "https://github.com/edoxen/browser",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edoxen/browser.git",
+    "directory": "packages/browser"
+  },
+  "bugs": {
+    "url": "https://github.com/edoxen/browser/issues"
+  },
+  "keywords": [
+    "astro",
+    "edoxen",
+    "resolutions",
+    "standards",
+    "iso",
+    "oiml"
+  ],
+  "sideEffects": false,
+  "bin": {
+    "edoxen-browser": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config/index.ts",
+    "./data": "./src/data/index.ts",
+    "./seo": "./src/seo/index.ts",
+    "./i18n": "./src/i18n/index.ts",
+    "./integration": "./src/integration.ts",
+    "./package.json": "./package.json"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src/",
+    "styles/",
+    "dist/cli.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "build:cli": "tsup",
+    "prepublishOnly": "pnpm build:cli",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@edoxen/edoxen": "^0.2.0",
+    "ajv": "^8.17.0",
+    "astro": "^4.0.0 || ^5.0.0"
+  },
+  "devDependencies": {
+    "@edoxen/edoxen": "link:../../../edoxen-js/packages/edoxen",
+    "@types/node": "^22.10.0",
+    "ajv": "^8.17.0",
+    "astro": "^5.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.0",
+    "yaml": "^2.6.0",
+    "zod": "^3.23.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "jiti": "^2.4.0"
+  }
+}

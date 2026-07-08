@@ -1,0 +1,34 @@
+---
+import { countryFlag } from '@edoxen/edoxen'
+
+interface Props {
+  countryCode?: string
+  city?: string
+}
+const { countryCode, city } = Astro.props
+const flag = countryCode ? countryFlag(countryCode) : ''
+---
+
+{(city || countryCode) && (
+  <span class="edoxen-venue">
+    {flag && <span class="edoxen-venue__flag" aria-hidden="true">{flag}</span>}
+    {city && <span class="edoxen-venue__city">{city}</span>}
+    {countryCode && <span class="edoxen-venue__code">{countryCode}</span>}
+  </span>
+)}
+
+<style>
+.edoxen-venue {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.edoxen-venue__flag {
+  font-size: 1.2em;
+}
+.edoxen-venue__code {
+  color: var(--edoxen-color-muted);
+  font-size: 0.85em;
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+}
+</style>

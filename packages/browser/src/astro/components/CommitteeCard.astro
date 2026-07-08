@@ -1,0 +1,58 @@
+---
+import type { MeetingSeries } from '@edoxen/edoxen'
+import { pickLocalizedValue } from '../../i18n/index.js'
+
+interface Props {
+  committee?: MeetingSeries | null
+  locale: string
+}
+const { committee, locale } = Astro.props
+const name = committee ? pickLocalizedValue(committee.name, locale, committee.urn ?? 'Committee') : ''
+const description = committee ? pickLocalizedValue(committee.description, locale) : ''
+const identifiers = committee?.identifier ?? []
+---
+
+{committee && (
+  <article class="edoxen-committee-card">
+    {name && <h2 class="edoxen-committee-card__name">{name}</h2>}
+    {description && <p class="edoxen-committee-card__desc">{description}</p>}
+    {identifiers.length > 0 && (
+      <dl class="edoxen-committee-card__ids">
+        {identifiers.map((id) => (
+          <>
+            <dt>{id.prefix}</dt>
+            <dd>{id.number}</dd>
+          </>
+        ))}
+      </dl>
+    )}
+  </article>
+)}
+
+<style>
+.edoxen-committee-card {
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  padding: 1rem 1.25rem;
+}
+.edoxen-committee-card__name {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+.edoxen-committee-card__desc {
+  margin: 0 0 0.75rem;
+  color: var(--edoxen-color-text);
+}
+.edoxen-committee-card__ids {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-committee-card__ids dt {
+  font-weight: 500;
+}
+</style>

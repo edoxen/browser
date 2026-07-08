@@ -1,0 +1,66 @@
+---
+import type { DecisionListItem } from '../../data/index.js'
+
+interface Props {
+  items: readonly DecisionListItem[]
+  compact?: boolean
+}
+const { items, compact = false } = Astro.props
+const listClass = compact ? 'edoxen-decision-list edoxen-decision-list--compact' : 'edoxen-decision-list'
+---
+
+{items.length === 0 ? (
+  <p class="edoxen-empty">No decisions.</p>
+) : (
+  <ul class={listClass}>
+    {items.map((d) => (
+      <li class="edoxen-decision-list__item">
+        <a href={`/decisions/${encodeURIComponent(d.urn)}`}>{d.title}</a>
+        {!compact && (
+          <dl class="edoxen-decision-list__meta">
+            <dt>URN</dt>
+            <dd><code>{d.urn}</code></dd>
+            {d.bodyType && <><dt>Body</dt><dd>{d.bodyType}</dd></>}
+            {d.kind && <><dt>Kind</dt><dd>{d.kind}</dd></>}
+            {d.dates[0]?.date && <><dt>Date</dt><dd>{d.dates[0].date}</dd></>}
+          </dl>
+        )}
+      </li>
+    ))}
+  </ul>
+)}
+
+<style>
+.edoxen-decision-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.edoxen-decision-list__item {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+}
+.edoxen-decision-list__item a {
+  font-weight: 500;
+  color: var(--edoxen-color-text);
+}
+.edoxen-decision-list__meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-decision-list__meta dt {
+  font-weight: 500;
+}
+.edoxen-decision-list--compact .edoxen-decision-list__item {
+  padding: 0.5rem 0.75rem;
+}
+</style>

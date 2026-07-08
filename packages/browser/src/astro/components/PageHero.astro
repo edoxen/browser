@@ -1,0 +1,42 @@
+---
+interface Props {
+  title: string
+  subtitle?: string
+  logo?: string
+}
+const { title, subtitle, logo } = Astro.props
+---
+
+<header class="edoxen-page-hero">
+  {logo && <img src={logo} alt="" class="edoxen-page-hero__logo" />}
+  <div>
+    <h1 class="edoxen-page-hero__title">{title}</h1>
+    {subtitle && <p class="edoxen-page-hero__subtitle">{subtitle}</p>}
+  </div>
+</header>
+
+<style>
+.edoxen-page-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+.edoxen-page-hero__logo {
+  max-height: 4rem;
+  width: auto;
+}
+.edoxen-page-hero__title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.edoxen-page-hero__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--edoxen-color-muted);
+  font-size: 1.05rem;
+}
+</style>

@@ -1,0 +1,79 @@
+---
+import type { EdoxenConfig } from '../../config/index.js'
+import { generateCssTokens } from '../../config/index.js'
+
+interface Props {
+  config: EdoxenConfig
+  title?: string
+  description?: string
+  lang?: string
+}
+
+const { config, title, description, lang = config.site.locale } = Astro.props
+const pageTitle = title ?? config.site.title
+const pageDescription = description ?? config.site.description
+const tokens = generateCssTokens(config.theme)
+const canonical = new URL(Astro.url.pathname, config.site.url).toString()
+---
+
+<!doctype html>
+<html lang={lang} data-theme={config.features.darkMode ? 'auto' : 'light'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonical} />
+    {config.theme.logos.favicon && (
+      <link rel="icon" href={config.theme.logos.favicon} />
+    )}
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <style is:global set:html={tokens} />
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="edoxen-header">
+      <a href="/" class="edoxen-header__brand">
+        {config.theme.logos.primary && (
+          <img src={config.theme.logos.primary} alt={config.site.title} />
+        )}
+        <span>{config.site.title}</span>
+      </a>
+      <nav class="edoxen-header__nav" aria-label="Primary">
+        {config.nav.map((item) => (
+          !item.locale || item.locale === lang
+            ? <a href={item.href}>{item.label}</a>
+            : null
+        ))}
+      </nav>
+      {config.features.darkMode && <theme-toggle></theme-toggle>}
+    </header>
+    <main class="edoxen-main">
+      <slot />
+    </main>
+    <footer class="edoxen-footer">
+      {config.theme.logos.footer && (
+        <img src={config.theme.logos.footer} alt="" />
+      )}
+      <ul class="edoxen-footer__social">
+        {config.social.map((s) => (
+          <li><a href={s.href}>{s.label}</a></li>
+        ))}
+      </ul>
+      <p>Powered by <a href="https://edoxen.github.io">Edoxen</a>.</p>
+    </footer>
+    <script>
+      import '../../islands/theme-toggle.ts'
+      import '../../islands/urn-copy.ts'
+      import '../../islands/search-filter.ts'
+      import '../../islands/section-tabs.ts'
+      import '../../islands/decade-scroller.ts'
+      import '../../islands/print-button.ts'
+    </script>
+  </body>
+</html>
