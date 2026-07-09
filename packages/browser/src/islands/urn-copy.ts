@@ -21,8 +21,7 @@ class UrnCopy extends HTMLElement {
         }, 1500)
       }
     })
-    this.innerHTML = ''
-    this.appendChild(btn)
+    this.replaceChildren(btn)
   }
 }
 
