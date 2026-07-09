@@ -1,7 +1,9 @@
 ---
 import type { EdoxenConfig } from '../../config/index.js'
 import { generateCssTokens } from '../../config/index.js'
-import baseCss from '../../../styles/base.css?raw'
+// Side-effect import: bundles styles/base.css through Astro/Vite's CSS
+// pipeline and inlines the result on every page that uses BaseLayout.
+import '../../../styles/base.css'
 
 interface Props {
   config: EdoxenConfig
@@ -14,7 +16,6 @@ const { config, title, description, lang = config.site.locale } = Astro.props
 const pageTitle = title ?? config.site.title
 const pageDescription = description ?? config.site.description
 const tokens = generateCssTokens(config.theme)
-const globalCss = `${baseCss}\n${tokens}`
 const canonical = new URL(Astro.url.pathname, config.site.url).toString()
 ---
 
@@ -35,7 +36,8 @@ const canonical = new URL(Astro.url.pathname, config.site.url).toString()
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDescription} />
-    <style is:global set:html={globalCss} />
+
+    <style is:global set:html={tokens} />
     <slot name="head" />
   </head>
   <body>
