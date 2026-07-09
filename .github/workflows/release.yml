@@ -10,11 +10,16 @@ on:
         required: false
         default: '@edoxen/browser'
 
-# Trusted publishing via npm provenance:
-#   - Configure the trusted publisher on npmjs.com for @edoxen/browser
-#     pointing at this workflow file.
-#   - GitHub provides the OIDC token; npm verifies it.
-#   - No NPM_TOKEN secret required once trusted publishing is configured.
+# Trusted publishing via npm provenance. Mirrors the verified-working
+# edoxen-js release.yml (PR #7) — repo must be public for provenance.
+#   * id-token: write (required for OIDC)
+#   * NO NODE_AUTH_TOKEN (suppresses OIDC)
+#   * actions/setup-node@v5 (v6 has OIDC issues; v5 is the proven combo)
+#   * node-version 24
+#   * NO registry-url on setup-node (writes empty _authToken in .npmrc
+#     which prevents OIDC fallback)
+#   * npm publish --provenance (NOT pnpm publish)
+#   * NO --access flag: publishConfig.access = public in package.json
 permissions:
   contents: read
   id-token: write
@@ -23,24 +28,20 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version-file: '.nvmrc'
+          node-version: '24'
           cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm -F @edoxen/browser build:cli
 
-      - name: Publish @edoxen/browser (provenance)
-        run: pnpm -F '@edoxen/browser' publish --access public --no-git-checks --provenance
-        env:
-          # Legacy token kept for fallback; remove once trusted publishing is
-          # confirmed working on npmjs.com.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish @edoxen/browser
+        working-directory: packages/browser
+        run: npm publish --provenance
