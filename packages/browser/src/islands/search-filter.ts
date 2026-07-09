@@ -15,7 +15,7 @@ interface FetchResponse {
   facetYears?: number[]
 }
 
-function appendListItem(list: ParentNode, item: SearchableItem, basePath: string): void {
+function buildListItem(item: SearchableItem, basePath: string): HTMLLIElement {
   const li = document.createElement('li')
   li.className = 'edoxen-search-filter__result'
   const link = document.createElement('a')
@@ -28,7 +28,7 @@ function appendListItem(list: ParentNode, item: SearchableItem, basePath: string
     badge.textContent = item.bodyType
     li.appendChild(badge)
   }
-  list.appendChild(li)
+  return li
 }
 
 function makeFacetChip(label: string, count: number, active: boolean, onToggle: () => void): HTMLElement {
@@ -73,7 +73,6 @@ class SearchFilter extends HTMLElement {
   }
 
   private renderShell(): void {
-    this.innerHTML = ''
     const form = document.createElement('form')
     form.className = 'edoxen-search-filter__form'
     form.setAttribute('role', 'search')
@@ -100,7 +99,7 @@ class SearchFilter extends HTMLElement {
     results.setAttribute('data-role', 'results')
     form.appendChild(results)
 
-    this.appendChild(form)
+    this.replaceChildren(form)
   }
 
   private render(): void {
@@ -108,7 +107,7 @@ class SearchFilter extends HTMLElement {
     const resultsEl = this.querySelector('[data-role="results"]')
     if (!facetsEl || !resultsEl) return
 
-    facetsEl.innerHTML = ''
+    facetsEl.replaceChildren()
     const bodies = new Set<string>()
     const kinds = new Set<string>()
     const years = new Set<number>()
@@ -135,16 +134,16 @@ class SearchFilter extends HTMLElement {
       facetsEl.appendChild(chip)
     }
 
-    resultsEl.innerHTML = ''
+    resultsEl.replaceChildren()
     const matches = filterItems(this.items, this.state)
     if (matches.length === 0) {
       const empty = document.createElement('li')
       empty.className = 'edoxen-empty'
       empty.textContent = 'No matches.'
-      resultsEl.appendChild(empty)
+      resultsEl.replaceChildren(empty)
       return
     }
-    for (const item of matches) appendListItem(resultsEl, item, this.basePath)
+    resultsEl.replaceChildren(...matches.map((item) => buildListItem(item, this.basePath)))
   }
 
   private syncHash(): void {
@@ -155,11 +154,10 @@ class SearchFilter extends HTMLElement {
   }
 
   private renderError(message: string): void {
-    this.innerHTML = ''
     const p = document.createElement('p')
     p.className = 'edoxen-search-filter__error'
     p.textContent = message
-    this.appendChild(p)
+    this.replaceChildren(p)
   }
 }
 
