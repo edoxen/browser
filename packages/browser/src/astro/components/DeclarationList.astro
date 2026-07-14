@@ -1,0 +1,67 @@
+---
+import type { Declaration } from '@edoxen/edoxen'
+import { pickLocalizedValue } from '../../i18n/index.js'
+
+interface Props {
+  declarations: readonly Declaration[]
+  locale: string
+}
+const { declarations, locale } = Astro.props
+
+const kindLabel: Record<string, string> = {
+  conflict_of_interest: 'Conflict of Interest',
+  ipr: 'IPR Declaration',
+}
+
+const kindBadgeClass: Record<string, string> = {
+  conflict_of_interest: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  ipr: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+}
+
+function personDisplay(person: { name?: { formatted?: string }[] }): string {
+  const names = person?.name
+  if (!Array.isArray(names) || names.length === 0) return ''
+  const first = names[0]
+  if (!first) return ''
+  return typeof first === 'object' ? (first.formatted ?? '') : String(first)
+}
+
+function entityRefDisplay(ref: { urn?: string; identifier?: { prefix?: string; number?: string }; local_ref?: string }): string {
+  if (ref?.urn) return ref.urn
+  if (ref?.identifier) return `${ref.identifier.prefix ?? ''}/${ref.identifier.number ?? ''}`
+  if (ref?.local_ref) return ref.local_ref
+  return ''
+}
+---
+
+{declarations.length > 0 && (
+  <ul class="space-y-3 m-0 p-0 list-none">
+    {declarations.map((decl) => (
+      <li class="border-l-2 border-border pl-3 py-1">
+        <div class="flex items-center gap-2 mb-1">
+          {decl.kind && (
+            <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded ${kindBadgeClass[decl.kind] ?? ''}`}>
+              {kindLabel[decl.kind] ?? decl.kind}
+            </span>
+          )}
+          {(decl.party ?? []).length > 0 && (
+            <span class="text-xs text-muted">
+              {(decl.party ?? []).map(personDisplay).filter(Boolean).join(', ')}
+            </span>
+          )}
+        </div>
+        <p class="text-sm m-0 text-text">{pickLocalizedValue(decl.description, locale)}</p>
+        {decl.kind === 'ipr' && (
+          <dl class="text-xs text-muted mt-1 space-y-0.5">
+            {decl.ipr_subject_ref && entityRefDisplay(decl.ipr_subject_ref) && (
+              <div><dt class="inline font-semibold">IPR subject:</dt> <dd class="inline"><code class="font-mono">{entityRefDisplay(decl.ipr_subject_ref)}</code></dd></div>
+            )}
+            {decl.ipr_target_ref && entityRefDisplay(decl.ipr_target_ref) && (
+              <div><dt class="inline font-semibold">Applies to:</dt> <dd class="inline"><code class="font-mono">{entityRefDisplay(decl.ipr_target_ref)}</code></dd></div>
+            )}
+          </dl>
+        )}
+      </li>
+    ))}
+  </ul>
+)}

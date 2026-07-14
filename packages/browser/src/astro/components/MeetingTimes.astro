@@ -1,0 +1,52 @@
+---
+interface DateRangeLike {
+  start?: string
+  end?: string
+}
+
+interface Props {
+  scheduled?: DateRangeLike
+  occurred?: DateRangeLike
+}
+
+const { scheduled, occurred } = Astro.props
+
+function fmtDate(s?: string): string {
+  if (!s) return ''
+  return s
+}
+
+function fmtDateTime(s?: string): string {
+  if (!s) return ''
+  return s
+}
+
+function hasRange(r?: DateRangeLike): boolean {
+  return Boolean(r && (r.start || r.end))
+}
+---
+
+{hasRange(scheduled) || hasRange(occurred) ? (
+  <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+    {hasRange(scheduled) && (
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-muted mb-0.5">Scheduled</dt>
+        <dd class="m-0 text-text">
+          <time datetime={scheduled!.start}>{fmtDate(scheduled!.start)}</time>
+          {scheduled!.start && scheduled!.end ? ' – ' : ''}
+          <time datetime={scheduled!.end}>{fmtDate(scheduled!.end)}</time>
+        </dd>
+      </div>
+    )}
+    {hasRange(occurred) && (
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-muted mb-0.5">Occurred</dt>
+        <dd class="m-0 text-text">
+          <time datetime={occurred!.start}>{fmtDateTime(occurred!.start)}</time>
+          {occurred!.start && occurred!.end ? ' – ' : ''}
+          <time datetime={occurred!.end}>{fmtDateTime(occurred!.end)}</time>
+        </dd>
+      </div>
+    )}
+  </dl>
+) : null}

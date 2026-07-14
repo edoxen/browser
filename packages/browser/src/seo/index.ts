@@ -1,6 +1,7 @@
 import type { Decision, Meeting, LocalizedString } from '@edoxen/edoxen'
 
 import type { DecisionListItem, MeetingListItem } from '../data/index.js'
+import { urnToPath } from '../urn.js'
 
 export interface SeoContext {
   readonly siteUrl: string
@@ -20,7 +21,7 @@ function firstLocalizedValue(list: readonly LocalizedString[] | undefined, fallb
 
 export function decisionJsonLd(decision: Decision, ctx: SeoContext): JsonLd {
   const title = firstLocalizedValue(decision.title, decision.urn ?? '')
-  const url = `${ctx.siteUrl}/decisions/${encodeURIComponent(decision.urn ?? '')}`
+  const url = `${ctx.siteUrl}/decisions/${urnToPath(decision.urn ?? '')}`
   const sameAs = decision.doi ? `https://doi.org/${decision.doi}` : undefined
   const datePublished = (decision.dates ?? []).find((d) => d.type === 'published')?.date
   const legislationDate = (decision.dates ?? []).find((d) => d.type === 'effective')?.date
@@ -45,14 +46,14 @@ export function decisionListItemJsonLd(item: DecisionListItem, ctx: SeoContext):
     '@type': 'Legislation',
     name: item.title,
     identifier: item.urn,
-    url: `${ctx.siteUrl}/decisions/${encodeURIComponent(item.urn)}`,
+    url: `${ctx.siteUrl}/decisions/${urnToPath(item.urn)}`,
     legislationType: item.kind || undefined,
   }
 }
 
 export function meetingJsonLd(meeting: Meeting, ctx: SeoContext): JsonLd {
   const title = firstLocalizedValue(meeting.title, meeting.urn ?? '')
-  const url = `${ctx.siteUrl}/meetings/${encodeURIComponent(meeting.urn ?? '')}`
+  const url = `${ctx.siteUrl}/meetings/${urnToPath(meeting.urn ?? '')}`
   const eventStatus = meeting.status === 'completed'
     ? 'https://schema.org/EventCompleted'
     : 'https://schema.org/EventScheduled'
@@ -63,8 +64,8 @@ export function meetingJsonLd(meeting: Meeting, ctx: SeoContext): JsonLd {
     name: title,
     identifier: meeting.urn,
     url,
-    startDate: meeting.date_range?.start,
-    endDate: meeting.date_range?.end,
+    startDate: meeting.scheduled_date_range?.start,
+    endDate: meeting.scheduled_date_range?.end,
     eventStatus,
     location: meeting.city
       ? { '@type': 'Place', address: { '@type': 'PostalAddress', addressCountry: meeting.country_code } }
@@ -78,7 +79,7 @@ export function meetingListItemJsonLd(item: MeetingListItem, ctx: SeoContext): J
     '@type': 'Event',
     name: item.title,
     identifier: item.urn,
-    url: `${ctx.siteUrl}/meetings/${encodeURIComponent(item.urn)}`,
+    url: `${ctx.siteUrl}/meetings/${urnToPath(item.urn)}`,
     startDate: item.startDate,
     endDate: item.endDate,
   }

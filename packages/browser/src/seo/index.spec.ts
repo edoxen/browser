@@ -25,7 +25,7 @@ const meeting = {
   urn: 'urn:test:meeting:2024',
   body_type: 'committee',
   status: 'completed',
-  date_range: { start: '2024-06-15', end: '2024-06-20' },
+  scheduled_date_range: { start: '2024-06-15', end: '2024-06-20' },
   city: 'CNSHA',
   country_code: 'DE',
   title: [{ spelling: 'eng', value: '2024 Plenary' }],

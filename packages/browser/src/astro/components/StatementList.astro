@@ -1,0 +1,52 @@
+---
+import type { Statement } from '@edoxen/edoxen'
+import { pickLocalizedValue } from '../../i18n/index.js'
+
+interface Props {
+  statements: readonly Statement[]
+  locale: string
+}
+const { statements, locale } = Astro.props
+
+const kindLabel: Record<string, string> = {
+  statement: 'Statement',
+  comment: 'Comment',
+  standpoint: 'Standpoint',
+}
+
+const kindBadgeClass: Record<string, string> = {
+  statement: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  comment: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  standpoint: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+}
+
+function personDisplay(person: { name?: { formatted?: string }[] }): string {
+  const names = person?.name
+  if (!Array.isArray(names) || names.length === 0) return ''
+  const first = names[0]
+  if (!first) return ''
+  return typeof first === 'object' ? (first.formatted ?? '') : String(first)
+}
+---
+
+{statements.length > 0 && (
+  <ul class="space-y-3 m-0 p-0 list-none">
+    {statements.map((stmt) => (
+      <li class="border-l-2 border-border pl-3 py-1">
+        <div class="flex items-center gap-2 mb-1">
+          {stmt.kind && (
+            <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded ${kindBadgeClass[stmt.kind] ?? kindBadgeClass.statement}`}>
+              {kindLabel[stmt.kind] ?? stmt.kind}
+            </span>
+          )}
+          {(stmt.party ?? []).length > 0 && (
+            <span class="text-xs text-muted">
+              {(stmt.party ?? []).map(personDisplay).filter(Boolean).join(', ')}
+            </span>
+          )}
+        </div>
+        <p class="text-sm m-0 text-text">{pickLocalizedValue(stmt.description, locale)}</p>
+      </li>
+    ))}
+  </ul>
+)}

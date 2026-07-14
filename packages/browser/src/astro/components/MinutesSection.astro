@@ -1,59 +1,29 @@
 ---
-import type { Minutes} from '@edoxen/edoxen'
+import type { Minutes } from '@edoxen/edoxen'
 import { pickLocalizedValue } from '../../i18n/index.js'
-
-interface Props {
-  minutes: Minutes
-  locale: string
-}
+import StatementList from './StatementList.astro'
+interface Props { minutes: Minutes; locale: string }
 const { minutes, locale } = Astro.props
 const sections = minutes.sections ?? []
 const spelling = minutes.spelling ?? locale
 ---
-
-<article class="edoxen-minutes" data-spelling={spelling}>
+<article class="border border-border rounded-sm p-4 px-5 bg-surface mb-4" data-spelling={spelling}>
   <header>
-    <h3>Minutes{spelling ? ` — ${spelling}` : ''}</h3>
-    {minutes.urn && <p><code>{minutes.urn}</code></p>}
+    <h3 class="m-0 mb-2 text-base">Minutes{spelling ? ` — ${spelling}` : ''}</h3>
+    {minutes.urn && <p class="m-0"><code class="font-mono text-xs text-accent">{minutes.urn}</code></p>}
   </header>
   {sections.map((section) => (
-    <section class="edoxen-minutes__section">
-      <h4>{section.number}. {pickLocalizedValue(section.title, locale, '(untitled)')}</h4>
-      <div class="edoxen-minutes__narrative">
+    <section class="mt-4">
+      <h4 class="m-0 mb-2 text-sm font-semibold">{section.number}. {pickLocalizedValue(section.title, locale, '(untitled)')}</h4>
+      <div class="text-sm leading-relaxed whitespace-pre-wrap text-text">
         {pickLocalizedValue(section.narrative, locale)}
       </div>
+      {(section.statements ?? []).length > 0 && (
+        <div class="mt-3">
+          <h5 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Statements</h5>
+          <StatementList statements={section.statements ?? []} locale={locale} />
+        </div>
+      )}
     </section>
   ))}
 </article>
-
-<style>
-.edoxen-minutes {
-  border: 1px solid var(--edoxen-color-border);
-  border-radius: var(--edoxen-radius-sm);
-  padding: 1rem 1.25rem;
-  background: var(--edoxen-color-surface);
-  margin-bottom: 1rem;
-}
-.edoxen-minutes h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.05rem;
-}
-.edoxen-minutes__section {
-  margin-top: 1rem;
-}
-.edoxen-minutes__section h4 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-.edoxen-minutes__narrative {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  color: var(--edoxen-color-text);
-}
-.edoxen-minutes code {
-  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
-  font-size: 0.85rem;
-}
-</style>

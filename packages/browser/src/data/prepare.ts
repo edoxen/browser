@@ -55,11 +55,18 @@ export interface MeetingListPayload {
   readonly facets: MeetingListFacets
 }
 
+export interface DecisionMeetingLink {
+  readonly meetingUrn: string
+  readonly kind?: string
+}
+
 export interface PagePayloads {
   readonly decisionsList: DecisionListPayload
   readonly meetingsList: MeetingListPayload
   readonly decisionByUrn: Readonly<Record<string, Decision>>
   readonly meetingByUrn: Readonly<Record<string, Meeting>>
+  readonly decisionsByMeetingUrn: Readonly<Record<string, readonly DecisionListItem[]>>
+  readonly meetingLinkByDecisionId: Readonly<Record<string, DecisionMeetingLink>>
 }
 
 function formatIdentifier(ids: readonly StructuredIdentifier[] | undefined): string {
@@ -90,7 +97,7 @@ function effectiveYearOf(d: Decision): number | null {
 }
 
 function yearOfMeeting(m: Meeting): number | null {
-  const start = m.date_range?.start
+  const start = m.scheduled_date_range?.start
   if (typeof start !== 'string' || start.length < 4) return null
   const year = Number(start.slice(0, 4))
   return Number.isInteger(year) ? year : null
@@ -131,8 +138,8 @@ function toMeetingListItem(m: Meeting): MeetingListItem {
     urn: m.urn ?? '',
     identifier: formatIdentifier(m.identifier),
     title: primaryValue(m.title, m.urn ?? formatIdentifier(m.identifier)),
-    startDate: m.date_range?.start,
-    endDate: m.date_range?.end,
+    startDate: m.scheduled_date_range?.start,
+    endDate: m.scheduled_date_range?.end,
     year: year ?? undefined,
     bodyType: m.body_type,
     city: m.city,
@@ -178,6 +185,27 @@ export function prepareMeetingsList(project: EdoxenProject): MeetingListPayload 
   }
 }
 
+function buildMeetingLinkByDecisionId(meetings: readonly Meeting[]): Readonly<Record<string, DecisionMeetingLink>> {
+  const out: Record<string, DecisionMeetingLink> = {}
+  for (const m of meetings) {
+    const urn = m.urn
+    if (!urn) continue
+    for (const ref of m.decisions ?? []) {
+      const refObj = ref as { identifier?: { prefix?: string; number?: string }[]; prefix?: string; number?: string; kind?: string }
+      const id = refObj.identifier?.[0]
+      const prefix = id?.prefix ?? refObj.prefix
+      const number = id?.number ?? refObj.number
+      if (!prefix || !number) continue
+      const key = `${prefix}-${number}`
+      if (!out[key]) {
+        const kind = refObj.kind
+        out[key] = { meetingUrn: urn, ...(kind ? { kind } : {}) }
+      }
+    }
+  }
+  return out
+}
+
 export function preparePayloads(project: EdoxenProject): PagePayloads {
   const decisionByUrn: Record<string, Decision> = {}
   for (const d of project.decisions) {
@@ -188,11 +216,25 @@ export function preparePayloads(project: EdoxenProject): PagePayloads {
     if (m.urn) meetingByUrn[m.urn] = m
   }
 
+  const meetingLinkByDecisionId = buildMeetingLinkByDecisionId(project.meetings)
+
+  const decisionsList = prepareDecisionsList(project)
+  const decisionsByMeetingUrn: Record<string, readonly DecisionListItem[]> = {}
+  for (const item of decisionsList.items) {
+    const link = meetingLinkByDecisionId[item.identifier]
+    if (!link) continue
+    const list = decisionsByMeetingUrn[link.meetingUrn]
+    if (list) (list as DecisionListItem[]).push(item)
+    else decisionsByMeetingUrn[link.meetingUrn] = [item]
+  }
+
   return {
-    decisionsList: prepareDecisionsList(project),
+    decisionsList,
     meetingsList: prepareMeetingsList(project),
     decisionByUrn,
     meetingByUrn,
+    decisionsByMeetingUrn,
+    meetingLinkByDecisionId,
   }
 }
 
