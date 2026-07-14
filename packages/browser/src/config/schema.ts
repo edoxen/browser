@@ -48,6 +48,7 @@ export const LocaleEntrySchema = z.object({
   code: z.string().regex(LOCALE_RE, 'must be an ISO 639-1/3 code'),
   label: z.string().min(1),
   routePrefix: z.string().default(''),
+  rtl: z.boolean().default(false),
 })
 export type LocaleEntry = z.infer<typeof LocaleEntrySchema>
 
@@ -122,6 +123,7 @@ export const EdoxenConfigSchema = z.object({
   nav: z.array(NavItemSchema).default([]),
   social: z.array(SocialItemSchema).default([]),
   features: FeaturesSchema.default({}),
+  uiStrings: z.record(z.string(), z.record(z.string(), z.string())).default({}),
 })
 
 export type EdoxenConfig = z.infer<typeof EdoxenConfigSchema>
