@@ -88,3 +88,15 @@ export function availableSpellings(list: readonly LocalizedString[] | undefined)
   if (!list) return []
   return [...new Set(list.map((ls) => ls.spelling).filter((s): s is string => Boolean(s)))].sort()
 }
+
+export {
+  t,
+  normalizeUiLocale,
+  isRtl,
+  availableUiLocales,
+  SUPPORTED_UI_LOCALES,
+  LOCALE_LABELS,
+  type UiLocale,
+  type UiStrings,
+  type CustomUiStrings,
+} from './ui.js'

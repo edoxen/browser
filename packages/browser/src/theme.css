@@ -1,0 +1,274 @@
+@import "tailwindcss";
+@source "./astro/components/*.vue";
+
+/* ───────────────────────────────────────────────────────────────
+   Edoxen — Metropolitan editorial design system.
+   Inspired by NYC museum scholarly publications: The Met, Frick,
+   Whitney. Institutional authority meets digital elegance.
+   ─────────────────────────────────────────────────────────────── */
+
+/* ── Semantic tokens (consumers override via @theme) ──────────── */
+@theme {
+  /* Ink + paper */
+  --color-primary: #0c1116;
+  --color-accent: #0d7377;
+  --color-surface: #ffffff;
+  --color-background: #faf9f7;
+  --color-text: #1a1a1a;
+  --color-muted: #737373;
+  --color-border: #e7e5e4;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+
+  /* Typography */
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-sans: "Public Sans", -apple-system, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Shadows — subtle, layered, institutional */
+  --shadow-xs: 0 1px 2px rgba(12, 17, 22, 0.03);
+  --shadow-sm: 0 2px 8px rgba(12, 17, 22, 0.05);
+  --shadow-md: 0 4px 16px rgba(12, 17, 22, 0.07);
+  --shadow-lg: 0 8px 32px rgba(12, 17, 22, 0.09);
+
+  /* Easing */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Dark mode ────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-primary: #f0ede8;
+  --color-surface: #161b22;
+  --color-background: #0d1117;
+  --color-text: #e6e2dd;
+  --color-muted: #8b949e;
+  --color-border: #21262d;
+  --color-accent: #2dd4bf;
+}
+
+/* ── Base element styles ──────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--color-text);
+    background-color: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--color-primary);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  h2 {
+    font-size: 1.625rem;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 1rem;
+    line-height: 1.7;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.15s var(--ease-out);
+  }
+
+  a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  section {
+    margin-bottom: 2.5rem;
+  }
+
+  section > h2 {
+    margin-bottom: 1.25rem;
+  }
+
+  ul {
+    padding-left: 1.25rem;
+    margin: 0 0 1rem;
+  }
+
+  li {
+    margin-bottom: 0.35rem;
+    line-height: 1.5;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Reusable component patterns ─────────────────────────────── */
+@layer components {
+  .edoxen-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+  }
+
+  .edoxen-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .edoxen-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    letter-spacing: 0.01em;
+    background: var(--color-muted);
+    color: #fff;
+    line-height: 1.5;
+  }
+}
+
+/* ── AsciiDoc rendered content ───────────────────────────────── */
+@layer components {
+  .adoc-content {
+    line-height: 1.7;
+  }
+
+  .adoc-content p {
+    margin: 0 0 0.75rem;
+  }
+
+  .adoc-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .adoc-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem 0;
+    font-size: 0.875rem;
+  }
+
+  .adoc-content table thead th {
+    background: var(--color-background);
+    border-bottom: 2px solid var(--color-border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .adoc-content table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  .adoc-content table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .adoc-content strong {
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .adoc-content code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--color-background);
+    padding: 0.1rem 0.3rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .adoc-content ul, .adoc-content ol {
+    padding-left: 1.25rem;
+    margin: 0.5rem 0;
+  }
+
+  .adoc-content li {
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* ── Print ────────────────────────────────────────────────────── */
+@media print {
+  header, footer, theme-toggle, urn-copy, search-filter, print-button {
+    display: none !important;
+  }
+  body {
+    font-size: 11pt;
+    color: #000;
+    background: #fff;
+  }
+  h1, h2, h3, h4 { color: #000; }
+  a { color: #000; text-decoration: underline; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 0.8em; }
+  a[href^="#"]::after { content: ""; }
+}

@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@astrojs/vue": "^5.0.0",
-    "@edoxen/edoxen": "^0.2.0",
+    "@edoxen/edoxen": "^0.2.1",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.10.0",

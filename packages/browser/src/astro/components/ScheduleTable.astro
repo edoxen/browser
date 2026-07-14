@@ -1,0 +1,99 @@
+---
+import type { MeetingComponent } from '@edoxen/edoxen'
+import { pickLocalizedValue } from '../../i18n/index.js'
+
+interface Props {
+  components: readonly MeetingComponent[]
+  locale: string
+}
+const { components, locale } = Astro.props
+
+interface DayGroup {
+  date: string
+  weekday: string
+  label: string
+  items: readonly MeetingComponent[]
+}
+
+function formatTime(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
+function formatTz(iso: string): string {
+  const match = iso.match(/[+-]\d{2}:?\d{2}$/)
+  return match ? `UTC${match[0].slice(0, 3)}` : ''
+}
+
+function dayKey(iso: string): string {
+  return iso.slice(0, 10)
+}
+
+function weekdayName(key: string): string {
+  const d = new Date(key + 'T00:00:00')
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('en-US', { weekday: 'long' })
+}
+
+function dayLabel(key: string): string {
+  const d = new Date(key + 'T00:00:00')
+  if (Number.isNaN(d.getTime())) return key
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+const scheduled = components
+  .filter((c) => c.starts_at)
+  .slice()
+  .sort((a, b) => (a.starts_at ?? '').localeCompare(b.starts_at ?? ''))
+
+const days: DayGroup[] = []
+let currentKey = ''
+for (const c of scheduled) {
+  const key = dayKey(c.starts_at!)
+  if (key !== currentKey) {
+    days.push({ date: key, weekday: weekdayName(key), label: dayLabel(key), items: [c] })
+    currentKey = key
+  } else {
+    days[days.length - 1].items.push(c)
+  }
+}
+
+const tzLabel = scheduled[0]?.starts_at ? formatTz(scheduled[0].starts_at) : ''
+---
+
+<div class="space-y-8">
+  {days.map((day) => (
+    <div>
+      <div class="flex items-baseline gap-3 mb-4 pb-2 border-b border-border">
+        <h3 class="font-serif text-xl font-semibold text-primary m-0">{day.weekday}</h3>
+        <span class="font-mono text-sm text-muted">{day.label}</span>
+      </div>
+      <div class="space-y-1">
+        {day.items.map((c) => (
+          <div class="flex items-stretch gap-4 py-3 px-4 rounded-md border border-border bg-surface hover:border-accent/50 transition-colors">
+            <div class="flex-shrink-0 w-28 text-right">
+              <div class="font-mono text-sm font-semibold text-primary">{formatTime(c.starts_at!)}</div>
+              <div class="font-mono text-xs text-muted">{formatTime(c.ends_at!)}</div>
+            </div>
+            <div class="w-px bg-border flex-shrink-0"></div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-1">
+                {c.kind && (
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-muted/15 text-muted">{c.kind.replace(/_/g, ' ')}</span>
+                )}
+              </div>
+              <p class="font-serif text-base font-medium text-primary m-0 leading-snug">{pickLocalizedValue(c.title, locale, c.identifier ?? '')}</p>
+              {c.description && pickLocalizedValue(c.description, locale) && (
+                <p class="text-sm text-muted mt-1 m-0">{pickLocalizedValue(c.description, locale)}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
+  {tzLabel && (
+    <p class="text-xs text-muted font-mono text-center pt-4 border-t border-border">All times {tzLabel}</p>
+  )}
+</div>

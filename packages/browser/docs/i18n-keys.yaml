@@ -1,0 +1,101 @@
+# Edoxen Browser — UI Translation Keys
+#
+# This file documents every translatable UI string in @edoxen/browser.
+# Copy the block for your language, fill in the values, and pass it
+# via `uiStrings` in edoxen.config.ts:
+#
+#   export default defineConfig({
+#     locales: [
+#       { code: 'eng', label: 'English', routePrefix: '' },
+#       { code: 'deu', label: 'Deutsch', routePrefix: '/deu' },
+#     ],
+#     uiStrings: {
+#       deu: {
+#         'nav.home': 'Startseite',
+#         'nav.decisions': 'Beschlüsse',
+#         # ... fill in the keys below
+#       },
+#     },
+#   })
+#
+# Keys not provided in uiStrings fall back to English automatically.
+# Built-in languages (eng, fra, zho, spa, ara, rus) ship with full
+# translations; custom languages need only the keys you want overridden.
+#
+# Locale codes use ISO 639-2/639-3 (3-letter): deu, eng, fra, jpn, zho, etc.
+# Set `rtl: true` on a locale entry for right-to-left languages.
+
+# ── Navigation (header bar) ──────────────────────────────────────────
+'nav.home': Home                    # Header link to the home page
+'nav.decisions': Resolutions        # Header link to the decisions/resolutions list
+'nav.meetings': Meetings            # Header link to the meetings list
+'nav.about': About                  # Header link to the about page
+'nav.prev': '← Previous'            # Previous-item link (detail pages)
+'nav.next': 'Next →'                # Next-item link (detail pages)
+
+# ── Home page ────────────────────────────────────────────────────────
+'page.home.heroLabel': Resolutions Archive    # Eyebrow label above the site title
+'page.home.stats.decisions': Decisions on record   # Stat label: decision count
+'page.home.stats.meetings': Meetings documented    # Stat label: meeting count
+'page.home.stats.recent': Most recent               # Stat label: latest year
+'page.home.latestDecisions': Latest Decisions       # Section heading on home
+'page.home.recentMeetings': Recent Meetings         # Section heading on home
+'page.home.viewAll': View all                       # "View all →" link
+
+# ── Metadata labels (list cards and detail sidebars) ────────────────
+'label.body': Body          # The body/committee that issued a decision
+'label.kind': Kind          # Decision kind (resolution, recommendation, etc.)
+'label.date': Date          # Generic date label
+'label.urn': URN            # Stable identifier label
+'label.venue': Venue        # Meeting location label
+'label.scheduled': Scheduled   # Scheduled date-range label (meetings)
+'label.occurred': Occurred     # Actual date-range label (meetings)
+
+# ── Section headings (decision and meeting detail pages) ────────────
+'section.when': When                # Meeting detail — date/time section
+'section.venue': Venue              # Meeting detail — location section
+'section.officers': Officers        # Meeting detail — chair, secretary, etc.
+'section.schedule': Schedule        # Meeting detail — timed components
+'section.agenda': Agenda            # Meeting detail — agenda items table
+'section.deadlines': Deadlines      # Meeting detail — deadlines list
+'section.minutes': Minutes          # Meeting detail — minutes sections
+'section.subject': Subject          # Decision detail — subject text
+'section.considering': Considering  # Decision detail — considering preamble
+'section.considerations': Considerations  # Decision detail — numbered considerations
+'section.actions': Actions          # Decision detail — action items
+'section.approvals': Approvals      # Decision detail — vote records
+'section.dates': Dates              # Decision detail — typed date list
+'section.referenceDocs': Reference documents  # Decision detail — linked docs
+'section.adoptedAt': Adopted at     # Decision detail — link to the meeting
+'section.adoptedDecisions': Resolutions  # Meeting detail — linked decisions
+'section.sourceDocs': Source documents     # Meeting detail — source links
+'section.declarations': Declarations       # Meeting detail — declarations
+
+# ── Search & filter (decisions list) ────────────────────────────────
+'search.placeholder': Search…        # Search input placeholder
+'search.empty': No matches found.    # Shown when search returns nothing
+'search.allBodies': All bodies       # "All bodies" option in the body filter
+'search.allKinds': All kinds         # "All kinds" option in the kind filter
+
+# ── Empty states ────────────────────────────────────────────────────
+'decisions.empty': No decisions.     # Shown when the decisions list is empty
+'meetings.empty': No meetings.       # Shown when the meetings list is empty
+
+# ── Decade timeline ─────────────────────────────────────────────────
+'decade.browseLabel': Browse by decade  # Accessible label for the decade nav
+
+# ── About page ──────────────────────────────────────────────────────
+'about.title': About                                           # About page heading
+'about.format': Edoxen format                                  # About — format heading
+'about.formatBody': >-                                         # About — format description
+  This site renders meeting and decision data using the Edoxen
+  information model — a YAML-based schema for formal proceedings
+  of standards bodies.
+'about.using': Using this site                                 # About — usage heading
+'about.usingDecisions': 'Decisions — browse the resolutions archive.'
+'about.usingMeetings': >-
+  Meetings — see meetings and their agendas, minutes, and adopted
+  decisions.
+'about.usingUrns': 'URNs — every entity has a stable URN for citation.'
+'about.stats.decisions': Decisions    # About page stat label
+'about.stats.meetings': Meetings      # About page stat label
