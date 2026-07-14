@@ -60,7 +60,7 @@ describe('lintProject', () => {
       decisions: [
         decision('urn:test:1', { meeting: { date: '2024-06-15' } }),
       ],
-      meetings: [meeting('urn:test:m1', { date_range: { start: '2024-06-15', end: '2024-06-15' } })],
+      meetings: [meeting('urn:test:m1', { scheduled_date_range: { start: '2024-06-15', end: '2024-06-15' } })],
     })
     const report = lintProject(project)
     expect(report.findings.some((f) => f.code === 'ORPHAN_DECISION_MEETING')).toBe(true)
@@ -71,7 +71,7 @@ describe('lintProject', () => {
       decisions: [
         decision('urn:test:1', { meeting: { date: '2024-06-15' } }),
       ],
-      meetings: [meeting('urn:test:meeting-1', { urn: '2024-06-15', date_range: { start: '2024-06-15', end: '2024-06-15' } })],
+      meetings: [meeting('urn:test:meeting-1', { urn: '2024-06-15', scheduled_date_range: { start: '2024-06-15', end: '2024-06-15' } })],
     })
     const report = lintProject(project)
     expect(report.findings.some((f) => f.code === 'ORPHAN_DECISION_MEETING')).toBe(false)

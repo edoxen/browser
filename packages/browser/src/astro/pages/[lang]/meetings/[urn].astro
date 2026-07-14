@@ -5,9 +5,13 @@ import MeetingLayout from '../../../layouts/MeetingLayout.astro'
 import UrnBar from '../../../components/UrnBar.astro'
 import BodyBadge from '../../../components/BodyBadge.astro'
 import AgendaTable from '../../../components/AgendaTable.astro'
+import ScheduleTable from '../../../components/ScheduleTable.astro'
 import MinutesSection from '../../../components/MinutesSection.astro'
+import MeetingTimes from '../../../components/MeetingTimes.astro'
+import DeclarationList from '../../../components/DeclarationList.astro'
 import { meetingJsonLd } from '../../../../seo/index.js'
 import { pickLocalizedValue } from '../../../../i18n/index.js'
+import { urnToPath } from '../../../../urn.js'
 
 export function getStaticPaths() {
   const urns = Object.keys(payloads.meetingByUrn)
@@ -29,11 +33,8 @@ const title = pickLocalizedValue(meeting.title, locale, meeting.urn ?? '')
 const officers = meeting.officers ?? []
 const agenda = meeting.agenda
 const minutes = meeting.minutes ?? []
-const linkedDecisions = (meeting.decisions ?? []).map((id) =>
-  payloads.decisionsList.items.find((d) =>
-    d.identifier === `${id.prefix}-${id.number}`
-  )
-).filter((d): d is NonNullable<typeof d> => d !== undefined)
+const components = meeting.components ?? []
+const linkedDecisions = payloads.decisionsByMeetingUrn[meeting.urn ?? ''] ?? []
 const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale })
 ---
 
@@ -43,8 +44,8 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
     urn: meeting.urn ?? '',
     identifier: (meeting.identifier[0]?.prefix ?? '') + '-' + (meeting.identifier[0]?.number ?? ''),
     title,
-    startDate: meeting.date_range?.start,
-    endDate: meeting.date_range?.end,
+    startDate: meeting.scheduled_date_range?.start,
+    endDate: meeting.scheduled_date_range?.end,
     bodyType: meeting.body_type,
     city: meeting.city,
     countryCode: meeting.country_code,
@@ -53,6 +54,20 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
 >
   <script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />
   <UrnBar urn={meeting.urn ?? ''} />
+
+  {(meeting.scheduled_date_range || meeting.occurred_date_range) && (
+    <section>
+      <h2>When</h2>
+      <MeetingTimes scheduled={meeting.scheduled_date_range} occurred={meeting.occurred_date_range} />
+    </section>
+  )}
+
+  {(meeting.declarations ?? []).length > 0 && (
+    <section>
+      <h2>Declarations</h2>
+      <DeclarationList declarations={meeting.declarations ?? []} locale={locale} />
+    </section>
+  )}
 
   {meeting.body_type && <p><BodyBadge code={meeting.body_type} /></p>}
 
@@ -68,9 +83,16 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
       <h2>Officers</h2>
       <ul>
         {officers.map((o) => (
-          <li>{o.role}{o.person?.name ? `: ${o.person.name}` : ''}</li>
+          <li>{o.role}{o.person?.name ? `: ${typeof o.person.name === 'string' ? o.person.name : o.person.name?.formatted ?? ''}` : ''}</li>
         ))}
       </ul>
+    </section>
+  )}
+
+  {components.length > 0 && (
+    <section>
+      <h2>Schedule</h2>
+      <ScheduleTable components={components} locale={locale} />
     </section>
   )}
 
@@ -92,10 +114,10 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
 
   {linkedDecisions.length > 0 && (
     <section>
-      <h2>Adopted decisions</h2>
+      <h2>{cfg.terminology.decisionPluralLabel}</h2>
       <ul>
         {linkedDecisions.map((d) => (
-          <li><a href={`/decisions/${encodeURIComponent(d.urn)}`}>{d.title}</a></li>
+          <li><a href={`/decisions/${urnToPath(d.urn)}`}>{d.title}</a></li>
         ))}
       </ul>
     </section>
@@ -106,7 +128,7 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
       <h2>Source documents</h2>
       <ul>
         {(meeting.source_urls ?? []).map((s) => (
-          <li><a href={s.ref}>{s.format ?? 'document'}</a></li>
+          <li><a href={s.ref}>{s.format ?? s.kind ?? 'document'}</a></li>
         ))}
       </ul>
     </section>
