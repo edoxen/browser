@@ -12,8 +12,8 @@ const here = dirname(fileURLToPath(import.meta.url))
 const fixtures = resolve(here, '../../test/fixtures')
 
 const cfg: DataConfig = {
-  decisions: resolve(fixtures, './decisions'),
-  meetings: resolve(fixtures, './meetings'),
+  decisions: resolve(fixtures, 'decisions/sample.yaml'),
+  meetings: resolve(fixtures, 'meetings/sample.yaml'),
 }
 
 describe('validateAll', () => {
