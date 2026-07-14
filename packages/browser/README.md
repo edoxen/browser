@@ -10,11 +10,30 @@ support.
 
 - **Resolutions & meetings** — list and detail pages generated from
   edoxen v3.0 YAML (per-field `LocalizedString[]`, `scheduled_date_range`).
-- **Meeting schedules** — renders `components[]` with `starts_at`/`ends_at`
-  as a day-grouped timetable with timezone labels.
-- **AsciiDoc rendering** — action messages, considerations, and subject
-  fields are converted from AsciiDoc to HTML at build time (tables,
-  inline formatting, source blocks).
+- **Meeting detail pages** — each meeting renders:
+  - *When* — scheduled and occurred date ranges
+  - *Declarations* — conflict-of-interest and IPR declarations
+  - *Venue* — UN/LOCODE-resolved location (e.g. `JPNGS, JP` → `Nagasaki, Japan`)
+  - *Officers* — chair, secretary, and other roles
+  - *Schedule* — timed session components (`starts_at`/`ends_at`) grouped by
+    day with timezone labels
+  - *Agenda* — numbered business items table (item, title, outcome)
+  - *Deadlines* — registration and submission deadlines
+  - *Minutes* — structured narrative sections with per-section statements
+    (statement, comment, standpoint)
+  - *Adopted decisions* — links to resolutions passed at this meeting
+  - *Source documents* — external reference links
+- **Decision detail pages** — each resolution renders:
+  - Kind badge (configurable: "Resolution", "Recommendation", etc.)
+  - *Adopted at* — link back to the meeting that passed it
+  - *Subject*, *Considering*, *Considerations* — AsciiDoc-rendered prose
+  - *Actions* — typed action items with AsciiDoc messages
+  - *Approvals* — vote type, degree, date
+  - *Dates* — typed date list (adoption, effective, published)
+  - *Reference documents* — external links
+- **AsciiDoc rendering** — action messages, considerations, subject
+  fields, and minute narratives are converted from AsciiDoc to HTML at
+  build time (tables, inline formatting, source blocks).
 - **UN/LOCODE hydration** — meeting venues like `JPNGS, JP` are resolved
   to `Nagasaki, Japan` automatically. Country names localized per
   locale via `Intl.DisplayNames`.
