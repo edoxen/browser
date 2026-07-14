@@ -136,7 +136,7 @@ describe('EdoxenConfigSchema', () => {
         site: { title: 'X', url: 'https://x.org' },
         data: { decisions: './data/decisions' },
       })
-      expect(cfg.locales).toEqual([{ code: 'en', label: 'English', routePrefix: '' }])
+      expect(cfg.locales).toEqual([{ code: 'en', label: 'English', routePrefix: '', rtl: false }])
     })
 
     it('accepts bilingual EN/FR with route prefix', () => {

@@ -38,7 +38,7 @@ describe('decisionJsonLd', () => {
     expect(jsonld['@context']).toBe('https://schema.org')
     expect(jsonld.name).toBe('First test decision')
     expect(jsonld.identifier).toBe('urn:test:resolution:1')
-    expect(jsonld.url).toBe('https://example.org/decisions/urn%3Atest%3Aresolution%3A1')
+    expect(jsonld.url).toBe('https://example.org/decisions/urn:test:resolution:1')
   })
 
   it('links the DOI as sameAs', () => {

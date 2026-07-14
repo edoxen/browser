@@ -8,7 +8,7 @@ import type { DataConfig } from '../config/schema.js'
 const here = dirname(fileURLToPath(import.meta.url))
 const fixtures = resolve(here, '../../test/fixtures')
 
-function dataConfig(decisions = './decisions', meetings?: string): DataConfig {
+function dataConfig(decisions = 'decisions/sample.yaml', meetings?: string): DataConfig {
   return {
     decisions: resolve(fixtures, decisions),
     ...(meetings ? { meetings: resolve(fixtures, meetings) } : {}),
@@ -32,7 +32,7 @@ describe('loadAll', () => {
   })
 
   it('loads meetings when configured', async () => {
-    const result = await loadAll(dataConfig('./decisions', './meetings'))
+    const result = await loadAll(dataConfig('decisions/sample.yaml', 'meetings/sample.yaml'))
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.meetings?.meetings.length).toBe(2)

@@ -8,7 +8,7 @@ meetings:
     visibility: public
     body_type: committee
     urn: urn:test:meeting:2024
-    date_range:
+    scheduled_date_range:
       start: '2024-06-15'
       end: '2024-06-20'
     city: CNSHA
@@ -53,7 +53,7 @@ meetings:
     visibility: public
     body_type: committee
     urn: urn:test:meeting:2023
-    date_range:
+    scheduled_date_range:
       start: '2023-09-12'
       end: '2023-09-15'
     city: FRPAR
