@@ -1,6 +1,6 @@
 {
   "name": "@edoxen/browser",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Astro-based browser for edoxen YAML data — drop in your data and ship a resolutions archive site.",
   "type": "module",
   "license": "BSD-2-Clause",
@@ -22,7 +22,11 @@
     "iso",
     "oiml"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/islands/**/*.ts",
+    "./src/islands/**/*.js",
+    "*.css"
+  ],
   "bin": {
     "edoxen-browser": "./dist/cli.js"
   },
@@ -54,18 +58,27 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
+    "@astrojs/vue": "^5.0.0",
     "@edoxen/edoxen": "^0.2.0",
+    "@tailwindcss/vite": "^4.0.0",
     "ajv": "^8.17.0",
-    "astro": "^4.0.0 || ^5.0.0"
+    "astro": "^7.0.0",
+    "tailwindcss": "^4.0.0",
+    "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@astrojs/vue": "^5.0.0",
     "@edoxen/edoxen": "^0.2.0",
+    "@playwright/test": "^1.49.0",
+    "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.10.0",
     "ajv": "^8.17.0",
-    "astro": "^5.0.0",
+    "astro": "^7.0.0",
+    "tailwindcss": "^4.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.6.3",
     "vitest": "^2.1.0",
+    "vue": "^3.5.0",
     "yaml": "^2.6.0",
     "zod": "^3.23.8"
   },
