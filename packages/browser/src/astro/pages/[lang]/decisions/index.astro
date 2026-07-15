@@ -12,7 +12,7 @@ export function getStaticPaths() {
 
 const lang = Astro.params.lang ?? cfg.site.locale
 const locEntry = cfg.locales.find((l) => l.code === lang)
-const basePath = locEntry?.routePrefix ? `${locEntry.routePrefix}/decisions` : '/decisions'
+const localePrefix = locEntry?.routePrefix ? `/${locEntry.routePrefix}` : ''
 const items = payloads.decisionsList.items
 const endpoint = `${cfg.site.basePath}data/decisions.json`.replace(/\/+/g, '/')
 ---
@@ -20,8 +20,8 @@ const endpoint = `${cfg.site.basePath}data/decisions.json`.replace(/\/+/g, '/')
 <BaseLayout config={cfg} lang={lang} title={`Decisions — ${cfg.site.title}`}>
   <h1>Decisions</h1>
 
-  <search-filter data-endpoint={endpoint} data-base-path={basePath}></search-filter>
+  <search-filter data-endpoint={endpoint} data-base-path={`${localePrefix ? localePrefix + "/decisions" : "decisions"}`}></search-filter>
   <noscript>
-    <DecisionList items={items} />
+    <DecisionList items={items} lang={lang} localePrefix={localePrefix}, basePath={cfg.site.basePath} />
   </noscript>
 </BaseLayout>

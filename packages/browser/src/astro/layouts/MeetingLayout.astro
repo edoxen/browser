@@ -1,11 +1,22 @@
 ---
 import BaseLayout from './BaseLayout.astro'
 import type { EdoxenConfig } from '../../config/index.js'
-import type { MeetingListItem } from '../../data/index.js'
+
+interface LayoutItem {
+  readonly urn: string
+  readonly identifier: string
+  readonly title: string
+  readonly startDate?: string
+  readonly endDate?: string
+  readonly bodyType?: string
+  readonly city?: string
+  readonly countryCode?: string
+  readonly status?: string
+}
 
 interface Props {
   config: EdoxenConfig
-  item: MeetingListItem
+  item: LayoutItem
 }
 const { config, item } = Astro.props
 const title = `${item.title} — ${config.site.title}`
@@ -13,7 +24,7 @@ const title = `${item.title} — ${config.site.title}`
 
 <BaseLayout config={config} title={title} description={item.identifier}>
   <article class="edoxen-meeting">
-    <a href="/meetings">← Meetings</a>
+    <a href={"../meetings"}>← Meetings</a>
     <h1>{item.title}</h1>
     {item.startDate && <p>{item.startDate}{item.endDate && ` – ${item.endDate}`}</p>}
     <slot />

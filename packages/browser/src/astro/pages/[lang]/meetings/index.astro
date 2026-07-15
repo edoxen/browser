@@ -14,6 +14,8 @@ export function getStaticPaths() {
 const items = payloads.meetingsList.items
 const decades = payloads.meetingsList.facets.decades
 const lang = Astro.params.lang ?? cfg.site.locale
+const locEntry = cfg.locales.find((l) => l.code === lang)
+const localePrefix = locEntry?.routePrefix ? `/${locEntry.routePrefix}` : ''
 ---
 
 <BaseLayout config={cfg} lang={lang} title={`Meetings — ${cfg.site.title}`}>
@@ -23,5 +25,5 @@ const lang = Astro.params.lang ?? cfg.site.locale
     <DecadeTimeline decades={decades} />
   </decade-scroller>
 
-  <MeetingList items={items} />
+  <MeetingList items={items} lang={lang} localePrefix={localePrefix}, basePath={cfg.site.basePath} />
 </BaseLayout>

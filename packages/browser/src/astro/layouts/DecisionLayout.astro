@@ -1,11 +1,19 @@
 ---
 import BaseLayout from './BaseLayout.astro'
 import type { EdoxenConfig } from '../../config/index.js'
-import type { DecisionListItem } from '../../data/index.js'
+
+interface LayoutItem {
+  readonly urn: string
+  readonly identifier: string
+  readonly title: string
+  readonly kind: string
+  readonly dates: readonly { readonly type: string; readonly date: string }[]
+  readonly bodyType?: string
+}
 
 interface Props {
   config: EdoxenConfig
-  item: DecisionListItem
+  item: LayoutItem
 }
 const { config, item } = Astro.props
 const title = `${item.title} — ${config.site.title}`
@@ -13,7 +21,7 @@ const title = `${item.title} — ${config.site.title}`
 
 <BaseLayout config={config} title={title} description={item.kind}>
   <article class="edoxen-decision">
-    <a href="/decisions">← Decisions</a>
+    <a href={"../decisions"}>← Decisions</a>
     <h1>{item.title}</h1>
     <p><code>{item.urn}</code></p>
     <slot />

@@ -17,6 +17,13 @@ const pageTitle = title ?? config.site.title
 const pageDescription = description ?? config.site.description
 const tokens = generateCssTokens(config.theme)
 const canonical = new URL(Astro.url.pathname, config.site.url).toString()
+const base = ""
+const localePrefix = (() => {
+  const entry = config.locales.find((l) => l.code === lang)
+  const prefix = entry?.routePrefix ?? ''
+  return prefix ? `/${prefix}` : ''
+})()
+const homeHref = `${base}${localePrefix}/`.replace(/\/{2,}/g, '/')
 ---
 
 <!doctype html>
@@ -42,7 +49,7 @@ const canonical = new URL(Astro.url.pathname, config.site.url).toString()
   </head>
   <body>
     <header class="edoxen-header">
-      <a href="/" class="edoxen-header__brand">
+      <a href={homeHref} class="edoxen-header__brand">
         {config.theme.logos.primary && (
           <img src={config.theme.logos.primary} alt={config.site.title} />
         )}
@@ -51,7 +58,7 @@ const canonical = new URL(Astro.url.pathname, config.site.url).toString()
       <nav class="edoxen-header__nav" aria-label="Primary">
         {config.nav.map((item) => (
           !item.locale || item.locale === lang
-            ? <a href={item.href}>{item.label}</a>
+            ? <a href={`${base}${localePrefix}${item.href}`.replace(/\/{2,}/g, '/')}>{item.label}</a>
             : null
         ))}
       </nav>

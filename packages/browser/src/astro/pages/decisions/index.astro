@@ -5,15 +5,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 import DecisionList from '../../components/DecisionList.astro'
 
 const items = payloads.decisionsList.items
+const lang = cfg.site.locale
 const endpoint = `${cfg.site.basePath}data/decisions.json`.replace(/\/+/g, '/')
 ---
 
-<BaseLayout config={cfg} title={`Decisions — ${cfg.site.title}`}>
+<BaseLayout config={cfg} lang={lang} title={`Decisions — ${cfg.site.title}`}>
   <h1>Decisions</h1>
 
-  <search-filter data-endpoint={endpoint} data-base-path="/decisions"></search-filter>
+  <search-filter data-endpoint={endpoint} data-base-path={"decisions"}></search-filter>
   <noscript>
-    <DecisionList items={items} />
+    <DecisionList items={items} lang={lang} localePrefix="", basePath={cfg.site.basePath} />
   </noscript>
 </BaseLayout>
 

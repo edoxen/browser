@@ -29,6 +29,8 @@ interface Props {
 }
 const { meeting } = Astro.props
 const locale = Astro.params.lang ?? cfg.site.locale
+const locEntry = cfg.locales.find((l) => l.code === locale)
+const localePrefix = locEntry?.routePrefix ? `/${locEntry.routePrefix}` : ''
 const title = pickLocalizedValue(meeting.title, locale, meeting.urn ?? '')
 const officers = meeting.officers ?? []
 const agenda = meeting.agenda
@@ -117,7 +119,7 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
       <h2>{cfg.terminology.decisionPluralLabel}</h2>
       <ul>
         {linkedDecisions.map((d) => (
-          <li><a href={`/decisions/${urnToPath(d.urn)}`}>{d.title}</a></li>
+          <li><a href={`decisions/${urnToPath(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
         ))}
       </ul>
     </section>

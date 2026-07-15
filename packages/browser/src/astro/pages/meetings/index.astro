@@ -7,14 +7,15 @@ import DecadeTimeline from '../../components/DecadeTimeline.astro'
 
 const items = payloads.meetingsList.items
 const decades = payloads.meetingsList.facets.decades
+const lang = cfg.site.locale
 ---
 
-<BaseLayout config={cfg} title={`Meetings — ${cfg.site.title}`}>
+<BaseLayout config={cfg} lang={lang} title={`Meetings — ${cfg.site.title}`}>
   <h1>Meetings</h1>
 
   <decade-scroller>
     <DecadeTimeline decades={decades} />
   </decade-scroller>
 
-  <MeetingList items={items} />
+  <MeetingList items={items} lang={lang} localePrefix="", basePath={cfg.site.basePath} />
 </BaseLayout>

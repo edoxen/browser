@@ -126,7 +126,7 @@ const venueName = (meeting.venues ?? [])[0]?.name
       <h2>{cfg.terminology.decisionPluralLabel}</h2>
       <ul>
         {linkedDecisions.map((d) => (
-          <li><a href={`/decisions/${urnToPath(d.urn)}`}>{d.title}</a></li>
+          <li><a href={`decisions/${urnToPath(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
         ))}
       </ul>
     </section>

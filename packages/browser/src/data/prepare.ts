@@ -12,7 +12,7 @@ import type {
 export interface DecisionListItem {
   readonly urn: string
   readonly identifier: string
-  readonly title: string
+  readonly title: readonly LocalizedString[]
   readonly kind: string
   readonly dates: readonly { readonly type: string; readonly date: string }[]
   readonly meetingUrn?: string
@@ -34,7 +34,7 @@ export interface DecisionListPayload {
 export interface MeetingListItem {
   readonly urn: string
   readonly identifier: string
-  readonly title: string
+  readonly title: readonly LocalizedString[]
   readonly startDate?: string
   readonly endDate?: string
   readonly year?: number
@@ -74,11 +74,6 @@ function formatIdentifier(ids: readonly StructuredIdentifier[] | undefined): str
   const head = ids[0]
   if (!head) return ''
   return `${head.prefix}-${head.number}`
-}
-
-function primaryValue(list: readonly LocalizedString[] | undefined, fallback: string): string {
-  const first = list?.[0]?.value
-  return first && first.length > 0 ? first : fallback
 }
 
 function meetingKeyOf(d: Decision): string | undefined {
@@ -124,7 +119,7 @@ function toDecisionListItem(d: Decision): DecisionListItem {
   return {
     urn: d.urn ?? '',
     identifier: formatIdentifier(d.identifier),
-    title: primaryValue(d.title, d.urn ?? formatIdentifier(d.identifier)),
+    title: d.title ?? [],
     kind: d.kind ?? '',
     dates: (d.dates ?? []).map((dt) => ({ type: dt.type ?? '', date: dt.date ?? '' })),
     meetingUrn: meetingKey,
@@ -137,7 +132,7 @@ function toMeetingListItem(m: Meeting): MeetingListItem {
   return {
     urn: m.urn ?? '',
     identifier: formatIdentifier(m.identifier),
-    title: primaryValue(m.title, m.urn ?? formatIdentifier(m.identifier)),
+    title: m.title ?? [],
     startDate: m.scheduled_date_range?.start,
     endDate: m.scheduled_date_range?.end,
     year: year ?? undefined,
