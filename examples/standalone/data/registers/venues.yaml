@@ -1,0 +1,19 @@
+---
+scope: test
+title:
+  - spelling: eng
+    value: Test venue register
+venues:
+  - urn: urn:edoxen:venue:test:geneva-cicg
+    kind: physical
+    name:
+      - spelling: eng
+        value: CICG Geneva
+    city: Geneva
+    country_code: CH
+  - urn: urn:edoxen:venue:test:zoom-main
+    kind: virtual
+    name:
+      - spelling: eng
+        value: Zoom (main)
+    uri: https://example.zoom.us/j/123456789

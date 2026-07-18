@@ -78,9 +78,7 @@
     "tsup": "^8.3.5",
     "typescript": "^5.6.3",
     "vitest": "^2.1.0",
-    "vue": "^3.5.0",
-    "yaml": "^2.6.0",
-    "zod": "^3.23.8"
+    "vue": "^3.5.0"
   },
   "publishConfig": {
     "access": "public"
@@ -90,6 +88,8 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
-    "jiti": "^2.4.0"
+    "jiti": "^2.4.0",
+    "yaml": "^2.6.0",
+    "zod": "^3.23.8"
   }
 }

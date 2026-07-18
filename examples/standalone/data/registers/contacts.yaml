@@ -1,0 +1,13 @@
+---
+scope: test
+title:
+  - spelling: eng
+    value: Test contact register
+contacts:
+  - urn: urn:edoxen:contact:test:j-doe
+    kind: person
+    role: chair
+    name:
+      - spelling: eng
+        value:
+          formatted: J. Doe
