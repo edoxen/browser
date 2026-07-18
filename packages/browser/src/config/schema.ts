@@ -85,6 +85,10 @@ export const ThemeSchema = z.object({
   fontFamily: z.string().optional(),
   radius: z.string().default('0.25rem'),
   customProperties: z.record(z.string()).default({}),
+  // Path to a consumer stylesheet override, resolved against the
+  // consumer root. When unset, `<root>/src/styles/override.css` is
+  // used if present. Imported after the package's base.css.
+  customCss: z.string().optional(),
 })
 export type ThemeConfig = z.infer<typeof ThemeSchema>
 

@@ -9,3 +9,5 @@ declare module 'virtual:edoxen-payloads' {
   const payloads: PagePayloads
   export default payloads
 }
+
+declare module 'virtual:edoxen-custom-css'

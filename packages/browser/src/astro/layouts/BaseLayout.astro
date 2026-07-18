@@ -3,6 +3,10 @@ import type { EdoxenConfig } from '../../config/index.js'
 import { generateCssTokens } from '../../config/index.js'
 import { urlPrefix } from '../../i18n/index.js'
 import '../../../styles/base.css'
+// Consumer override stylesheet (virtual: resolved to the consumer's
+// theme.customCss path or <root>/src/styles/override.css when present,
+// empty module otherwise). Imported after base.css so consumers win.
+import 'virtual:edoxen-custom-css'
 
 interface Props {
   config: EdoxenConfig
