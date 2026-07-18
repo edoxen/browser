@@ -11,14 +11,14 @@ const recentMeetings = payloads.meetingsList.items.slice(0, 3)
 ---
 
 <BaseLayout config={cfg} lang={lang}>
-  <section>
+  <section class="edoxen-home-hero">
     <h1>{cfg.site.title}</h1>
-    <p>{cfg.site.description}</p>
+    <p class="edoxen-home-hero__lede">{cfg.site.description}</p>
   </section>
 
   <section>
     <h2>Latest decisions</h2>
-    <ul>
+    <ul class="edoxen-recent-list">
       {recentDecisions.map((d) => (
         <li>
           <a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
@@ -31,14 +31,59 @@ const recentMeetings = payloads.meetingsList.items.slice(0, 3)
   {recentMeetings.length > 0 && (
     <section>
       <h2>Recent meetings</h2>
-      <ul>
+      <ul class="edoxen-recent-list">
         {recentMeetings.map((m) => (
           <li>
             <a href={`${prefix}meetings/${encodeURIComponent(m.urn)}`}>{pickLocalizedValue(m.title, lang, m.urn)}</a>
-            {m.startDate && <span> — {m.startDate}</span>}
+            {m.startDate && <span class="edoxen-recent-list__date">{m.startDate}</span>}
           </li>
         ))}
       </ul>
     </section>
   )}
 </BaseLayout>
+
+<style>
+.edoxen-home-hero {
+  padding-bottom: 0.5rem;
+}
+.edoxen-home-hero__lede {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: var(--edoxen-color-muted);
+  max-width: 62ch;
+}
+.edoxen-recent-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.edoxen-recent-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+.edoxen-recent-list li:last-child {
+  border-bottom: none;
+}
+.edoxen-recent-list a {
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-recent-list a:hover {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
+}
+.edoxen-recent-list__date {
+  font-size: 0.8125rem;
+  color: var(--edoxen-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+</style>

@@ -27,11 +27,11 @@ function hasRange(r?: DateRangeLike): boolean {
 ---
 
 {hasRange(scheduled) || hasRange(occurred) ? (
-  <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+  <dl class="edoxen-meeting-times">
     {hasRange(scheduled) && (
-      <div>
-        <dt class="text-xs font-semibold uppercase tracking-wide text-muted mb-0.5">Scheduled</dt>
-        <dd class="m-0 text-text">
+      <div class="edoxen-meeting-times__cell">
+        <dt>Scheduled</dt>
+        <dd>
           <time datetime={scheduled!.start}>{fmtDate(scheduled!.start)}</time>
           {scheduled!.start && scheduled!.end ? ' – ' : ''}
           <time datetime={scheduled!.end}>{fmtDate(scheduled!.end)}</time>
@@ -39,9 +39,9 @@ function hasRange(r?: DateRangeLike): boolean {
       </div>
     )}
     {hasRange(occurred) && (
-      <div>
-        <dt class="text-xs font-semibold uppercase tracking-wide text-muted mb-0.5">Occurred</dt>
-        <dd class="m-0 text-text">
+      <div class="edoxen-meeting-times__cell">
+        <dt>Occurred</dt>
+        <dd>
           <time datetime={occurred!.start}>{fmtDateTime(occurred!.start)}</time>
           {occurred!.start && occurred!.end ? ' – ' : ''}
           <time datetime={occurred!.end}>{fmtDateTime(occurred!.end)}</time>
@@ -50,3 +50,29 @@ function hasRange(r?: DateRangeLike): boolean {
     )}
   </dl>
 ) : null}
+
+<style>
+.edoxen-meeting-times {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+@media (min-width: 40rem) {
+  .edoxen-meeting-times {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.edoxen-meeting-times__cell {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+}
+.edoxen-meeting-times__cell dd {
+  margin: 0.25rem 0 0;
+  color: var(--edoxen-color-text);
+  font-variant-numeric: tabular-nums;
+}
+</style>

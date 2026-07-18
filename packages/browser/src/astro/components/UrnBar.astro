@@ -17,33 +17,29 @@ const { urn, label = 'URN', copyable = true } = Astro.props
 .edoxen-urn-bar {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.75rem;
+  gap: 0.625rem;
+  padding: 0.4375rem 0.875rem;
   border: 1px solid var(--edoxen-color-border);
   border-radius: var(--edoxen-radius-sm);
   background: var(--edoxen-color-surface);
-  font-size: 0.85rem;
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+  font-size: 0.875rem;
 }
 .edoxen-urn-bar__label {
   color: var(--edoxen-color-muted);
   text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 .edoxen-urn-bar__value {
   font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  background: none;
+  padding: 0;
 }
-.edoxen-urn-bar :global(.edoxen-urn-copy__button) {
-  border: 1px solid var(--edoxen-color-border);
-  background: var(--edoxen-color-background);
-  color: var(--edoxen-color-text);
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--edoxen-radius-sm);
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-.edoxen-urn-bar :global(.edoxen-urn-copy__button:hover) {
-  background: var(--edoxen-color-accent);
-  color: #fff;
+/* The copy button itself is styled globally in base.css (the island
+   creates it at runtime); only layout nudges belong here. */
+.edoxen-urn-bar :global(urn-copy) {
+  display: inline-flex;
 }
 </style>

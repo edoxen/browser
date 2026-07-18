@@ -7,23 +7,71 @@ const { minutes, locale } = Astro.props
 const sections = minutes.sections ?? []
 const spelling = minutes.spelling ?? locale
 ---
-<article class="border border-border rounded-sm p-4 px-5 bg-surface mb-4" data-spelling={spelling}>
-  <header>
-    <h3 class="m-0 mb-2 text-base">Minutes{spelling ? ` — ${spelling}` : ''}</h3>
-    {minutes.urn && <p class="m-0"><code class="font-mono text-xs text-accent">{minutes.urn}</code></p>}
+<article class="edoxen-minutes" data-spelling={spelling}>
+  <header class="edoxen-minutes__header">
+    <h3 class="edoxen-minutes__title">Minutes{spelling ? ` — ${spelling}` : ''}</h3>
+    {minutes.urn && <p class="edoxen-minutes__urn"><code>{minutes.urn}</code></p>}
   </header>
   {sections.map((section) => (
-    <section class="mt-4">
-      <h4 class="m-0 mb-2 text-sm font-semibold">{section.number}. {pickLocalizedValue(section.title, locale, '(untitled)')}</h4>
-      <div class="text-sm leading-relaxed whitespace-pre-wrap text-text">
+    <section class="edoxen-minutes__section">
+      <h4 class="edoxen-minutes__section-title">{section.number}. {pickLocalizedValue(section.title, locale, '(untitled)')}</h4>
+      <div class="edoxen-minutes__narrative">
         {pickLocalizedValue(section.narrative, locale)}
       </div>
       {(section.statements ?? []).length > 0 && (
-        <div class="mt-3">
-          <h5 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Statements</h5>
+        <div class="edoxen-minutes__statements">
+          <h5 class="edoxen-minutes__statements-label">Statements</h5>
           <StatementList statements={section.statements ?? []} locale={locale} />
         </div>
       )}
     </section>
   ))}
 </article>
+
+<style>
+.edoxen-minutes {
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+  padding: 1.125rem 1.375rem;
+  margin-bottom: 1.25rem;
+}
+.edoxen-minutes__title {
+  margin: 0 0 0.375rem;
+  font-size: 1.0625rem;
+}
+.edoxen-minutes__urn {
+  margin: 0;
+}
+.edoxen-minutes__urn code {
+  color: var(--edoxen-color-muted);
+}
+.edoxen-minutes__section {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edoxen-color-border);
+}
+.edoxen-minutes__section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.edoxen-minutes__narrative {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--edoxen-color-text);
+}
+.edoxen-minutes__statements {
+  margin-top: 1rem;
+}
+.edoxen-minutes__statements-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--edoxen-color-muted);
+}
+</style>

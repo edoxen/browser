@@ -46,6 +46,7 @@ const navHref = (href: string): string => `${prefix}${href}`.replace(/\/{2,}/g, 
     <slot name="head" />
   </head>
   <body>
+    <a href="#edoxen-content" class="edoxen-skip-link">Skip to content</a>
     <header class="edoxen-header">
       <a href={prefix} class="edoxen-header__brand">
         {config.theme.logos.primary && (
@@ -62,7 +63,7 @@ const navHref = (href: string): string => `${prefix}${href}`.replace(/\/{2,}/g, 
       </nav>
       {config.features.darkMode && <theme-toggle></theme-toggle>}
     </header>
-    <main class="edoxen-main">
+    <main class="edoxen-main" id="edoxen-content">
       <slot />
     </main>
     <footer class="edoxen-footer">
