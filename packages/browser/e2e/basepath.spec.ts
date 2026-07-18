@@ -16,6 +16,12 @@ test.describe('basePath site — links carry the deployment prefix', () => {
     await expect(page.locator('a.edoxen-header__brand')).toHaveAttribute('href', `${BASE}/`)
   })
 
+  test('home recent-item links carry the prefix', async ({ page }) => {
+    await page.goto(`${BASE}/`)
+    await expect(page.locator(`main a[href^="${BASE}/decisions/urn%3A"]`).first()).toBeVisible()
+    await expect(page.locator(`main a[href^="${BASE}/meetings/urn%3A"]`).first()).toBeVisible()
+  })
+
   test('decision list links are prefixed and navigable', async ({ page }) => {
     await page.goto(`${BASE}/decisions`)
     const link = page.locator(`main a[href="${BASE}/decisions/urn%3Atest%3Aresolution%3A1"]`).first()

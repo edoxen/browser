@@ -2,7 +2,7 @@
 import cfg from 'virtual:edoxen-config'
 import payloads from 'virtual:edoxen-payloads'
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { pickLocalizedValue } from '../../../i18n/index.js'
+import { pickLocalizedValue, urlPrefix } from '../../../i18n/index.js'
 
 export function getStaticPaths() {
   return cfg.locales
@@ -11,8 +11,7 @@ export function getStaticPaths() {
 }
 
 const lang = Astro.params.lang ?? cfg.site.locale
-const locEntry = cfg.locales.find((l) => l.code === lang)
-const localePrefix = locEntry?.routePrefix ? `/${locEntry.routePrefix}` : ''
+const prefix = urlPrefix(cfg, lang)
 const recentDecisions = payloads.decisionsList.items.slice(0, 5)
 const recentMeetings = payloads.meetingsList.items.slice(0, 3)
 ---
@@ -28,7 +27,7 @@ const recentMeetings = payloads.meetingsList.items.slice(0, 3)
     <ul>
       {recentDecisions.map((d) => (
         <li>
-          <a href={`decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
+          <a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
           {d.bodyType && <span class="edoxen-badge">{d.bodyType}</span>}
         </li>
       ))}
@@ -41,7 +40,7 @@ const recentMeetings = payloads.meetingsList.items.slice(0, 3)
       <ul>
         {recentMeetings.map((m) => (
           <li>
-            <a href={`meetings/${encodeURIComponent(m.urn)}`}>{pickLocalizedValue(m.title, lang, m.urn)}</a>
+            <a href={`${prefix}meetings/${encodeURIComponent(m.urn)}`}>{pickLocalizedValue(m.title, lang, m.urn)}</a>
             {m.startDate && <span> — {m.startDate}</span>}
           </li>
         ))}
