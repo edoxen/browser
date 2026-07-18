@@ -1,61 +1,49 @@
 # `@edoxen/browser`
 
-Astro-based browser for [edoxen](https://github.com/edoxen) YAML data.
-
-Drop YAML into `data/`, point `edoxen.config.ts` at it, ship a static
-site with resolutions, meetings, schedules, and full multilingual
-support.
+Astro-based static site generator for [edoxen](https://github.com/edoxen)
+YAML data: point it at decisions, meetings, and register YAML and ship a
+resolutions archive site — list and detail pages, search, facets, i18n,
+SEO, and JSON data endpoints.
 
 ## Features
 
 - **Resolutions & meetings** — list and detail pages generated from
-  edoxen v3.0 YAML (per-field `LocalizedString[]`, `scheduled_date_range`).
-- **Meeting detail pages** — each meeting renders:
-  - *When* — scheduled and occurred date ranges
-  - *Declarations* — conflict-of-interest and IPR declarations
-  - *Venue* — UN/LOCODE-resolved location (e.g. `JPNGS, JP` → `Nagasaki, Japan`)
-  - *Officers* — chair, secretary, and other roles
-  - *Schedule* — timed session components (`starts_at`/`ends_at`) grouped by
-    day with timezone labels
-  - *Agenda* — numbered business items table (item, title, outcome)
-  - *Deadlines* — registration and submission deadlines
-  - *Minutes* — structured narrative sections with per-section statements
-    (statement, comment, standpoint)
-  - *Adopted decisions* — links to resolutions passed at this meeting
-  - *Source documents* — external reference links
-- **Decision detail pages** — each resolution renders:
-  - Kind badge (configurable: "Resolution", "Recommendation", etc.)
-  - *Adopted at* — link back to the meeting that passed it
-  - *Subject*, *Considering*, *Considerations* — AsciiDoc-rendered prose
-  - *Actions* — typed action items with AsciiDoc messages
-  - *Approvals* — vote type, degree, date
-  - *Dates* — typed date list (adoption, effective, published)
-  - *Reference documents* — external links
-- **AsciiDoc rendering** — action messages, considerations, subject
-  fields, and minute narratives are converted from AsciiDoc to HTML at
-  build time (tables, inline formatting, source blocks).
-- **UN/LOCODE hydration** — meeting venues like `JPNGS, JP` are resolved
-  to `Nagasaki, Japan` automatically. Country names localized per
-  locale via `Intl.DisplayNames`.
+  edoxen YAML (per-field `LocalizedString[]`, `scheduled_date_range`).
+- **Meeting detail pages** — scheduled/occurred date ranges,
+  declarations, venue, officers, schedule components, agenda table,
+  deadlines, minutes sections, adopted decisions, and source documents.
+- **Register datasets** — contacts, venues, and bodies registers with
+  three-tier reference resolution (inline → meeting-scoped `local_ref`
+  → register `ref`) on meeting pages.
+- **Search & facets** — client-side search island over a build-time
+  JSON payload, with body/kind/year facet chips. Works without JS via a
+  server-rendered list fallback.
 - **Interface i18n** — 6 built-in UI languages (English, Français, 中文,
-  Español, العربية, Русский) with RTL support. Add any language via
-  `uiStrings`. Language switcher in the header.
-- **Configurable terminology** — call them "Resolutions", "Decisions",
-  "Recommendations" — your dataset, your labels.
+  Español, العربية, Русский), overridable and extensible via `uiStrings`.
+  Localized routes (`/[lang]/...`) for every non-default locale.
 - **Theme system** — colors, fonts, radius via CSS custom properties.
   Light/dark mode toggle.
-- **View transitions** — smooth page navigation with no flash of
-  unstyled content.
-- **SEO** — JSON-LD (`Legislation` / `Event` schemas), Open Graph,
-  canonical URLs, sitemap.
+- **SEO** — JSON-LD (`Legislation` / `Event`), Open Graph, canonical
+  URLs, sitemap.
+- **JSON data endpoints** — `/data/decisions.json`,
+  `/data/meetings.json`, `/data/registers.json` are served in dev and
+  written into the build output for client-side use.
+- **Two consumption modes** — embed as an Astro integration, or run
+  standalone from just a config file and data (see below).
 
 ## Installation
 
 ```bash
-pnpm add @edoxen/browser astro @edoxen/edoxen
+pnpm add @edoxen/browser
 ```
 
-## Quick start
+Peer dependencies you need in an integration (mode A) app: `astro`,
+`@edoxen/edoxen`. In standalone mode (mode B) the CLI brings its own
+Astro pipeline.
+
+## Mode A — Astro integration
+
+Use this when you already have (or want) your own Astro app:
 
 ```ts
 // edoxen.config.ts
@@ -68,12 +56,8 @@ export default defineConfig({
     url: 'https://example.org',
   },
   data: {
-    decisions: './data/resolutions',
+    decisions: './data/decisions',
     meetings: './data/meetings',
-  },
-  terminology: {
-    decisionLabel: 'Resolution',
-    decisionPluralLabel: 'Resolutions',
   },
 })
 ```
@@ -81,68 +65,178 @@ export default defineConfig({
 ```ts
 // astro.config.ts
 import { defineConfig } from 'astro/config'
-import browser from '@edoxen/browser'
+import sitemap from '@astrojs/sitemap'
+import browser from '@edoxen/browser/integration'
+import cfg from './edoxen.config'
 
 export default defineConfig({
-  integrations: [browser()],
+  site: cfg.site.url,
+  base: cfg.site.basePath === '/' ? undefined : cfg.site.basePath,
+  integrations: [browser({ config: cfg }), sitemap()],
 })
 ```
+
+Then `astro dev` / `astro build` as usual. The integration injects all
+routes (home, decisions, meetings, about, 404, plus `/[lang]/...`
+variants for every non-default locale), loads and validates the data,
+and serves the JSON endpoints. See `examples/minimal` and
+`examples/bilingual`.
+
+## Mode B — standalone (no Astro app)
+
+A downstream repo needs only a config file and data — no
+`astro.config.ts`, no `src/`:
+
+```
+my-archive/
+├── edoxen.config.ts     # same shape as mode A
+├── data/
+│   ├── decisions/
+│   ├── meetings/
+│   └── registers/
+└── package.json
+```
+
+```json
+{
+  "scripts": {
+    "dev": "edoxen-browser dev",
+    "build": "edoxen-browser build",
+    "preview": "edoxen-browser preview"
+  },
+  "dependencies": {
+    "@edoxen/browser": "^0.1.6"
+  }
+}
+```
+
+The CLI runs the full Astro pipeline against the package's bundled
+standalone root, bridging your resolved config (site, base path, output
+dir → `./dist` under your repo) and absolute data paths. See
+`examples/standalone`.
+
+`edoxen-browser build` detects the layout automatically: when an
+`astro.config.*` exists in the working directory it defers to the bare
+`astro` CLI (mode A behavior); otherwise it builds standalone.
+
+## CLI reference
+
+```
+edoxen-browser <command> [options]
+
+Commands:
+  validate       Validate the data + config without building (strict).
+  lint           Structural lint (duplicate URNs, broken relations).
+  check          validate + lint in one shot.
+  config         Print the resolved config as JSON.
+  build          Build the static site.
+  dev            Start the Astro dev server.
+  preview        Preview the built site.
+
+Options:
+  --config <path>   Path to edoxen.config.ts (default: ./edoxen.config.ts)
+  --cwd <path>      Working directory (default: process.cwd())
+  --strict          Treat warnings as errors (lint only).
+  --port <n>        Port for dev/preview (default: 4321).
+  --host [addr]     Expose dev/preview server on the network.
+```
+
+Note: `build`/`dev`/`preview` warn on schema validation errors and
+proceed (the Ruby edoxen gem is the canonical validator and the JS
+schema may lag); `validate` stays strict.
+
+## Data
+
+All data keys accept a single YAML file or a directory of `*.yaml`
+files:
+
+```ts
+data: {
+  decisions: './data/decisions',        // required
+  meetings: './data/meetings',          // optional
+  contacts: './data/registers/contacts.yaml',  // optional register
+  venues: './data/registers/venues.yaml',      // optional register
+  bodies: './data/registers/bodies.yaml',      // optional register
+}
+```
+
+### Registers and reference resolution
+
+Registers are scoped collections of reusable entities
+(`ContactRegister` / `VenueRegister` / `BodyRegister` from
+`@edoxen/edoxen`). Meetings (and other documents) can reference
+register entries instead of inlining them:
+
+```yaml
+venues:
+  - ref: urn:edoxen:venue:example:geneva-cicg   # → venues register
+committee:
+  ref: tc-154                                    # → bodies register (code)
+```
+
+Meeting pages resolve references the same way the Ruby gem's
+`EntityResolver` does, with graceful fallback to inline data:
+
+1. **Inline** — the entity carries full data (no `ref`/`local_ref`).
+2. **`local_ref`** — looked up in the meeting's own collections
+   (e.g. `meeting.venues`, matched by `urn`; bodies matched by `code`).
+3. **`ref`** — looked up in the global register (contacts/venues by
+   `urn`; bodies by `code` OR `ref`, mirroring
+   `BodyRegister#find_by_urn`).
+
+Resolved venues and committees render on the meeting detail page;
+unresolvable references fall back to whatever inline data is present.
+
+`data.agendas`, `data.minutes`, and `data.committee` are accepted by
+the config schema for forward compatibility but are **not currently
+loaded** — agendas and minutes belong inside meeting documents.
+
+## JSON data endpoints
+
+Both dev server and build output expose:
+
+- `GET /data/decisions.json` — decision list items (plain-string
+  titles) + facet values, consumed by the search island.
+- `GET /data/meetings.json` — meeting list items + facet values.
+- `GET /data/registers.json` — `{ contacts, venues, bodies }` register
+  documents (`null` when not configured).
+
+Under a `site.basePath` deployment the endpoints live under the prefix
+(e.g. `/resolutions/data/decisions.json`).
 
 ## Internationalization
 
 ### Built-in languages
 
 English (`eng`), French (`fra`), Chinese (`zho`), Spanish (`spa`),
-Arabic (`ara`, RTL), Russian (`rus`). Enable a subset via `locales`:
+Arabic (`ara`), Russian (`rus`). Enable a subset via `locales`:
 
 ```ts
 locales: [
   { code: 'eng', label: 'English', routePrefix: '' },
-  { code: 'fra', label: 'Français', routePrefix: '/fra' },
-  { code: 'ara', label: 'العربية', routePrefix: '/ara', rtl: true },
+  { code: 'fra', label: 'Français', routePrefix: 'fra' },
 ]
 ```
 
-The language switcher in the header lets users navigate between locales.
-Each locale gets its own URL prefix (e.g. `/fra/decisions/...`).
+Every locale with a non-empty `routePrefix` gets its own URL prefix
+(e.g. `/fra/decisions/...`). Decision detail pages show title-language
+tabs when a decision carries multiple spellings.
 
-### Adding a custom language
+### Custom translations
 
-Provide translations via `uiStrings`. Keys not provided fall back to
-English automatically. See [`docs/i18n-keys.yaml`](./docs/i18n-keys.yaml)
-for the full list of 54 translatable strings.
+Provide translations via `uiStrings`; missing keys fall back to
+English. See [`docs/i18n-keys.yaml`](./docs/i18n-keys.yaml) for the full
+list of translatable strings — including section titles such as
+`section.adoptedDecisions` ("Resolutions"), which is how you rename the
+adopted-decisions section on meeting pages.
 
 ```ts
-locales: [
-  { code: 'eng', label: 'English', routePrefix: '' },
-  { code: 'deu', label: 'Deutsch', routePrefix: '/deu' },
-],
 uiStrings: {
   deu: {
     'nav.home': 'Startseite',
     'nav.decisions': 'Beschlüsse',
-    'section.venue': 'Veranstaltungsort',
-    // ... see docs/i18n-keys.yaml for all keys
+    'section.adoptedDecisions': 'Beschlüsse',
   },
-}
-```
-
-### RTL languages
-
-Set `rtl: true` on any locale entry. The `<html dir="rtl">` attribute
-is applied automatically.
-
-## Terminology
-
-Different datasets call their entities different things. Use
-`terminology` to match your domain:
-
-```ts
-terminology: {
-  decisionLabel: 'Resolution',        // singular, shown as a badge
-  decisionPluralLabel: 'Resolutions', // plural, shown in back-links
-  meetingLabel: 'Meeting',
-  meetingPluralLabel: 'Meetings',
 }
 ```
 
@@ -155,18 +249,32 @@ config or plain CSS:
 theme: {
   primary: '#0a2540',
   accent: '#0d7377',
-  surface: '#ffffff',
-  background: '#faf9f7',
   // ... see src/config/schema.ts for all options
 }
 ```
 
-## Data format
+## Config reference
 
-The browser reads edoxen v3.0 YAML — per-field `LocalizedString[]`
-(`{ spelling, value }`), `scheduled_date_range`, native `body_type`.
-See the [edoxen model](https://github.com/edoxen/edoxen) for schema
-details. Test fixtures are in `test/fixtures/`.
+| Key | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `site.title` | string | — | required |
+| `site.description` | string | `''` | meta description fallback |
+| `site.url` | string (URL) | — | required; used for canonical/OG/sitemap |
+| `site.basePath` | string | `'/'` | deploy prefix, e.g. `/resolutions/` |
+| `site.locale` | string | `'en'` | default locale (ISO 639-1/3) |
+| `data.decisions` | path | — | required |
+| `data.meetings` | path | — | optional |
+| `data.contacts` / `data.venues` / `data.bodies` | path | — | optional register datasets |
+| `data.agendas` / `data.minutes` / `data.committee` | path | — | reserved; not loaded |
+| `output.dir` | string | `'./dist'` | build output directory (used by the CLI in standalone mode; mode A uses Astro's own `outDir`) |
+| `output.sitemap` / `output.robots` | boolean | `true` | reserved; sitemap is wired in the Astro configs, not via this flag |
+| `bodies` | array | `[{ code: 'committee', name: 'Committee' }]` | body badge labels/colors |
+| `locales` | array | `[{ code: 'en', label: 'English', routePrefix: '' }]` | UI locales; non-empty `routePrefix` adds `/[lang]/` routes |
+| `theme` | object | defaults | color/font/radius tokens |
+| `nav` | array | `[]` | header nav items (`label`, `href`, optional `locale`) |
+| `social` | array | `[]` | footer social links |
+| `features` | object | defaults | feature flags; only `darkMode` is currently wired — the rest (`search`, `timeline`, `urnCopy`, `doi`, `printStyles`, `pagination`) are accepted but not yet honored |
+| `uiStrings` | record | `{}` | per-locale UI string overrides |
 
 ## Known limitations
 
@@ -181,6 +289,16 @@ not yet provide:
 
 Consumers who need full layout/behavior control should fork the
 components or wait for the planned component-override API.
+
+## Development
+
+```bash
+pnpm install
+pnpm -F @edoxen/browser test        # unit tests (vitest)
+pnpm typecheck                      # tsc across the workspace
+pnpm test:e2e                       # playwright suite (needs chromium:
+                                    #   pnpm -F @edoxen/browser exec playwright install chromium)
+```
 
 ## License
 
