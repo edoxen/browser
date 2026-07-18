@@ -1,12 +1,16 @@
 import type {
   Action,
   Approval,
+  Body,
   Consideration,
+  Contact,
   Decision,
   EdoxenProject,
+  LoadedRegisters,
   LocalizedString,
   Meeting,
   StructuredIdentifier,
+  Venue,
 } from '@edoxen/edoxen'
 
 export interface DecisionListItem {
@@ -74,6 +78,9 @@ export interface PagePayloads {
   readonly decisionsByMeetingUrn: Readonly<Record<string, readonly DecisionListItem[]>>
   readonly meetingLinkByDecisionId: Readonly<Record<string, DecisionMeetingLink>>
   readonly agendaItemByUrn: Readonly<Record<string, AgendaItemLink>>
+  readonly contactByUrn: Readonly<Record<string, Contact>>
+  readonly venueByUrn: Readonly<Record<string, Venue>>
+  readonly bodyByCode: Readonly<Record<string, Body>>
 }
 
 const AGENDA_SEGMENT = 'agenda'
@@ -237,7 +244,86 @@ function buildAgendaItemByUrn(meetings: readonly Meeting[]): Readonly<Record<str
   return out
 }
 
-export function preparePayloads(project: EdoxenProject): PagePayloads {
+function buildContactByUrn(contacts: readonly Contact[]): Readonly<Record<string, Contact>> {
+  const out: Record<string, Contact> = {}
+  for (const c of contacts) {
+    if (c.urn && !out[c.urn]) out[c.urn] = c
+  }
+  return out
+}
+
+function buildVenueByUrn(venues: readonly Venue[]): Readonly<Record<string, Venue>> {
+  const out: Record<string, Venue> = {}
+  for (const v of venues) {
+    if (v.urn && !out[v.urn]) out[v.urn] = v
+  }
+  return out
+}
+
+// Bodies carry no urn of their own — the gem's BodyRegister#find_by_urn
+// matches on `code` OR `ref`, so the map is keyed by both.
+function buildBodyByCode(bodies: readonly Body[]): Readonly<Record<string, Body>> {
+  const out: Record<string, Body> = {}
+  for (const b of bodies) {
+    if (b.code && !out[b.code]) out[b.code] = b
+    if (b.ref && !out[b.ref]) out[b.ref] = b
+  }
+  return out
+}
+
+// Three-tier entity resolution, mirroring the gem's EntityResolver:
+//   1. Inline — no ref/local_ref: the entity carries full data already.
+//   2. local_ref — look up in the document-scoped collection (e.g.
+//      Meeting#venues) by matching the member's key (urn; code for Body).
+//   3. ref — look up in the global register map.
+// Unresolvable references fall back to the entity as given.
+interface ReferencedEntity {
+  readonly ref?: string
+  readonly local_ref?: string
+}
+
+function resolveEntity<T extends ReferencedEntity>(
+  entity: T,
+  keyOf: (member: T) => string | undefined,
+  scoped: readonly T[] | undefined,
+  register: Readonly<Record<string, T>>,
+): T {
+  if (entity.local_ref && entity.local_ref.length > 0) {
+    const hit = scoped?.find((m) => keyOf(m) === entity.local_ref)
+    if (hit) return hit
+  }
+  if (entity.ref && entity.ref.length > 0) {
+    const hit = register[entity.ref]
+    if (hit) return hit
+  }
+  return entity
+}
+
+export function resolveVenue(
+  venue: Venue,
+  scoped: readonly Venue[] | undefined,
+  register: Readonly<Record<string, Venue>>,
+): Venue {
+  return resolveEntity(venue, (v) => v.urn, scoped, register)
+}
+
+export function resolveContact(
+  contact: Contact,
+  scoped: readonly Contact[] | undefined,
+  register: Readonly<Record<string, Contact>>,
+): Contact {
+  return resolveEntity(contact, (c) => c.urn, scoped, register)
+}
+
+export function resolveBody(
+  body: Body,
+  scoped: readonly Body[] | undefined,
+  register: Readonly<Record<string, Body>>,
+): Body {
+  return resolveEntity(body, (b) => b.code, scoped, register)
+}
+
+export function preparePayloads(project: EdoxenProject, registers?: LoadedRegisters): PagePayloads {
   const decisionByUrn: Record<string, Decision> = {}
   for (const d of project.decisions) {
     if (d.urn) decisionByUrn[d.urn] = d
@@ -268,6 +354,9 @@ export function preparePayloads(project: EdoxenProject): PagePayloads {
     decisionsByMeetingUrn,
     meetingLinkByDecisionId,
     agendaItemByUrn,
+    contactByUrn: buildContactByUrn(registers?.contacts?.contacts ?? []),
+    venueByUrn: buildVenueByUrn(registers?.venues?.venues ?? []),
+    bodyByCode: buildBodyByCode(registers?.bodies?.bodies ?? []),
   }
 }
 

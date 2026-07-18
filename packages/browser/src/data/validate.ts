@@ -1,10 +1,11 @@
-import { validateDecisions, validateMeetings, type ValidateResult } from '@edoxen/edoxen'
+import { validateDecisions, validateMeetings, validateRegisters, type ValidateResult } from '@edoxen/edoxen'
 
 import type { LoadedData } from './load.js'
 
 export interface ValidationReport {
   decisions?: ValidateResult
   meetings?: ValidateResult
+  registers?: ValidateResult
   valid: boolean
 }
 
@@ -34,5 +35,15 @@ export async function validateAll(data: LoadedData): Promise<ValidationReport> {
     if (!result.valid) valid = false
   }
 
-  return { decisions: report.decisions, meetings: report.meetings, valid }
+  if (data.registers) {
+    const result = await validateRegisters({
+      contacts: data.registers.contacts,
+      venues: data.registers.venues,
+      bodies: data.registers.bodies,
+    })
+    report.registers = result
+    if (!result.valid) valid = false
+  }
+
+  return { decisions: report.decisions, meetings: report.meetings, registers: report.registers, valid }
 }

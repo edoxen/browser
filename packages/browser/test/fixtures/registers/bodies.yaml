@@ -1,0 +1,17 @@
+---
+scope: test
+title:
+  - spelling: eng
+    value: Test body register
+bodies:
+  - code: tc-154
+    kind: technical-committee
+    name:
+      - spelling: eng
+        value: ISO/TC 154
+  - code: ciml
+    kind: committee
+    ref: urn:edoxen:body:test:ciml
+    name:
+      - spelling: eng
+        value: CIML

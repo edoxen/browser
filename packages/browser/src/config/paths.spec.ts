@@ -13,6 +13,9 @@ describe('resolveDataPaths', () => {
     expect(paths).toEqual({
       decisions: './data/decisions',
       meetings: null,
+      contacts: null,
+      venues: null,
+      bodies: null,
       agendas: null,
       minutes: null,
       committee: null,
@@ -23,12 +26,18 @@ describe('resolveDataPaths', () => {
     const paths = resolveDataPaths(cfg({
       decisions: './data/decisions',
       meetings: './data/meetings',
+      contacts: './data/contacts.yaml',
+      venues: './data/venues.yaml',
+      bodies: './data/bodies.yaml',
       agendas: './data/agendas',
       minutes: './data/minutes',
       committee: './data/committee.yaml',
     }))
     expect(paths.committee).toBe('./data/committee.yaml')
     expect(paths.minutes).toBe('./data/minutes')
+    expect(paths.contacts).toBe('./data/contacts.yaml')
+    expect(paths.venues).toBe('./data/venues.yaml')
+    expect(paths.bodies).toBe('./data/bodies.yaml')
   })
 })
 
@@ -41,11 +50,14 @@ describe('activeDataKeys', () => {
     const keys = activeDataKeys(cfg({
       decisions: './d',
       meetings: './m',
+      contacts: './c.yaml',
+      venues: './v.yaml',
+      bodies: './b.yaml',
       agendas: './a',
       minutes: './min',
       committee: './c.yaml',
     }))
-    expect(keys).toEqual(['decisions', 'meetings', 'agendas', 'minutes', 'committee'])
+    expect(keys).toEqual(['decisions', 'meetings', 'contacts', 'venues', 'bodies', 'agendas', 'minutes', 'committee'])
   })
 
   it('keeps stable order regardless of object key order', () => {
@@ -53,7 +65,8 @@ describe('activeDataKeys', () => {
       committee: './c.yaml',
       decisions: './d',
       meetings: './m',
+      venues: './v.yaml',
     }))
-    expect(keys).toEqual(['decisions', 'meetings', 'committee'])
+    expect(keys).toEqual(['decisions', 'meetings', 'venues', 'committee'])
   })
 })

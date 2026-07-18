@@ -22,6 +22,9 @@ export type SiteConfig = z.infer<typeof SiteSchema>
 export const DataSchema = z.object({
   decisions: z.string().regex(PATH_RE),
   meetings: z.string().regex(PATH_RE).optional(),
+  contacts: z.string().regex(PATH_RE).optional(),
+  venues: z.string().regex(PATH_RE).optional(),
+  bodies: z.string().regex(PATH_RE).optional(),
   agendas: z.string().regex(PATH_RE).optional(),
   minutes: z.string().regex(PATH_RE).optional(),
   committee: z.string().regex(PATH_RE).optional(),
