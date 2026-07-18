@@ -9,6 +9,7 @@
     "dev": "pnpm -F @edoxen/browser dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
+    "test:e2e": "pnpm -F @edoxen/browser test:e2e",
     "typecheck": "pnpm -r --parallel typecheck",
     "changeset": "changeset",
     "version": "changeset version",

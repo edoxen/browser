@@ -55,6 +55,8 @@
     "prepublishOnly": "pnpm build:cli",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "pretest:e2e": "pnpm build:cli",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {

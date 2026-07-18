@@ -9,6 +9,9 @@ TODO.browser/
 *.tsbuildinfo
 .vite/
 dist-playground/
+test-results/
+playwright-report/
+blob-report/
 .env
 .env.local
 TODO.tailwind/
