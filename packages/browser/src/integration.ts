@@ -17,6 +17,7 @@ import {
   type PagePayloads,
 } from './data/index.js'
 import { EdoxenBrowserError, formatValidationErrors } from './errors.js'
+import { pickLocalizedValue } from './i18n/index.js'
 
 export interface IntegrationOptions {
   config: EdoxenConfigInput
@@ -136,9 +137,15 @@ const VIRTUAL_PAYLOADS = 'virtual:edoxen-payloads'
 type DataEndpointName = 'decisions' | 'meetings' | 'registers'
 
 function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): string {
+  const locale = cache.config.site.locale
   if (name === 'decisions') {
     return JSON.stringify({
-      items: cache.payloads.decisionsList.items,
+      // The search-filter island consumes SearchableItem.title as a plain
+      // string — flatten the LocalizedString[] titles for the default locale.
+      items: cache.payloads.decisionsList.items.map((d) => ({
+        ...d,
+        title: pickLocalizedValue(d.title, locale),
+      })),
       facetBodies: [...cache.payloads.decisionsList.facets.bodies],
       facetKinds: [...cache.payloads.decisionsList.facets.kinds],
       facetYears: [...cache.payloads.decisionsList.facets.years],
@@ -152,7 +159,10 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
     })
   }
   return JSON.stringify({
-    items: cache.payloads.meetingsList.items,
+    items: cache.payloads.meetingsList.items.map((m) => ({
+      ...m,
+      title: pickLocalizedValue(m.title, locale),
+    })),
     facetDecades: [...cache.payloads.meetingsList.facets.decades],
     facetBodies: [...cache.payloads.meetingsList.facets.bodies],
     facetCountries: [...cache.payloads.meetingsList.facets.countries],
