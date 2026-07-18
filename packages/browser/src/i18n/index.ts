@@ -76,14 +76,6 @@ export function pickLocalizedString(
   return list[0] ?? null
 }
 
-export function pickLocalizedValue(
-  list: readonly LocalizedString[] | undefined,
-  locale: string,
-  fallback = '',
-): string {
-  return pickLocalizedString(list, locale)?.value ?? fallback
-}
-
 export function availableSpellings(list: readonly LocalizedString[] | undefined): readonly string[] {
   if (!list) return []
   return [...new Set(list.map((ls) => ls.spelling).filter((s): s is string => Boolean(s)))].sort()
@@ -100,3 +92,34 @@ export {
   type UiStrings,
   type CustomUiStrings,
 } from './ui.js'
+
+/**
+ * Compute the full URL prefix for a given locale: basePath + localePrefix.
+ * Use this to build hrefs that work under a sub-path deployment.
+ *
+ *   urlPrefix(config, 'en') → '/resolutions/'
+ *   urlPrefix(config, 'fr') → '/resolutions/fr/'
+ */
+export function urlPrefix(
+  config: { site: { basePath: string }; locales: ReadonlyArray<{ code: string; routePrefix?: string }> },
+  locale: string,
+): string {
+  const base = config.site.basePath
+  const entry = config.locales.find((l) => l.code === locale)
+  const rp = entry?.routePrefix ?? ''
+  const localePrefix = rp ? `/${rp}` : ''
+  return `${base}${localePrefix}/`.replace(/\/{2,}/g, '/')
+}
+
+// Re-export pickLocalizedValue with a guard for non-array input
+// (some legacy data may carry scalar strings instead of LocalizedString[])
+
+export function pickLocalizedValue(
+  list: readonly LocalizedString[] | undefined | string,
+  locale: string,
+  fallback = '',
+): string {
+  if (typeof list === 'string') return list
+  if (!Array.isArray(list)) return fallback
+  return pickLocalizedString(list, locale)?.value ?? fallback
+}

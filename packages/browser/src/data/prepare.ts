@@ -60,6 +60,12 @@ export interface DecisionMeetingLink {
   readonly kind?: string
 }
 
+export interface AgendaItemLink {
+  readonly meetingUrn: string
+  readonly agendaItemUrn: string
+  readonly label: string
+}
+
 export interface PagePayloads {
   readonly decisionsList: DecisionListPayload
   readonly meetingsList: MeetingListPayload
@@ -67,6 +73,13 @@ export interface PagePayloads {
   readonly meetingByUrn: Readonly<Record<string, Meeting>>
   readonly decisionsByMeetingUrn: Readonly<Record<string, readonly DecisionListItem[]>>
   readonly meetingLinkByDecisionId: Readonly<Record<string, DecisionMeetingLink>>
+  readonly agendaItemByUrn: Readonly<Record<string, AgendaItemLink>>
+}
+
+const AGENDA_SEGMENT = 'agenda'
+
+function agendaItemUrnOf(meetingUrn: string, label: string): string {
+  return `${meetingUrn}:${AGENDA_SEGMENT}:${label}`
 }
 
 function formatIdentifier(ids: readonly StructuredIdentifier[] | undefined): string {
@@ -201,6 +214,29 @@ function buildMeetingLinkByDecisionId(meetings: readonly Meeting[]): Readonly<Re
   return out
 }
 
+// Walk every meeting's agenda items and compute a first-class URN for each.
+// Items that already carry their URN in source data are kept as-is; the rest
+// are derived from the parent meeting URN + label so consumers can deep-link
+// to /meetings/{meeting}#agenda-{label} via a stable identifier.
+function buildAgendaItemByUrn(meetings: readonly Meeting[]): Readonly<Record<string, AgendaItemLink>> {
+  const out: Record<string, AgendaItemLink> = {}
+  for (const m of meetings) {
+    const meetingUrn = m.urn
+    if (!meetingUrn) continue
+    const items = (m.agenda as { items?: readonly { urn?: string; label?: string }[] } | undefined)?.items
+    if (!items) continue
+    for (const item of items) {
+      const label = item.label
+      if (!label) continue
+      const urn = item.urn && item.urn.length > 0 ? item.urn : agendaItemUrnOf(meetingUrn, label)
+      if (!out[urn]) {
+        out[urn] = { meetingUrn, agendaItemUrn: urn, label }
+      }
+    }
+  }
+  return out
+}
+
 export function preparePayloads(project: EdoxenProject): PagePayloads {
   const decisionByUrn: Record<string, Decision> = {}
   for (const d of project.decisions) {
@@ -212,6 +248,7 @@ export function preparePayloads(project: EdoxenProject): PagePayloads {
   }
 
   const meetingLinkByDecisionId = buildMeetingLinkByDecisionId(project.meetings)
+  const agendaItemByUrn = buildAgendaItemByUrn(project.meetings)
 
   const decisionsList = prepareDecisionsList(project)
   const decisionsByMeetingUrn: Record<string, readonly DecisionListItem[]> = {}
@@ -230,6 +267,7 @@ export function preparePayloads(project: EdoxenProject): PagePayloads {
     meetingByUrn,
     decisionsByMeetingUrn,
     meetingLinkByDecisionId,
+    agendaItemByUrn,
   }
 }
 

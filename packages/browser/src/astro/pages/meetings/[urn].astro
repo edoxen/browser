@@ -10,8 +10,7 @@ import MinutesSection from '../../components/MinutesSection.astro'
 import MeetingTimes from '../../components/MeetingTimes.astro'
 import DeclarationList from '../../components/DeclarationList.astro'
 import { meetingJsonLd } from '../../../seo/index.js'
-import { pickLocalizedValue } from '../../../i18n/index.js'
-import { urnToPath } from '../../../urn.js'
+import { pickLocalizedValue, t, urlPrefix } from '../../../i18n/index.js'
 
 export function getStaticPaths() {
   return Object.keys(payloads.meetingByUrn).filter(urn => !urn.includes('/')).map((urn) => ({
@@ -34,6 +33,7 @@ const deadlines = meeting.deadlines ?? []
 const linkedDecisions = payloads.decisionsByMeetingUrn[meeting.urn ?? ''] ?? []
 const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale })
 const venueName = (meeting.venues ?? [])[0]?.name
+const prefix = urlPrefix(cfg, locale)
 ---
 
 <MeetingLayout
@@ -123,10 +123,10 @@ const venueName = (meeting.venues ?? [])[0]?.name
 
   {linkedDecisions.length > 0 && (
     <section>
-      <h2>{cfg.terminology.decisionPluralLabel}</h2>
+      <h2>{t('section.adoptedDecisions', locale, cfg.uiStrings)}</h2>
       <ul>
         {linkedDecisions.map((d) => (
-          <li><a href={`decisions/${urnToPath(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
+          <li><a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
         ))}
       </ul>
     </section>
