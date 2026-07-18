@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "private": true,
   "type": "module",
-  "description": "Standalone-mode @edoxen/browser example — no astro.config, no src/, just edoxen.config.ts + data + the CLI.",
+  "description": "Standalone-mode @edoxen/browser showcase — no astro.config: edoxen.config.ts + data + src/styles/override.css theming demo.",
   "scripts": {
     "dev": "edoxen-browser dev",
     "build": "edoxen-browser build",

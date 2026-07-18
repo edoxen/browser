@@ -21,8 +21,9 @@ SEO, and JSON data endpoints.
 - **Interface i18n** — 6 built-in UI languages (English, Français, 中文,
   Español, العربية, Русский), overridable and extensible via `uiStrings`.
   Localized routes (`/[lang]/...`) for every non-default locale.
-- **Theme system** — colors, fonts, radius via CSS custom properties.
-  Light/dark mode toggle.
+- **Warm professional theme** — complete default look (serif display
+  headings, warm paper palette, dark mode) driven by `--edoxen-*`
+  tokens; re-theme via config or a consumer override stylesheet.
 - **SEO** — JSON-LD (`Legislation` / `Event`), Open Graph, canonical
   URLs, sitemap.
 - **JSON data endpoints** — `/data/decisions.json`,
@@ -242,16 +243,100 @@ uiStrings: {
 
 ## Theming
 
-All visual tokens are CSS custom properties, overridable via `theme`
-config or plain CSS:
+The default look is **elegant professional warm**: a warm paper canvas
+(`#faf8f6`), warm charcoal ink, a serif display face for the site title
+and headings (system stacks only — Georgia/Palatino/Iowan, no webfont
+download), a deep warm teal accent (`#0f766e`), hairline borders, and
+soft card shadows. It is complete out of the box — no consumer CSS
+required — and meets WCAG AA contrast in both light and dark mode.
+
+### How the cascade works
+
+1. `generateCssTokens(theme)` emits a `:root` block of `--edoxen-*`
+   custom properties from your config, inlined first in `<head>`.
+2. The package's `base.css` consumes those tokens via
+   `var(--edoxen-x, fallback)` — it never re-declares them, so config
+   always wins over the stylesheet fallbacks.
+3. Your override stylesheet (see below) loads last and wins everything.
+
+### Token reference
+
+Set via `theme.*` in `edoxen.config.ts` (emitted as `--edoxen-color-*`
+etc.):
+
+| Config key | Token | Light default | Dark default | Used for |
+| --- | --- | --- | --- | --- |
+| `theme.primary` | `--edoxen-color-primary` | `#1c1917` | `#f5f5f4` | headings, brand |
+| `theme.accent` | `--edoxen-color-accent` | `#0f766e` | `#2dd4bf` | links, interactive |
+| `theme.surface` | `--edoxen-color-surface` | `#ffffff` | `#292524` | cards, panels |
+| `theme.background` | `--edoxen-color-background` | `#faf8f6` | `#1c1917` | page canvas |
+| `theme.text` | `--edoxen-color-text` | `#292524` | `#e7e5e4` | body text |
+| `theme.muted` | `--edoxen-color-muted` | `#78716c` | `#a8a29e` | secondary text |
+| `theme.border` | `--edoxen-color-border` | `#e7e5e4` | `#44403c` | hairlines |
+| `theme.success` | `--edoxen-color-success` | `#15803d` | — | status tints |
+| `theme.warning` | `--edoxen-color-warning` | `#b45309` | — | status tints |
+| `theme.danger` | `--edoxen-color-danger` | `#b91c1c` | — | status tints |
+| `theme.fontFamily` | `--edoxen-font-sans` | system-ui stack | — | body font |
+| `theme.radius` | `--edoxen-radius-sm` | `0.5rem` | — | corner radius |
+
+Dark values come from `theme.dark.*` and apply under
+`[data-theme="dark"]` (the header toggle persists the choice in
+`localStorage`; the OS preference is the default). Status colors have
+no dark override — they are only used in tinted chips that work in
+both themes.
+
+Additional hooks the config cannot set directly are available through
+`theme.customProperties` (each entry becomes a `--edoxen-*` token):
+
+| Token | Fallback in base.css | Used for |
+| --- | --- | --- |
+| `--edoxen-font-display` | Iowan/Palatino/Georgia serif stack | title + headings |
+| `--edoxen-font-mono` | ui-monospace stack | URNs, dates, code |
+| `--edoxen-spacing-page` | `1.5rem` | page side padding |
+| `--edoxen-shadow-sm` / `--edoxen-shadow-md` | warm soft shadows | cards, hover lift |
 
 ```ts
 theme: {
-  primary: '#0a2540',
-  accent: '#0d7377',
-  // ... see src/config/schema.ts for all options
+  accent: '#9a3412',
+  customProperties: {
+    fontDisplay: "'Fraunces', Georgia, serif",
+  },
 }
 ```
+
+### Stylesheet override (`override.css` / `theme.customCss`)
+
+For anything tokens cannot express, drop a stylesheet at
+`src/styles/override.css` in your site root (convention), or point
+`theme.customCss` at any path (resolved against the site root). The
+file is bundled **after** the package's `base.css`, so it wins the
+cascade — this is where webfont imports, token re-points, and bespoke
+rules live:
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap');
+
+:root {
+  --edoxen-font-display: 'Fraunces', Georgia, serif;
+}
+
+.edoxen-header__brand {
+  letter-spacing: -0.025em;
+}
+```
+
+Works identically in both consumption modes (integration and
+standalone). `examples/standalone/src/styles/override.css` is a
+commented reference implementation.
+
+### What the examples demonstrate
+
+| Example | Demonstrates |
+| --- | --- |
+| `examples/minimal` | The default theme, untouched — one config, no CSS. |
+| `examples/standalone` | Full showcase: explicit light+dark palette, radius, logos, nav, social, feature flags, and the `src/styles/override.css` convention (webfont + token overrides + custom rule). Standalone mode: no `astro.config`. |
+| `examples/bilingual` | Localized routes (`/fr/...`) with the default theme. |
+| `examples/multibody` | Multiple bodies with per-body badge colors. |
 
 ## Config reference
 
@@ -270,7 +355,7 @@ theme: {
 | `output.sitemap` / `output.robots` | boolean | `true` | reserved; sitemap is wired in the Astro configs, not via this flag |
 | `bodies` | array | `[{ code: 'committee', name: 'Committee' }]` | body badge labels/colors |
 | `locales` | array | `[{ code: 'en', label: 'English', routePrefix: '' }]` | UI locales; non-empty `routePrefix` adds `/[lang]/` routes |
-| `theme` | object | defaults | color/font/radius tokens |
+| `theme` | object | defaults | color/font/radius tokens, `customProperties`, `customCss` override — see Theming |
 | `nav` | array | `[]` | header nav items (`label`, `href`, optional `locale`) |
 | `social` | array | `[]` | footer social links |
 | `features` | object | defaults | feature flags; only `darkMode` is currently wired — the rest (`search`, `timeline`, `urnCopy`, `doi`, `printStyles`, `pagination`) are accepted but not yet honored |
