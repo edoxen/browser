@@ -16,13 +16,21 @@ const style = color ? `background:${color};color:#fff` : undefined
 
 <style>
 .edoxen-action-badge {
-  display: inline-block;
-  padding: 0.15rem 0.55rem;
-  border-radius: var(--edoxen-radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-transform: capitalize;
   background: var(--edoxen-color-muted);
   color: #fff;
-  text-transform: capitalize;
+  background: color-mix(in srgb, var(--edoxen-color-muted) 13%, transparent);
+  color: var(--edoxen-color-text);
+  border: 1px solid color-mix(in srgb, var(--edoxen-color-muted) 28%, transparent);
 }
 </style>

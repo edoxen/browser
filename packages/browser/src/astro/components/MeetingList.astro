@@ -43,24 +43,39 @@ const listClass = compact ? 'edoxen-meeting-list edoxen-meeting-list--compact' :
   gap: 0.75rem;
 }
 .edoxen-meeting-list__item {
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.125rem;
   border: 1px solid var(--edoxen-color-border);
   border-radius: var(--edoxen-radius-sm);
   background: var(--edoxen-color-surface);
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+  transition: border-color 150ms ease, box-shadow 150ms ease,
+    transform 150ms ease;
+}
+.edoxen-meeting-list__item:hover {
+  border-color: color-mix(in srgb, var(--edoxen-color-accent) 55%, var(--edoxen-color-border));
+  box-shadow: var(--edoxen-shadow-md, 0 4px 12px rgb(28 25 23 / 0.08));
+  transform: translateY(-1px);
 }
 .edoxen-meeting-list__item a {
-  font-weight: 500;
-  color: var(--edoxen-color-text);
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-meeting-list__item a:hover {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
 }
 .edoxen-meeting-list__meta {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.25rem 1rem;
   margin: 0.5rem 0 0;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   color: var(--edoxen-color-muted);
 }
-.edoxen-meeting-list__meta dt {
-  font-weight: 500;
+.edoxen-meeting-list__meta dd {
+  margin: 0;
 }
 </style>

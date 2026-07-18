@@ -24,21 +24,26 @@ const { spellings, active, field } = Astro.props
   margin: 0.5rem 0 1rem;
   padding: 0.25rem;
   border: 1px solid var(--edoxen-color-border);
-  border-radius: var(--edoxen-radius-sm);
-  background: var(--edoxen-color-surface);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--edoxen-color-text) 4%, transparent);
 }
 .edoxen-locale-tabs__tab {
   border: 0;
   background: transparent;
   color: var(--edoxen-color-muted);
-  padding: 0.25rem 0.6rem;
-  border-radius: calc(var(--edoxen-radius-sm) * 0.75);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
   font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.edoxen-locale-tabs__tab:hover {
+  color: var(--edoxen-color-primary);
 }
 .edoxen-locale-tabs__tab[aria-pressed='true'] {
   background: var(--edoxen-color-accent);
-  color: #fff;
+  color: var(--edoxen-color-background);
 }
 </style>

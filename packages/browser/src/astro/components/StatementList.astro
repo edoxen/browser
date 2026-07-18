@@ -14,10 +14,12 @@ const kindLabel: Record<string, string> = {
   standpoint: 'Standpoint',
 }
 
-const kindBadgeClass: Record<string, string> = {
-  statement: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  comment: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  standpoint: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+// Kind chips are soft tints of the shared status tokens, so consumer
+// re-theming flows through automatically.
+const kindToken: Record<string, string> = {
+  statement: 'var(--edoxen-color-accent)',
+  comment: 'var(--edoxen-color-muted)',
+  standpoint: 'var(--edoxen-color-warning)',
 }
 
 function personDisplay(person: { name?: { formatted?: string }[] }): string {
@@ -30,23 +32,68 @@ function personDisplay(person: { name?: { formatted?: string }[] }): string {
 ---
 
 {statements.length > 0 && (
-  <ul class="space-y-3 m-0 p-0 list-none">
+  <ul class="edoxen-statement-list">
     {statements.map((stmt) => (
-      <li class="border-l-2 border-border pl-3 py-1">
-        <div class="flex items-center gap-2 mb-1">
+      <li class="edoxen-statement-list__item">
+        <div class="edoxen-statement-list__head">
           {stmt.kind && (
-            <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded ${kindBadgeClass[stmt.kind] ?? kindBadgeClass.statement}`}>
+            <span
+              class="edoxen-statement-list__kind"
+              style={`--_kind:${kindToken[stmt.kind] ?? kindToken.statement}`}
+            >
               {kindLabel[stmt.kind] ?? stmt.kind}
             </span>
           )}
           {(stmt.party ?? []).length > 0 && (
-            <span class="text-xs text-muted">
+            <span class="edoxen-statement-list__party">
               {(stmt.party ?? []).map(personDisplay).filter(Boolean).join(', ')}
             </span>
           )}
         </div>
-        <p class="text-sm m-0 text-text">{pickLocalizedValue(stmt.description, locale)}</p>
+        <p class="edoxen-statement-list__text">{pickLocalizedValue(stmt.description, locale)}</p>
       </li>
     ))}
   </ul>
 )}
+
+<style>
+.edoxen-statement-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+.edoxen-statement-list__item {
+  border-left: 2px solid var(--edoxen-color-border);
+  padding: 0.125rem 0 0.125rem 0.875rem;
+}
+.edoxen-statement-list__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.edoxen-statement-list__kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--_kind, var(--edoxen-color-muted));
+  background: color-mix(in srgb, var(--_kind, var(--edoxen-color-muted)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--_kind, var(--edoxen-color-muted)) 30%, transparent);
+}
+.edoxen-statement-list__party {
+  font-size: 0.75rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-statement-list__text {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--edoxen-color-text);
+}
+</style>

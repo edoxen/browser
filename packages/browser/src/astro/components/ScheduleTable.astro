@@ -62,30 +62,28 @@ for (const c of scheduled) {
 const tzLabel = scheduled[0]?.starts_at ? formatTz(scheduled[0].starts_at) : ''
 ---
 
-<div class="space-y-8">
+<div class="edoxen-schedule">
   {days.map((day) => (
-    <div>
-      <div class="flex items-baseline gap-3 mb-4 pb-2 border-b border-border">
-        <h3 class="font-serif text-xl font-semibold text-primary m-0">{day.weekday}</h3>
-        <span class="font-mono text-sm text-muted">{day.label}</span>
+    <div class="edoxen-schedule__day">
+      <div class="edoxen-schedule__day-head">
+        <h3 class="edoxen-schedule__weekday">{day.weekday}</h3>
+        <span class="edoxen-schedule__date">{day.label}</span>
       </div>
-      <div class="space-y-1">
+      <div class="edoxen-schedule__entries">
         {day.items.map((c) => (
-          <div class="flex items-stretch gap-4 py-3 px-4 rounded-md border border-border bg-surface hover:border-accent/50 transition-colors">
-            <div class="flex-shrink-0 w-28 text-right">
-              <div class="font-mono text-sm font-semibold text-primary">{formatTime(c.starts_at!)}</div>
-              <div class="font-mono text-xs text-muted">{formatTime(c.ends_at!)}</div>
+          <div class="edoxen-schedule__entry">
+            <div class="edoxen-schedule__time">
+              <div class="edoxen-schedule__start">{formatTime(c.starts_at!)}</div>
+              <div class="edoxen-schedule__end">{formatTime(c.ends_at!)}</div>
             </div>
-            <div class="w-px bg-border flex-shrink-0"></div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-1">
-                {c.kind && (
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-muted/15 text-muted">{c.kind.replace(/_/g, ' ')}</span>
-                )}
-              </div>
-              <p class="font-serif text-base font-medium text-primary m-0 leading-snug">{pickLocalizedValue(c.title, locale, c.identifier ?? '')}</p>
+            <div class="edoxen-schedule__rule" aria-hidden="true"></div>
+            <div class="edoxen-schedule__body">
+              {c.kind && (
+                <span class="edoxen-schedule__kind">{c.kind.replace(/_/g, ' ')}</span>
+              )}
+              <p class="edoxen-schedule__title">{pickLocalizedValue(c.title, locale, c.identifier ?? '')}</p>
               {c.description && pickLocalizedValue(c.description, locale) && (
-                <p class="text-sm text-muted mt-1 m-0">{pickLocalizedValue(c.description, locale)}</p>
+                <p class="edoxen-schedule__desc">{pickLocalizedValue(c.description, locale)}</p>
               )}
             </div>
           </div>
@@ -94,6 +92,129 @@ const tzLabel = scheduled[0]?.starts_at ? formatTz(scheduled[0].starts_at) : ''
     </div>
   ))}
   {tzLabel && (
-    <p class="text-xs text-muted font-mono text-center pt-4 border-t border-border">All times {tzLabel}</p>
+    <p class="edoxen-schedule__tz">All times {tzLabel}</p>
   )}
 </div>
+
+<style>
+.edoxen-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.edoxen-schedule__day-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+.edoxen-schedule__weekday {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.edoxen-schedule__date {
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  color: var(--edoxen-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.edoxen-schedule__entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.edoxen-schedule__entry {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  transition: border-color 150ms ease;
+}
+.edoxen-schedule__entry:hover {
+  border-color: color-mix(in srgb, var(--edoxen-color-accent) 55%, var(--edoxen-color-border));
+}
+.edoxen-schedule__time {
+  flex-shrink: 0;
+  width: 6rem;
+  text-align: right;
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.edoxen-schedule__start {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-schedule__end {
+  font-size: 0.75rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-schedule__rule {
+  width: 1px;
+  background: var(--edoxen-color-border);
+  flex-shrink: 0;
+}
+.edoxen-schedule__body {
+  flex: 1;
+  min-width: 0;
+}
+.edoxen-schedule__kind {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--edoxen-color-muted);
+  background: color-mix(in srgb, var(--edoxen-color-muted) 12%, transparent);
+}
+.edoxen-schedule__title {
+  margin: 0;
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--edoxen-color-primary);
+  max-width: none;
+}
+.edoxen-schedule__desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-schedule__tz {
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edoxen-color-border);
+  text-align: center;
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  color: var(--edoxen-color-muted);
+  max-width: none;
+}
+@media (max-width: 32rem) {
+  .edoxen-schedule__entry {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .edoxen-schedule__time {
+    width: auto;
+    text-align: left;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .edoxen-schedule__rule {
+    display: none;
+  }
+}
+</style>
+

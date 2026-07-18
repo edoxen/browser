@@ -12,10 +12,10 @@ describe('generateCssTokens', () => {
     const theme = parseTheme({})
     const css = generateCssTokens(theme)
     expect(css).toContain(':root {')
-    expect(css).toContain('--edoxen-color-primary: #1f2937;')
-    expect(css).toContain('--edoxen-color-accent: #3b82f6;')
-    expect(css).toContain('--edoxen-color-success: #10b981;')
-    expect(css).toContain('--edoxen-radius-sm: 0.25rem;')
+    expect(css).toContain('--edoxen-color-primary: #1c1917;')
+    expect(css).toContain('--edoxen-color-accent: #0f766e;')
+    expect(css).toContain('--edoxen-color-success: #15803d;')
+    expect(css).toContain('--edoxen-radius-sm: 0.5rem;')
   })
 
   it('does not double-emit radius as a color', () => {
@@ -33,8 +33,8 @@ describe('generateCssTokens', () => {
   it('emits dark-mode tokens under [data-theme="dark"]', () => {
     const theme = parseTheme({})
     const css = generateCssTokens(theme)
-    expect(css).toContain(':root[data-theme="dark"] { --edoxen-color-surface: #1f2937; }')
-    expect(css).toContain(':root[data-theme="dark"] { --edoxen-color-background: #111827; }')
+    expect(css).toContain(':root[data-theme="dark"] { --edoxen-color-surface: #292524; }')
+    expect(css).toContain(':root[data-theme="dark"] { --edoxen-color-background: #1c1917; }')
   })
 
   it('reflects consumer overrides', () => {

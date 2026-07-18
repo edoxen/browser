@@ -57,25 +57,30 @@ export type LocaleEntry = z.infer<typeof LocaleEntrySchema>
 
 const colorFields = z.string().regex(HEX_RE)
 
+// Default palette: "elegant professional warm". Light theme is a warm
+// paper canvas (#faf8f6) with warm charcoal ink (stone) and a deep
+// warm teal accent; the dark theme is a warm deep charcoal (never
+// blue-black) with a bright teal accent. All defaults meet WCAG AA
+// against their paired background.
 export const ThemeSchema = z.object({
-  primary: colorFields.default('#1f2937'),
-  accent: colorFields.default('#3b82f6'),
+  primary: colorFields.default('#1c1917'),
+  accent: colorFields.default('#0f766e'),
   surface: colorFields.default('#ffffff'),
-  background: colorFields.default('#f9fafb'),
-  text: colorFields.default('#1f2937'),
-  muted: colorFields.default('#6b7280'),
-  border: colorFields.default('#e5e7eb'),
-  success: colorFields.default('#10b981'),
-  warning: colorFields.default('#f59e0b'),
-  danger: colorFields.default('#ef4444'),
+  background: colorFields.default('#faf8f6'),
+  text: colorFields.default('#292524'),
+  muted: colorFields.default('#78716c'),
+  border: colorFields.default('#e7e5e4'),
+  success: colorFields.default('#15803d'),
+  warning: colorFields.default('#b45309'),
+  danger: colorFields.default('#b91c1c'),
   dark: z.object({
-    primary: colorFields.default('#f9fafb'),
-    accent: colorFields.default('#3b82f6'),
-    surface: colorFields.default('#1f2937'),
-    background: colorFields.default('#111827'),
-    text: colorFields.default('#f9fafb'),
-    muted: colorFields.default('#9ca3af'),
-    border: colorFields.default('#374151'),
+    primary: colorFields.default('#f5f5f4'),
+    accent: colorFields.default('#2dd4bf'),
+    surface: colorFields.default('#292524'),
+    background: colorFields.default('#1c1917'),
+    text: colorFields.default('#e7e5e4'),
+    muted: colorFields.default('#a8a29e'),
+    border: colorFields.default('#44403c'),
   }).default({}),
   logos: z.object({
     primary: z.string().optional(),
@@ -83,7 +88,7 @@ export const ThemeSchema = z.object({
     favicon: z.string().optional(),
   }).default({}),
   fontFamily: z.string().optional(),
-  radius: z.string().default('0.25rem'),
+  radius: z.string().default('0.5rem'),
   customProperties: z.record(z.string()).default({}),
   // Path to a consumer stylesheet override, resolved against the
   // consumer root. When unset, `<root>/src/styles/override.css` is

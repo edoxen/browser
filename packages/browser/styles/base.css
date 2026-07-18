@@ -1,7 +1,23 @@
-/* Edoxen base stylesheet — global defaults only.
-   Component styles live inside .astro files (Astro scopes them).
+/* ─────────────────────────────────────────────────────────────────
+   Edoxen base stylesheet — the complete default theme.
+
+   "Elegant professional warm": a warm paper canvas, warm charcoal
+   ink, a serif display face for headings (system stacks only — no
+   webfont download required), and a deep warm teal accent.
+
    Every color, font, and radius goes through a --edoxen-* custom
-   property declared by `generateCssTokens` from config. */
+   property. Consumer-settable tokens are declared ONLY by the
+   generated token stylesheet (`generateCssTokens` from theme config,
+   inlined ahead of this file) — this file consumes them via
+   var(--edoxen-x, fallback) and never re-declares them, so consumer
+   config and the override stylesheet always win the cascade.
+
+   Re-theme via:
+     theme.* config (colors, fontFamily, radius, dark palette)
+     theme.customProperties (any other --edoxen-* token, e.g.
+       fontDisplay, fontMono, shadowSm, spacingPage)
+     theme.customCss / src/styles/override.css (full CSS override)
+   ───────────────────────────────────────────────────────────────── */
 
 *,
 *::before,
@@ -10,9 +26,15 @@
 }
 
 html {
-  font-family: var(--edoxen-font-sans, system-ui, -apple-system, sans-serif);
+  font-family: var(--edoxen-font-sans, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-size: 100%;
+  line-height: 1.65;
   color: var(--edoxen-color-text);
   background: var(--edoxen-color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -20,17 +42,157 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  font-size: 1.0625rem;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Typography ────────────────────────────────────────────────── */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--edoxen-color-primary);
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: clamp(1.875rem, 1.5rem + 2vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+h3 {
+  font-size: 1.1875rem;
+  margin-top: 1.75rem;
+}
+
+h4 {
+  font-family: var(--edoxen-font-sans, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+/* Section headings get a short accent dash — the editorial "eyebrow"
+   cue that marks a new part of the record. */
+.edoxen-main section > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+
+.edoxen-main section > h2::before {
+  content: "";
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 0.1875rem;
+  border-radius: 9999px;
+  background: var(--edoxen-color-accent);
+}
+
+p {
+  margin: 0 0 1rem;
+  max-width: 68ch;
+}
+
+ul,
+ol {
+  padding-left: 1.375rem;
+  margin: 0 0 1rem;
+}
+
+li {
+  margin-bottom: 0.3rem;
+}
+
+dl {
+  margin: 0 0 1rem;
+}
+
+/* Metadata labels read as small overline captions. */
+dt {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
+}
+
+dd {
+  margin-left: 0;
 }
 
 a {
   color: var(--edoxen-color-accent);
   text-decoration: none;
+  text-underline-offset: 3px;
 }
 
 a:hover,
 a:focus-visible {
   text-decoration: underline;
 }
+
+code,
+kbd,
+samp {
+  font-family: var(--edoxen-font-mono, ui-monospace, "SF Mono",
+    "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace);
+  font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
+}
+
+code {
+  padding: 0.1em 0.35em;
+  border-radius: calc(var(--edoxen-radius-sm) * 0.6);
+  background: color-mix(in srgb, var(--edoxen-color-text) 6%, transparent);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--edoxen-color-border);
+  margin: 2.5rem 0;
+}
+
+blockquote {
+  margin: 0 0 1rem;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  border-left: 3px solid var(--edoxen-color-border);
+  color: var(--edoxen-color-muted);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--edoxen-color-accent) 24%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--edoxen-color-accent);
+  outline-offset: 2px;
+  border-radius: calc(var(--edoxen-radius-sm) * 0.5);
+}
+
+/* ── Frame: header, main, footer ───────────────────────────────── */
 
 .edoxen-header,
 .edoxen-main,
@@ -45,73 +207,430 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding-top: 1.125rem;
+  padding-bottom: 1.125rem;
   border-bottom: 1px solid var(--edoxen-color-border);
 }
 
 .edoxen-header__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--edoxen-color-text);
-  font-weight: 600;
+  gap: 0.625rem;
+  color: var(--edoxen-color-primary);
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.edoxen-header__brand:hover,
+.edoxen-header__brand:focus-visible {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
 }
 
 .edoxen-header__brand img {
-  height: 2rem;
+  height: 2.25rem;
   width: auto;
 }
 
+/* Nav entries are quiet pills with a warm hover wash. */
 .edoxen-header__nav {
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.25rem;
   flex-wrap: wrap;
+}
+
+.edoxen-header__nav a {
+  color: var(--edoxen-color-muted);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.edoxen-header__nav a:hover,
+.edoxen-header__nav a:focus-visible {
+  color: var(--edoxen-color-primary);
+  background: color-mix(in srgb, var(--edoxen-color-text) 7%, transparent);
+  text-decoration: none;
 }
 
 .edoxen-main {
   flex: 1;
-  padding-top: 2rem;
-  padding-bottom: 3rem;
+  padding-top: 2.5rem;
+  padding-bottom: 4rem;
 }
 
+/* Footer: muted, multi-column, with the attribution pushed right. */
 .edoxen-footer {
-  border-top: 1px solid var(--edoxen-color-border);
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  padding-top: 1.75rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--edoxen-color-border);
   color: var(--edoxen-color-muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+}
+
+.edoxen-footer img {
+  height: 1.75rem;
+  width: auto;
 }
 
 .edoxen-footer__social {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.edoxen-badge {
-  display: inline-block;
-  padding: 0.15rem 0.55rem;
-  border-radius: var(--edoxen-radius-sm);
-  font-size: 0.8rem;
+.edoxen-footer__social li {
+  margin: 0;
+}
+
+.edoxen-footer__social a {
+  color: var(--edoxen-color-muted);
   font-weight: 500;
+}
+
+.edoxen-footer__social a:hover,
+.edoxen-footer__social a:focus-visible {
+  color: var(--edoxen-color-primary);
+  text-decoration: none;
+}
+
+.edoxen-footer p {
+  margin: 0;
+  max-width: none;
+}
+
+.edoxen-footer > p:last-child {
+  margin-left: auto;
+}
+
+/* ── Skip link (visible on focus only) ─────────────────────────── */
+
+.edoxen-skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  color: var(--edoxen-color-primary);
+  border: 1px solid var(--edoxen-color-border);
+  box-shadow: var(--edoxen-shadow-md, 0 4px 12px rgb(28 25 23 / 0.12));
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.edoxen-skip-link:focus-visible {
+  top: 0.75rem;
+  text-decoration: none;
+}
+
+/* ── Badges: soft-tinted pills ───────────────────────────────────
+   BodyBadge/ActionTypeBadge set an inline background+color when the
+   body/action carries a brand color; the tint below is the neutral
+   default and loses to those inline styles. */
+.edoxen-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
   background: var(--edoxen-color-muted);
   color: #fff;
+  background: color-mix(in srgb, var(--edoxen-color-muted) 13%, transparent);
+  color: var(--edoxen-color-text);
+  border: 1px solid color-mix(in srgb, var(--edoxen-color-muted) 28%, transparent);
 }
 
-:root[data-theme="dark"] body {
-  background: var(--edoxen-color-background);
+/* ── Islands (custom elements build their DOM at runtime, so their
+   styles must be global) ───────────────────────────────────────── */
+
+theme-toggle button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--edoxen-color-muted);
+  cursor: pointer;
+  padding: 0.4375rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  line-height: 1;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
+theme-toggle button:hover {
+  color: var(--edoxen-color-primary);
+  background: color-mix(in srgb, var(--edoxen-color-text) 7%, transparent);
+}
+
+.edoxen-urn-copy__button,
+.edoxen-print-button {
+  border: 1px solid var(--edoxen-color-border);
+  background: var(--edoxen-color-surface);
+  color: var(--edoxen-color-muted);
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.edoxen-urn-copy__button:hover,
+.edoxen-print-button:hover {
+  background: var(--edoxen-color-accent);
+  border-color: var(--edoxen-color-accent);
+  /* --edoxen-color-background doubles as the on-accent ink: near-white
+     over the deep light-theme accent, near-black over the bright
+     dark-theme accent — AA in both themes. */
+  color: var(--edoxen-color-background);
+}
+
+/* ── Search filter island ──────────────────────────────────────── */
+
+search-filter {
+  display: block;
+  margin: 1.25rem 0 2rem;
+}
+
+.edoxen-search-filter__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.edoxen-search-filter__form input[type="search"] {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  color: var(--edoxen-color-text);
+  font: inherit;
+  font-size: 1rem;
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.edoxen-search-filter__form input[type="search"]::placeholder {
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-search-filter__form input[type="search"]:focus {
+  border-color: var(--edoxen-color-accent);
+}
+
+/* Facet chips */
+.edoxen-search-filter__facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.edoxen-search-filter__facet {
+  border: 1px solid var(--edoxen-color-border);
+  background: var(--edoxen-color-surface);
+  color: var(--edoxen-color-muted);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.edoxen-search-filter__facet:hover {
+  border-color: var(--edoxen-color-accent);
+  color: var(--edoxen-color-primary);
+}
+
+.edoxen-search-filter__facet[aria-pressed="true"] {
+  background: var(--edoxen-color-accent);
+  border-color: var(--edoxen-color-accent);
+  color: var(--edoxen-color-background);
+}
+
+.edoxen-search-filter__results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.edoxen-search-filter__result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1.125rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+  transition: border-color 150ms ease, box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.edoxen-search-filter__result:hover {
+  border-color: color-mix(in srgb, var(--edoxen-color-accent) 55%, var(--edoxen-color-border));
+  box-shadow: var(--edoxen-shadow-md, 0 4px 12px rgb(28 25 23 / 0.08));
+  transform: translateY(-1px);
+}
+
+.edoxen-search-filter__result a {
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-weight: 600;
+  color: var(--edoxen-color-primary);
+}
+
+.edoxen-search-filter__result a:hover {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
+}
+
+.edoxen-search-filter__error {
+  color: var(--edoxen-color-danger);
+}
+
+/* Dark-mode contrast repair: the status tokens (warning, danger) are
+   calibrated for the light canvas, so small tinted text that uses them
+   directly is lightened for the dark canvas to stay WCAG AA. */
+:root[data-theme="dark"] .edoxen-statement-list__kind,
+:root[data-theme="dark"] .edoxen-declaration-list__kind {
+  color: color-mix(in srgb, var(--_kind, var(--edoxen-color-muted)) 45%, #ffffff);
+}
+
+:root[data-theme="dark"] .edoxen-search-filter__error {
+  color: color-mix(in srgb, var(--edoxen-color-danger) 45%, #ffffff);
+}
+
+/* ── Empty states ──────────────────────────────────────────────── */
+
+.edoxen-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--edoxen-color-muted);
+  border: 1px dashed var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  max-width: none;
+}
+
+/* ── Motion ────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ── Print ───────────────────────────────────────────────────────
+   Chrome and interactive islands drop out; tokens are re-pointed at
+   ink-safe values so dark-mode visitors still get black-on-white.
+   The selectors must match the generated dark-token rules' specificity
+   (`:root[data-theme="dark"]`), hence the explicit theme variants. */
 @media print {
+  :root,
+  :root[data-theme="light"],
+  :root[data-theme="dark"] {
+    --edoxen-color-primary: #000000;
+    --edoxen-color-text: #1c1917;
+    --edoxen-color-muted: #44403c;
+    --edoxen-color-background: #ffffff;
+    --edoxen-color-surface: #ffffff;
+    --edoxen-color-border: #d6d3d1;
+    --edoxen-color-accent: #115e59;
+  }
+
   .edoxen-header,
-  .edoxen-footer {
-    display: none;
+  .edoxen-footer,
+  .edoxen-skip-link,
+  theme-toggle,
+  urn-copy,
+  print-button,
+  decade-scroller {
+    display: none !important;
+  }
+
+  .edoxen-search-filter__form > input,
+  .edoxen-search-filter__facets {
+    display: none !important;
+  }
+
+  /* The dark-mode contrast repair above would print white-ish chip
+     text on near-white tints; return those to ink on paper. */
+  :root[data-theme="dark"] .edoxen-statement-list__kind,
+  :root[data-theme="dark"] .edoxen-declaration-list__kind,
+  :root[data-theme="dark"] .edoxen-search-filter__error {
+    color: var(--edoxen-color-text);
+  }
+
+  .edoxen-main {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  html {
+    font-size: 11pt;
+    background: #ffffff;
+  }
+
+  a {
+    color: var(--edoxen-color-primary);
+    text-decoration: underline;
+  }
+
+  /* Spell out where external references point; internal links stay clean. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--edoxen-color-muted);
+    word-break: break-all;
+  }
+
+  .edoxen-decision-list__item,
+  .edoxen-meeting-list__item,
+  .edoxen-search-filter__result,
+  .edoxen-committee-card,
+  .edoxen-meeting-times__cell,
+  .edoxen-schedule__entry,
+  .edoxen-minutes,
+  .edoxen-urn-bar {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
   }
 }

@@ -124,7 +124,7 @@ const committeeName = committee ? pickLocalizedValue(committee.name, locale) : '
       <h2>Deadlines</h2>
       <ul>
         {deadlines.map((d) => (
-          <li><code class="font-mono text-sm text-accent">{d.date}</code> — {pickLocalizedValue(d.description, locale)}</li>
+          <li><code>{d.date}</code> — {pickLocalizedValue(d.description, locale)}</li>
         ))}
       </ul>
     </section>

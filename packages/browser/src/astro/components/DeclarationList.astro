@@ -13,9 +13,11 @@ const kindLabel: Record<string, string> = {
   ipr: 'IPR Declaration',
 }
 
-const kindBadgeClass: Record<string, string> = {
-  conflict_of_interest: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  ipr: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+// Kind chips are soft tints of the shared status tokens, so consumer
+// re-theming flows through automatically.
+const kindToken: Record<string, string> = {
+  conflict_of_interest: 'var(--edoxen-color-danger)',
+  ipr: 'var(--edoxen-color-accent)',
 }
 
 function personDisplay(person: { name?: { formatted?: string }[] }): string {
@@ -35,29 +37,32 @@ function entityRefDisplay(ref: { urn?: string; identifier?: { prefix?: string; n
 ---
 
 {declarations.length > 0 && (
-  <ul class="space-y-3 m-0 p-0 list-none">
+  <ul class="edoxen-declaration-list">
     {declarations.map((decl) => (
-      <li class="border-l-2 border-border pl-3 py-1">
-        <div class="flex items-center gap-2 mb-1">
+      <li class="edoxen-declaration-list__item">
+        <div class="edoxen-declaration-list__head">
           {decl.kind && (
-            <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded ${kindBadgeClass[decl.kind] ?? ''}`}>
+            <span
+              class="edoxen-declaration-list__kind"
+              style={`--_kind:${kindToken[decl.kind] ?? 'var(--edoxen-color-muted)'}`}
+            >
               {kindLabel[decl.kind] ?? decl.kind}
             </span>
           )}
           {(decl.party ?? []).length > 0 && (
-            <span class="text-xs text-muted">
+            <span class="edoxen-declaration-list__party">
               {(decl.party ?? []).map(personDisplay).filter(Boolean).join(', ')}
             </span>
           )}
         </div>
-        <p class="text-sm m-0 text-text">{pickLocalizedValue(decl.description, locale)}</p>
+        <p class="edoxen-declaration-list__text">{pickLocalizedValue(decl.description, locale)}</p>
         {decl.kind === 'ipr' && (
-          <dl class="text-xs text-muted mt-1 space-y-0.5">
+          <dl class="edoxen-declaration-list__refs">
             {decl.ipr_subject_ref && entityRefDisplay(decl.ipr_subject_ref) && (
-              <div><dt class="inline font-semibold">IPR subject:</dt> <dd class="inline"><code class="font-mono">{entityRefDisplay(decl.ipr_subject_ref)}</code></dd></div>
+              <div><dt>IPR subject</dt> <dd><code>{entityRefDisplay(decl.ipr_subject_ref)}</code></dd></div>
             )}
             {decl.ipr_target_ref && entityRefDisplay(decl.ipr_target_ref) && (
-              <div><dt class="inline font-semibold">Applies to:</dt> <dd class="inline"><code class="font-mono">{entityRefDisplay(decl.ipr_target_ref)}</code></dd></div>
+              <div><dt>Applies to</dt> <dd><code>{entityRefDisplay(decl.ipr_target_ref)}</code></dd></div>
             )}
           </dl>
         )}
@@ -65,3 +70,63 @@ function entityRefDisplay(ref: { urn?: string; identifier?: { prefix?: string; n
     ))}
   </ul>
 )}
+
+<style>
+.edoxen-declaration-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+.edoxen-declaration-list__item {
+  border-left: 2px solid var(--edoxen-color-border);
+  padding: 0.125rem 0 0.125rem 0.875rem;
+}
+.edoxen-declaration-list__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.edoxen-declaration-list__kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--_kind, var(--edoxen-color-muted));
+  background: color-mix(in srgb, var(--_kind, var(--edoxen-color-muted)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--_kind, var(--edoxen-color-muted)) 30%, transparent);
+}
+.edoxen-declaration-list__party {
+  font-size: 0.75rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-declaration-list__text {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--edoxen-color-text);
+}
+.edoxen-declaration-list__refs {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--edoxen-color-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.edoxen-declaration-list__refs dt {
+  display: inline;
+  font-size: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.edoxen-declaration-list__refs dd {
+  display: inline;
+  margin: 0;
+}
+</style>

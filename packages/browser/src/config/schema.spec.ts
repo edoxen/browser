@@ -162,9 +162,9 @@ describe('EdoxenConfigSchema', () => {
         site: { title: 'X', url: 'https://x.org' },
         data: { decisions: './data/decisions' },
       })
-      expect(cfg.theme.primary).toBe('#1f2937')
-      expect(cfg.theme.dark.surface).toBe('#1f2937')
-      expect(cfg.theme.radius).toBe('0.25rem')
+      expect(cfg.theme.primary).toBe('#1c1917')
+      expect(cfg.theme.dark.surface).toBe('#292524')
+      expect(cfg.theme.radius).toBe('0.5rem')
     })
 
     it('rejects a non-hex theme color', () => {

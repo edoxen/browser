@@ -28,22 +28,38 @@ const { items, locale } = Astro.props
 .edoxen-agenda {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
+  background: var(--edoxen-color-surface);
 }
 .edoxen-agenda th,
 .edoxen-agenda td {
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 0.875rem;
   border-bottom: 1px solid var(--edoxen-color-border);
 }
-.edoxen-agenda th {
+.edoxen-agenda thead th {
+  position: sticky;
+  top: 0;
+  background: var(--edoxen-color-surface);
   font-weight: 600;
   color: var(--edoxen-color-muted);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
+  border-bottom-width: 2px;
+}
+.edoxen-agenda tbody tr {
+  transition: background-color 120ms ease;
+}
+.edoxen-agenda tbody tr:hover {
+  background: color-mix(in srgb, var(--edoxen-color-text) 4%, transparent);
+}
+.edoxen-agenda tbody tr:last-child td {
+  border-bottom: none;
 }
 .edoxen-agenda code {
   font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  background: none;
+  padding: 0;
 }
 </style>

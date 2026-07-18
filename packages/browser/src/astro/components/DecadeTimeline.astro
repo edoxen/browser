@@ -21,32 +21,69 @@ const sorted = [...decades].sort((a, b) => b - a)
 )}
 
 <style>
+/* Timeline: a hairline connector runs behind decade dots. */
 .edoxen-decade-timeline {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  font-size: 0.85rem;
+  gap: 0.25rem 0.5rem;
+  margin-bottom: 1.75rem;
+  padding-top: 1.125rem;
+  font-size: 0.875rem;
+}
+.edoxen-decade-timeline::before {
+  content: "";
+  position: absolute;
+  top: 0.3125rem;
+  left: 0.5rem;
+  right: 0.5rem;
+  border-top: 1px solid var(--edoxen-color-border);
 }
 .edoxen-decade-timeline__link {
-  padding: 0.3rem 0.7rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
   border: 1px solid var(--edoxen-color-border);
-  border-radius: var(--edoxen-radius-sm);
+  border-radius: 9999px;
   text-decoration: none;
-  color: var(--edoxen-color-text);
+  color: var(--edoxen-color-muted);
   background: var(--edoxen-color-surface);
+  transition: color 150ms ease, background-color 150ms ease,
+    border-color 150ms ease;
+}
+.edoxen-decade-timeline__link::before {
+  content: "";
+  position: absolute;
+  top: -0.875rem;
+  left: 50%;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  margin-left: -0.21875rem;
+  border-radius: 9999px;
+  background: var(--edoxen-color-border);
+  transition: background-color 150ms ease;
 }
 .edoxen-decade-timeline__link:hover {
+  border-color: var(--edoxen-color-accent);
+  color: var(--edoxen-color-primary);
+  text-decoration: none;
+}
+.edoxen-decade-timeline__link:hover::before {
   background: var(--edoxen-color-accent);
-  color: #fff;
+}
+.edoxen-decade-timeline__link--active,
+.edoxen-decade-timeline__link--active:hover {
+  background: var(--edoxen-color-accent);
+  color: var(--edoxen-color-background);
   border-color: var(--edoxen-color-accent);
 }
-.edoxen-decade-timeline__link--active {
+.edoxen-decade-timeline__link--active::before,
+.edoxen-decade-timeline__link--active:hover::before {
   background: var(--edoxen-color-accent);
-  color: #fff;
-  border-color: var(--edoxen-color-accent);
 }
 .edoxen-decade-timeline__decade {
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 </style>

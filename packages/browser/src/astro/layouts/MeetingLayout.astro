@@ -27,9 +27,30 @@ const prefix = urlPrefix(config, lang)
 
 <BaseLayout config={config} lang={lang} title={title} description={item.identifier}>
   <article class="edoxen-meeting">
-    <a href={`${prefix}meetings`}>← Meetings</a>
+    <a href={`${prefix}meetings`} class="edoxen-back-link">← Meetings</a>
     <h1>{item.title}</h1>
-    {item.startDate && <p>{item.startDate}{item.endDate && ` – ${item.endDate}`}</p>}
+    {item.startDate && <p class="edoxen-meeting__dates">{item.startDate}{item.endDate && ` – ${item.endDate}`}</p>}
     <slot />
   </article>
 </BaseLayout>
+
+<style>
+.edoxen-back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-back-link:hover {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
+}
+.edoxen-meeting__dates {
+  margin-top: -0.5rem;
+  color: var(--edoxen-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+</style>
