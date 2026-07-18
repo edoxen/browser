@@ -35,5 +35,6 @@ jobs:
           node-version-file: '.nvmrc'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -F @edoxen/browser build:cli
       - run: pnpm -F @edoxen/browser exec playwright install --with-deps chromium
       - run: pnpm test:e2e
