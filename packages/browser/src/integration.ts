@@ -1,7 +1,8 @@
 import type { AstroIntegration, AstroIntegrationLogger } from 'astro'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { extname } from 'node:path'
+import { extname, isAbsolute, resolve } from 'node:path'
 
 import {
   EdoxenConfigSchema,
@@ -48,6 +49,7 @@ interface IntegrationCache {
   readonly payloads: PagePayloads
   readonly registers: LoadedData['registers']
   readonly redirects: ReadonlyArray<readonly [string, string, AstroRedirectStatus]>
+  readonly customCss: string | null
 }
 
 type AstroRedirectStatus = 300 | 301 | 302 | 303 | 304 | 307 | 308
@@ -123,16 +125,37 @@ async function buildCache(opts: IntegrationOptions, logger: AstroIntegrationLogg
     (loaded.value.registers?.venues?.venues?.length ?? 0) +
     (loaded.value.registers?.bodies?.bodies?.length ?? 0)
   logger.info(`Loaded ${project.decisions.length} decisions, ${project.meetings.length} meetings, ${registerCount} register entries, ${redirects.length} redirects`)
+  const customCss = detectCustomCss(cfg)
+  if (customCss) logger.info(`Custom stylesheet: ${customCss}`)
   return {
     config: cfg,
     payloads,
     registers: loaded.value.registers,
     redirects: redirects.map((r) => [r.from, r.to, r.status ?? 301] as const),
+    customCss,
   }
 }
 
 const VIRTUAL_CONFIG = 'virtual:edoxen-config'
 const VIRTUAL_PAYLOADS = 'virtual:edoxen-payloads'
+const VIRTUAL_CUSTOM_CSS = 'virtual:edoxen-custom-css'
+
+// Consumer stylesheet override. Explicit: `theme.customCss` (path
+// resolved against the consumer root). Convention: if unset,
+// `<root>/src/styles/override.css` is used when present. The file is
+// imported through Vite's CSS pipeline after the package's base.css,
+// so consumers can re-token and restyle without ejecting.
+function detectCustomCss(cfg: EdoxenConfig): string | null {
+  const candidates: string[] = []
+  if (cfg.theme.customCss) {
+    candidates.push(isAbsolute(cfg.theme.customCss) ? cfg.theme.customCss : resolve(process.cwd(), cfg.theme.customCss))
+  }
+  candidates.push(resolve(process.cwd(), 'src/styles/override.css'))
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate
+  }
+  return null
+}
 
 type DataEndpointName = 'decisions' | 'meetings' | 'registers'
 
@@ -212,6 +235,7 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
                 resolveId(id: string): string | null {
                   if (id === VIRTUAL_CONFIG) return `\0${VIRTUAL_CONFIG}`
                   if (id === VIRTUAL_PAYLOADS) return `\0${VIRTUAL_PAYLOADS}`
+                  if (id === VIRTUAL_CUSTOM_CSS) return `\0${VIRTUAL_CUSTOM_CSS}`
                   return null
                 },
                 load(id: string): string | null {
@@ -221,6 +245,12 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
                   }
                   if (id === `\0${VIRTUAL_PAYLOADS}`) {
                     return `export default ${JSON.stringify(cache.payloads)}`
+                  }
+                  if (id === `\0${VIRTUAL_CUSTOM_CSS}`) {
+                    // Re-import the real file by absolute path so Vite
+                    // runs it through the consumer's CSS pipeline
+                    // (Tailwind/PostCSS apply; external @import URLs stay).
+                    return cache.customCss ? `import ${JSON.stringify(cache.customCss)}` : 'export {}'
                   }
                   return null
                 },
