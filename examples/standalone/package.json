@@ -1,0 +1,15 @@
+{
+  "name": "@edoxen/browser-example-standalone",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Standalone-mode @edoxen/browser example — no astro.config, no src/, just edoxen.config.ts + data + the CLI.",
+  "scripts": {
+    "dev": "edoxen-browser dev",
+    "build": "edoxen-browser build",
+    "preview": "edoxen-browser preview"
+  },
+  "dependencies": {
+    "@edoxen/browser": "workspace:*"
+  }
+}

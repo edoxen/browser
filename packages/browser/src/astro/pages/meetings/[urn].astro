@@ -11,7 +11,7 @@ import MeetingTimes from '../../components/MeetingTimes.astro'
 import DeclarationList from '../../components/DeclarationList.astro'
 import { meetingJsonLd } from '../../../seo/index.js'
 import { pickLocalizedValue, t, urlPrefix } from '../../../i18n/index.js'
-import { resolveBody, resolveVenue } from '../../../data/index.js'
+import { resolveBody, resolveVenue } from '../../../data/prepare.js'
 
 export function getStaticPaths() {
   return Object.keys(payloads.meetingByUrn).filter(urn => !urn.includes('/')).map((urn) => ({

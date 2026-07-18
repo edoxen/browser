@@ -1,0 +1,56 @@
+---
+metadata:
+  title:
+    - spelling: eng
+      value: Example Committee — Decisions
+  date: '2024-06-15'
+  source: Example fixture
+decisions:
+  - identifier:
+      - prefix: EX
+        number: '1'
+    kind: resolution
+    status: decided
+    urn: urn:example:resolution:1
+    body_type: committee
+    dates:
+      - date: '2024-06-15'
+        type: effective
+    title:
+      - spelling: eng
+        value: First example decision
+    subject:
+      - spelling: eng
+        value: Subject of the first decision
+    actions:
+      - type: publishes
+        date_effective:
+          date: '2024-06-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Publishes the example standard.
+  - identifier:
+      - prefix: EX
+        number: '2'
+    kind: recommendation
+    status: decided
+    urn: urn:example:resolution:2
+    body_type: committee
+    dates:
+      - date: '2023-11-01'
+        type: effective
+    title:
+      - spelling: eng
+        value: Second example decision
+    subject:
+      - spelling: eng
+        value: Recommendations on best practice
+    actions:
+      - type: recommends
+        date_effective:
+          date: '2023-11-01'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Recommends alignment with international best practice.
