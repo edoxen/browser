@@ -95,6 +95,9 @@ async function loadValidatedConfig(args: ParsedArgs) {
     data: {
       decisions: resolve(args.cwd, cfg.data.decisions),
       ...(cfg.data.meetings ? { meetings: resolve(args.cwd, cfg.data.meetings) } : {}),
+      ...(cfg.data.contacts ? { contacts: resolve(args.cwd, cfg.data.contacts) } : {}),
+      ...(cfg.data.venues ? { venues: resolve(args.cwd, cfg.data.venues) } : {}),
+      ...(cfg.data.bodies ? { bodies: resolve(args.cwd, cfg.data.bodies) } : {}),
       ...(cfg.data.agendas ? { agendas: resolve(args.cwd, cfg.data.agendas) } : {}),
       ...(cfg.data.minutes ? { minutes: resolve(args.cwd, cfg.data.minutes) } : {}),
       ...(cfg.data.committee ? { committee: resolve(args.cwd, cfg.data.committee) } : {}),

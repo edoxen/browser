@@ -13,6 +13,7 @@ import {
   validateAll,
   buildProjectFromLoaded,
   preparePayloads,
+  type LoadedData,
   type PagePayloads,
 } from './data/index.js'
 import { EdoxenBrowserError, formatValidationErrors } from './errors.js'
@@ -44,6 +45,7 @@ const LOCALIZED_ROUTE_PATTERNS: ReadonlyArray<readonly [string, string]> = [
 interface IntegrationCache {
   readonly config: EdoxenConfig
   readonly payloads: PagePayloads
+  readonly registers: LoadedData['registers']
   readonly redirects: ReadonlyArray<readonly [string, string, AstroRedirectStatus]>
 }
 
@@ -104,6 +106,7 @@ async function buildCache(opts: IntegrationOptions, logger: AstroIntegrationLogg
     const details: string[] = []
     if (report.decisions) details.push(...formatValidationErrors(report.decisions.errors))
     if (report.meetings) details.push(...formatValidationErrors(report.meetings.errors))
+    if (report.registers) details.push(...formatValidationErrors(report.registers.errors))
     // Log validation errors as warnings but don't block the build.
     // The Ruby edoxen gem is the canonical validator; the JS schema
     // may lag behind. Meetings loaded even with JS schema warnings.
@@ -112,12 +115,17 @@ async function buildCache(opts: IntegrationOptions, logger: AstroIntegrationLogg
   }
 
   const project = buildProjectFromLoaded(loaded.value)
-  const payloads = preparePayloads(project)
+  const payloads = preparePayloads(project, loaded.value.registers)
   const redirects = await readRedirects(cfg.data.decisions.replace(/\/[^/]+$/, ''))
-  logger.info(`Loaded ${project.decisions.length} decisions, ${project.meetings.length} meetings, ${redirects.length} redirects`)
+  const registerCount =
+    (loaded.value.registers?.contacts?.contacts?.length ?? 0) +
+    (loaded.value.registers?.venues?.venues?.length ?? 0) +
+    (loaded.value.registers?.bodies?.bodies?.length ?? 0)
+  logger.info(`Loaded ${project.decisions.length} decisions, ${project.meetings.length} meetings, ${registerCount} register entries, ${redirects.length} redirects`)
   return {
     config: cfg,
     payloads,
+    registers: loaded.value.registers,
     redirects: redirects.map((r) => [r.from, r.to, r.status ?? 301] as const),
   }
 }
@@ -125,13 +133,22 @@ async function buildCache(opts: IntegrationOptions, logger: AstroIntegrationLogg
 const VIRTUAL_CONFIG = 'virtual:edoxen-config'
 const VIRTUAL_PAYLOADS = 'virtual:edoxen-payloads'
 
-function dataEndpointPayload(cache: IntegrationCache, name: 'decisions' | 'meetings'): string {
+type DataEndpointName = 'decisions' | 'meetings' | 'registers'
+
+function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): string {
   if (name === 'decisions') {
     return JSON.stringify({
       items: cache.payloads.decisionsList.items,
       facetBodies: [...cache.payloads.decisionsList.facets.bodies],
       facetKinds: [...cache.payloads.decisionsList.facets.kinds],
       facetYears: [...cache.payloads.decisionsList.facets.years],
+    })
+  }
+  if (name === 'registers') {
+    return JSON.stringify({
+      contacts: cache.registers?.contacts ?? null,
+      venues: cache.registers?.venues ?? null,
+      bodies: cache.registers?.bodies ?? null,
     })
   }
   return JSON.stringify({
@@ -142,7 +159,7 @@ function dataEndpointPayload(cache: IntegrationCache, name: 'decisions' | 'meeti
   })
 }
 
-function serveDataEndpoint(req: unknown, res: { setHeader: (k: string, v: string) => void; end: (s: string) => void; statusCode: number }, cache: IntegrationCache, name: 'decisions' | 'meetings'): void {
+function serveDataEndpoint(req: unknown, res: { setHeader: (k: string, v: string) => void; end: (s: string) => void; statusCode: number }, cache: IntegrationCache, name: DataEndpointName): void {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   res.setHeader('Cache-Control', 'no-store')
   res.end(dataEndpointPayload(cache, name))
@@ -212,6 +229,10 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
                       serveDataEndpoint(req, res as never, cache, 'meetings')
                       return
                     }
+                    if (url === '/data/registers.json') {
+                      serveDataEndpoint(req, res as never, cache, 'registers')
+                      return
+                    }
                     next()
                   })
                 },
@@ -227,6 +248,7 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
         await mkdir(dataDir, { recursive: true })
         await writeFile(new URL('decisions.json', dataDir), dataEndpointPayload(cache, 'decisions'))
         await writeFile(new URL('meetings.json', dataDir), dataEndpointPayload(cache, 'meetings'))
+        await writeFile(new URL('registers.json', dataDir), dataEndpointPayload(cache, 'registers'))
       },
     },
   }

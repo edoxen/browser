@@ -11,6 +11,7 @@ import MeetingTimes from '../../components/MeetingTimes.astro'
 import DeclarationList from '../../components/DeclarationList.astro'
 import { meetingJsonLd } from '../../../seo/index.js'
 import { pickLocalizedValue, t, urlPrefix } from '../../../i18n/index.js'
+import { resolveBody, resolveVenue } from '../../../data/index.js'
 
 export function getStaticPaths() {
   return Object.keys(payloads.meetingByUrn).filter(urn => !urn.includes('/')).map((urn) => ({
@@ -32,8 +33,18 @@ const components = meeting.components ?? []
 const deadlines = meeting.deadlines ?? []
 const linkedDecisions = payloads.decisionsByMeetingUrn[meeting.urn ?? ''] ?? []
 const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale })
-const venueName = (meeting.venues ?? [])[0]?.name
 const prefix = urlPrefix(cfg, locale)
+// Three-tier resolution: inline venue data → meeting-scoped local_ref →
+// global venue register (ref). Falls back to the meeting's own city.
+const rawVenue = (meeting.venues ?? [])[0]
+const venue = rawVenue ? resolveVenue(rawVenue, meeting.venues, payloads.venueByUrn) : undefined
+const venueName = venue ? pickLocalizedValue(venue.name, locale) : ''
+const venueCity = venue?.city ?? meeting.city
+const venueCountry = venue?.country_code ?? meeting.country_code
+const committee = meeting.committee
+  ? resolveBody(meeting.committee, meeting.bodies, payloads.bodyByCode)
+  : undefined
+const committeeName = committee ? pickLocalizedValue(committee.name, locale) : ''
 ---
 
 <MeetingLayout
@@ -69,10 +80,17 @@ const prefix = urlPrefix(cfg, locale)
 
   {meeting.body_type && <p><BodyBadge code={meeting.body_type} /></p>}
 
-  {(meeting.city || venueName) && (
+  {(venueName || venueCity) && (
     <section>
       <h2>Venue</h2>
-      <p>{venueName ?? meeting.city}{meeting.country_code ? `, ${meeting.country_code}` : ''}</p>
+      <p>{venueName || venueCity}{venueCountry ? `, ${venueCountry}` : ''}</p>
+    </section>
+  )}
+
+  {committeeName && (
+    <section>
+      <h2>Committee</h2>
+      <p>{committeeName}</p>
     </section>
   )}
 

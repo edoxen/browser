@@ -1,0 +1,55 @@
+---
+meetings:
+  - identifier:
+      - prefix: TEST
+        number: "2025"
+    type: plenary
+    status: upcoming
+    visibility: public
+    body_type: committee
+    urn: urn:test:meeting:2025
+    scheduled_date_range:
+      start: '2025-03-10'
+      end: '2025-03-14'
+    title:
+      - spelling: eng
+        value: 2025 Refs Plenary
+    venues:
+      - urn: urn:edoxen:venue:test:grand-hall
+        kind: physical
+        name:
+          - spelling: eng
+            value: Grand Hall (inline)
+        city: Berlin
+        country_code: DE
+      - local_ref: urn:edoxen:venue:test:grand-hall
+      - ref: urn:edoxen:venue:test:geneva-cicg
+    bodies:
+      - code: sc-1
+        kind: subcommittee
+        name:
+          - spelling: eng
+            value: SC 1 (inline)
+    committee:
+      local_ref: sc-1
+    decisions:
+      - prefix: TEST
+        number: "1"
+  - identifier:
+      - prefix: TEST
+        number: "2026"
+    type: plenary
+    status: upcoming
+    visibility: public
+    body_type: committee
+    urn: urn:test:meeting:2026
+    scheduled_date_range:
+      start: '2026-05-04'
+      end: '2026-05-08'
+    title:
+      - spelling: eng
+        value: 2026 Register Refs Plenary
+    venues:
+      - ref: urn:edoxen:venue:test:geneva-cicg
+    committee:
+      ref: ciml
