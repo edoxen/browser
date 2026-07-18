@@ -36,6 +36,7 @@ const jsonld = decisionJsonLd(decision, { siteUrl: cfg.site.url, siteTitle: cfg.
 
 <DecisionLayout
   config={cfg}
+  lang={locale}
   item={{
     urn: decision.urn ?? '',
     identifier: (decision.identifier[0]?.prefix ?? '') + '-' + (decision.identifier[0]?.number ?? ''),

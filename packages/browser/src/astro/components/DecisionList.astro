@@ -6,10 +6,9 @@ interface Props {
   items: readonly DecisionListItem[]
   compact?: boolean
   lang?: string
-  localePrefix?: string
-  basePath?: string
+  urlPrefix?: string
 }
-const { items, compact = false, lang = 'en', localePrefix = '', basePath = '/' } = Astro.props
+const { items, compact = false, lang = 'en', urlPrefix: prefix = '/' } = Astro.props
 const listClass = compact ? 'edoxen-decision-list edoxen-decision-list--compact' : 'edoxen-decision-list'
 ---
 
@@ -19,7 +18,7 @@ const listClass = compact ? 'edoxen-decision-list edoxen-decision-list--compact'
   <ul class={listClass}>
     {items.map((d) => (
       <li class="edoxen-decision-list__item">
-        <a href={`${import.meta.env.BASE_URL}${localePrefix}/decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
+        <a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
         {!compact && (
           <dl class="edoxen-decision-list__meta">
             <dt>URN</dt>

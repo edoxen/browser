@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro'
 import type { EdoxenConfig } from '../../config/index.js'
+import { urlPrefix } from '../../i18n/index.js'
 
 interface LayoutItem {
   readonly urn: string
@@ -14,14 +15,16 @@ interface LayoutItem {
 interface Props {
   config: EdoxenConfig
   item: LayoutItem
+  lang?: string
 }
-const { config, item } = Astro.props
+const { config, item, lang = config.site.locale } = Astro.props
 const title = `${item.title} — ${config.site.title}`
+const prefix = urlPrefix(config, lang)
 ---
 
-<BaseLayout config={config} title={title} description={item.kind}>
+<BaseLayout config={config} lang={lang} title={title} description={item.kind}>
   <article class="edoxen-decision">
-    <a href={"../decisions"}>← Decisions</a>
+    <a href={`${prefix}decisions`}>← Decisions</a>
     <h1>{item.title}</h1>
     <p><code>{item.urn}</code></p>
     <slot />

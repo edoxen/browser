@@ -4,10 +4,12 @@ import payloads from 'virtual:edoxen-payloads'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import MeetingList from '../../components/MeetingList.astro'
 import DecadeTimeline from '../../components/DecadeTimeline.astro'
+import { urlPrefix } from '../../../i18n/index.js'
 
 const items = payloads.meetingsList.items
 const decades = payloads.meetingsList.facets.decades
 const lang = cfg.site.locale
+const prefix = urlPrefix(cfg, lang)
 ---
 
 <BaseLayout config={cfg} lang={lang} title={`Meetings — ${cfg.site.title}`}>
@@ -17,5 +19,5 @@ const lang = cfg.site.locale
     <DecadeTimeline decades={decades} />
   </decade-scroller>
 
-  <MeetingList items={items} lang={lang} localePrefix="", basePath={cfg.site.basePath} />
+  <MeetingList items={items} lang={lang} urlPrefix={prefix} />
 </BaseLayout>

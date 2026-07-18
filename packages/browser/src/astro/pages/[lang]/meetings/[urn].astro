@@ -10,8 +10,7 @@ import MinutesSection from '../../../components/MinutesSection.astro'
 import MeetingTimes from '../../../components/MeetingTimes.astro'
 import DeclarationList from '../../../components/DeclarationList.astro'
 import { meetingJsonLd } from '../../../../seo/index.js'
-import { pickLocalizedValue } from '../../../../i18n/index.js'
-import { urnToPath } from '../../../../urn.js'
+import { pickLocalizedValue, t, urlPrefix } from '../../../../i18n/index.js'
 
 export function getStaticPaths() {
   const urns = Object.keys(payloads.meetingByUrn)
@@ -29,8 +28,7 @@ interface Props {
 }
 const { meeting } = Astro.props
 const locale = Astro.params.lang ?? cfg.site.locale
-const locEntry = cfg.locales.find((l) => l.code === locale)
-const localePrefix = locEntry?.routePrefix ? `/${locEntry.routePrefix}` : ''
+const prefix = urlPrefix(cfg, locale)
 const title = pickLocalizedValue(meeting.title, locale, meeting.urn ?? '')
 const officers = meeting.officers ?? []
 const agenda = meeting.agenda
@@ -42,6 +40,7 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
 
 <MeetingLayout
   config={cfg}
+  lang={locale}
   item={{
     urn: meeting.urn ?? '',
     identifier: (meeting.identifier[0]?.prefix ?? '') + '-' + (meeting.identifier[0]?.number ?? ''),
@@ -116,10 +115,10 @@ const jsonld = meetingJsonLd(meeting, { siteUrl: cfg.site.url, siteTitle: cfg.si
 
   {linkedDecisions.length > 0 && (
     <section>
-      <h2>{cfg.terminology.decisionPluralLabel}</h2>
+      <h2>{t('section.adoptedDecisions', locale, cfg.uiStrings)}</h2>
       <ul>
         {linkedDecisions.map((d) => (
-          <li><a href={`decisions/${urnToPath(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
+          <li><a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
         ))}
       </ul>
     </section>

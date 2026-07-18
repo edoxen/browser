@@ -1,8 +1,7 @@
 ---
 import type { EdoxenConfig } from '../../config/index.js'
 import { generateCssTokens } from '../../config/index.js'
-// Side-effect import: bundles styles/base.css through Astro/Vite's CSS
-// pipeline and inlines the result on every page that uses BaseLayout.
+import { urlPrefix } from '../../i18n/index.js'
 import '../../../styles/base.css'
 
 interface Props {
@@ -17,13 +16,8 @@ const pageTitle = title ?? config.site.title
 const pageDescription = description ?? config.site.description
 const tokens = generateCssTokens(config.theme)
 const canonical = new URL(Astro.url.pathname, config.site.url).toString()
-const base = ""
-const localePrefix = (() => {
-  const entry = config.locales.find((l) => l.code === lang)
-  const prefix = entry?.routePrefix ?? ''
-  return prefix ? `/${prefix}` : ''
-})()
-const homeHref = `${base}${localePrefix}/`.replace(/\/{2,}/g, '/')
+const prefix = urlPrefix(config, lang)
+const navHref = (href: string): string => `${prefix}${href}`.replace(/\/{2,}/g, '/')
 ---
 
 <!doctype html>
@@ -49,7 +43,7 @@ const homeHref = `${base}${localePrefix}/`.replace(/\/{2,}/g, '/')
   </head>
   <body>
     <header class="edoxen-header">
-      <a href={homeHref} class="edoxen-header__brand">
+      <a href={prefix} class="edoxen-header__brand">
         {config.theme.logos.primary && (
           <img src={config.theme.logos.primary} alt={config.site.title} />
         )}
@@ -58,7 +52,7 @@ const homeHref = `${base}${localePrefix}/`.replace(/\/{2,}/g, '/')
       <nav class="edoxen-header__nav" aria-label="Primary">
         {config.nav.map((item) => (
           !item.locale || item.locale === lang
-            ? <a href={`${base}${localePrefix}${item.href}`.replace(/\/{2,}/g, '/')}>{item.label}</a>
+            ? <a href={navHref(item.href)}>{item.label}</a>
             : null
         ))}
       </nav>

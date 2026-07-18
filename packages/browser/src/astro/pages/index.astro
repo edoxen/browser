@@ -2,7 +2,7 @@
 import cfg from 'virtual:edoxen-config'
 import payloads from 'virtual:edoxen-payloads'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { pickLocalizedValue } from '../i18n/index.js'
+import { pickLocalizedValue } from '../../i18n/index.js'
 
 const lang = cfg.site.locale
 const recentDecisions = payloads.decisionsList.items.slice(0, 5)
