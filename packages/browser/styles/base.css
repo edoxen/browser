@@ -43,6 +43,21 @@ body {
   flex-direction: column;
   min-height: 100vh;
   font-size: 1.0625rem;
+  /* Dotted-grid motif: 1px dots on a 22px lattice, tinting the canvas
+     with the theme's own ink so both light and dark themes get the
+     texture without a hard-coded color. */
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--edoxen-color-text) 9%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: var(--edoxen-grid-size, 22px) var(--edoxen-grid-size, 22px);
+}
+
+:root[data-theme="dark"] body {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--edoxen-color-text) 12%, transparent) 1px,
+    transparent 1px
+  );
 }
 
 img {
@@ -361,6 +376,292 @@ blockquote {
   border: 1px solid color-mix(in srgb, var(--edoxen-color-muted) 28%, transparent);
 }
 
+/* Identifier pill: tabular mono, quiet surface. */
+.edoxen-badge--mono {
+  font-family: var(--edoxen-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Action-verb pill: accent-tinted, the record's operative verb. */
+.edoxen-badge--action {
+  background: color-mix(in srgb, var(--edoxen-color-accent) 10%, transparent);
+  color: var(--edoxen-color-accent);
+  border-color: color-mix(in srgb, var(--edoxen-color-accent) 30%, transparent);
+  text-transform: capitalize;
+}
+
+/* Status pill: success-tinted for affirmative states, neutral else. */
+.edoxen-badge--status {
+  text-transform: capitalize;
+}
+.edoxen-badge--status[data-status="decided"],
+.edoxen-badge--status[data-status="adopted"],
+.edoxen-badge--status[data-status="completed"] {
+  background: color-mix(in srgb, var(--edoxen-color-success) 12%, transparent);
+  color: var(--edoxen-color-success);
+  border-color: color-mix(in srgb, var(--edoxen-color-success) 32%, transparent);
+}
+.edoxen-badge--status[data-status="upcoming"],
+.edoxen-badge--status[data-status="draft"] {
+  background: color-mix(in srgb, var(--edoxen-color-warning) 12%, transparent);
+  color: var(--edoxen-color-warning);
+  border-color: color-mix(in srgb, var(--edoxen-color-warning) 32%, transparent);
+}
+
+/* Acclamation badge: the legacy "by acclamation" marker. */
+.edoxen-badge--acclamation {
+  background: color-mix(in srgb, var(--edoxen-color-accent) 88%, #000 0%);
+  background: var(--edoxen-color-accent);
+  color: var(--edoxen-color-background);
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .edoxen-badge--action {
+  color: color-mix(in srgb, var(--edoxen-color-accent) 70%, #ffffff);
+}
+:root[data-theme="dark"] .edoxen-badge--status[data-status="decided"],
+:root[data-theme="dark"] .edoxen-badge--status[data-status="adopted"],
+:root[data-theme="dark"] .edoxen-badge--status[data-status="completed"] {
+  color: color-mix(in srgb, var(--edoxen-color-success) 55%, #ffffff);
+}
+:root[data-theme="dark"] .edoxen-badge--status[data-status="upcoming"],
+:root[data-theme="dark"] .edoxen-badge--status[data-status="draft"] {
+  color: color-mix(in srgb, var(--edoxen-color-warning) 60%, #ffffff);
+}
+
+/* ── Breadcrumb ────────────────────────────────────────────────── */
+
+.edoxen-breadcrumb {
+  margin-bottom: 1.25rem;
+  font-size: 0.8125rem;
+}
+.edoxen-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.edoxen-breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-breadcrumb li + li::before {
+  content: "›";
+  color: color-mix(in srgb, var(--edoxen-color-muted) 60%, transparent);
+  margin-right: 0.25rem;
+}
+.edoxen-breadcrumb a {
+  color: var(--edoxen-color-muted);
+  font-weight: 500;
+}
+.edoxen-breadcrumb a:hover,
+.edoxen-breadcrumb a:focus-visible {
+  color: var(--edoxen-color-accent);
+  text-decoration: none;
+}
+.edoxen-breadcrumb [aria-current] {
+  color: var(--edoxen-color-text);
+  font-weight: 600;
+}
+
+/* ── Metadata badge rows ───────────────────────────────────────── */
+
+.edoxen-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+}
+
+/* Meeting cross-link badge: the legacy accent-filled hover. */
+.edoxen-meeting-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.625rem 0.1875rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 0.375rem;
+  color: var(--edoxen-color-accent);
+  background: color-mix(in srgb, var(--edoxen-color-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--edoxen-color-accent) 22%, transparent);
+  text-decoration: none;
+  transition: color 150ms ease, background-color 150ms ease,
+    border-color 150ms ease;
+}
+.edoxen-meeting-link svg {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+.edoxen-meeting-link__arrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+.edoxen-meeting-link:hover,
+.edoxen-meeting-link:focus-visible {
+  background: var(--edoxen-color-accent);
+  border-color: var(--edoxen-color-accent);
+  color: var(--edoxen-color-background);
+  text-decoration: none;
+}
+.edoxen-meeting-link:hover svg,
+.edoxen-meeting-link:focus-visible svg {
+  opacity: 1;
+}
+.edoxen-meeting-link:hover .edoxen-meeting-link__arrow,
+.edoxen-meeting-link:focus-visible .edoxen-meeting-link__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Cards: the shared record-card surface ─────────────────────── */
+
+.edoxen-card {
+  position: relative;
+  display: block;
+  padding: 1.125rem 1.375rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+  transition: border-color 150ms ease, box-shadow 150ms ease,
+    transform 150ms ease;
+}
+.edoxen-card:hover {
+  border-color: color-mix(in srgb, var(--edoxen-color-accent) 55%, var(--edoxen-color-border));
+  box-shadow: var(--edoxen-shadow-md, 0 4px 12px rgb(28 25 23 / 0.08));
+  transform: translateY(-1px);
+}
+
+/* ── Standfirst: the subject lede under a display title ────────── */
+
+.edoxen-standfirst {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: var(--edoxen-color-muted);
+  max-width: 62ch;
+  padding-left: 1rem;
+  border-left: 2px solid var(--edoxen-color-border);
+}
+
+/* ── Eyebrow: the overline caption above a hero title ──────────── */
+
+.edoxen-eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-accent);
+  margin-bottom: 0.75rem;
+}
+
+/* ── Stat strip: hero counters ─────────────────────────────────── */
+
+.edoxen-stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  padding: 1.25rem 0 0;
+  margin: 0;
+  border-top: 1px solid var(--edoxen-color-border);
+}
+.edoxen-stat-strip__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.edoxen-stat-strip__value {
+  font-family: var(--edoxen-font-display, "Iowan Old Style",
+    "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--edoxen-color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.edoxen-stat-strip__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
+}
+
+/* ── Reading progress ──────────────────────────────────────────── */
+
+reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 90;
+  display: block;
+  background: color-mix(in srgb, var(--edoxen-color-text) 8%, transparent);
+  pointer-events: none;
+}
+.edoxen-reading-progress__fill {
+  height: 100%;
+  width: 0;
+  background: var(--edoxen-color-accent);
+}
+
+/* ── Staggered entrances (subtle; reduced-motion safe) ─────────── */
+
+@keyframes edoxen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.edoxen-enter {
+  animation: edoxen-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--nth, 1) * 60ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edoxen-enter {
+    animation: none;
+  }
+}
+
+/* ── Snippet: 2-line clamp for card excerpts ───────────────────── */
+
+.edoxen-snippet {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Definition rows: labeled metadata grids on detail pages ───── */
+
+.edoxen-deflist {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: 0.375rem 1.25rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.edoxen-deflist dd {
+  margin: 0;
+}
+
 /* ── Islands (custom elements build their DOM at runtime, so their
    styles must be global) ───────────────────────────────────────── */
 
@@ -483,10 +784,10 @@ search-filter {
 
 .edoxen-search-filter__result {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1.125rem;
+  padding: 0.875rem 1.125rem;
   border: 1px solid var(--edoxen-color-border);
   border-radius: var(--edoxen-radius-sm);
   background: var(--edoxen-color-surface);
@@ -501,15 +802,76 @@ search-filter {
   transform: translateY(-1px);
 }
 
-.edoxen-search-filter__result a {
+.edoxen-search-filter__result-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.edoxen-search-filter__result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.edoxen-search-filter__result-id {
+  font-family: var(--edoxen-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--edoxen-color-muted);
+  letter-spacing: 0.01em;
+}
+
+.edoxen-search-filter__result-date {
+  font-size: 0.75rem;
+  color: var(--edoxen-color-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.edoxen-search-filter__result a.edoxen-search-filter__result-title {
   font-family: var(--edoxen-font-display, "Iowan Old Style",
     "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
   font-weight: 600;
   color: var(--edoxen-color-primary);
 }
 
-.edoxen-search-filter__result a:hover {
+.edoxen-search-filter__result a.edoxen-search-filter__result-title:hover {
   color: var(--edoxen-color-accent);
+  text-decoration: none;
+}
+
+.edoxen-search-filter__result-snippet {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--edoxen-color-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.edoxen-search-filter__meeting-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--edoxen-color-accent);
+  border: 1px solid color-mix(in srgb, var(--edoxen-color-accent) 30%, transparent);
+  text-decoration: none;
+}
+.edoxen-search-filter__meeting-chip:hover,
+.edoxen-search-filter__meeting-chip:focus-visible {
+  background: var(--edoxen-color-accent);
+  color: var(--edoxen-color-background);
   text-decoration: none;
 }
 
@@ -573,11 +935,16 @@ search-filter {
   .edoxen-header,
   .edoxen-footer,
   .edoxen-skip-link,
+  .edoxen-reading-progress,
   theme-toggle,
   urn-copy,
   print-button,
   decade-scroller {
     display: none !important;
+  }
+
+  body {
+    background-image: none;
   }
 
   .edoxen-search-filter__form > input,
@@ -616,6 +983,7 @@ search-filter {
     word-break: break-all;
   }
 
+  .edoxen-card,
   .edoxen-decision-list__item,
   .edoxen-meeting-list__item,
   .edoxen-search-filter__result,
