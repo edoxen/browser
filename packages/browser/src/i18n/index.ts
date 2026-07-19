@@ -123,3 +123,45 @@ export function pickLocalizedValue(
   if (!Array.isArray(list)) return fallback
   return pickLocalizedString(list, locale)?.value ?? fallback
 }
+
+/** Human-format an ISO date for display: '2024-05-15' → '15 May 2024'.
+ * Year-only values ('2024') render as '2024'. Falls back to the raw
+ * string when unparseable. Dates are rendered in UTC so ISO calendar
+ * dates never shift a day across visitor timezones. */
+export function formatDate(iso: string | undefined, locale: string): string {
+  if (!iso) return ''
+  const normalized = iso.length === 4 ? `${iso}-01-01` : iso
+  const d = new Date(normalized)
+  if (Number.isNaN(d.getTime())) return iso
+  const bcp47 = threeToTwo(locale.toLowerCase())
+  return new Intl.DateTimeFormat(bcp47, {
+    ...(iso.length === 4 ? {} : { day: 'numeric', month: 'long' }),
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(d)
+}
+
+/** Human-format a start/end pair: '10–14 March 2025' when possible. */
+export function formatDateRange(
+  start: string | undefined,
+  end: string | undefined,
+  locale: string,
+): string {
+  if (!start) return formatDate(end, locale)
+  if (!end || end === start) return formatDate(start, locale)
+  const bcp47 = threeToTwo(locale.toLowerCase())
+  const s = new Date(start)
+  const e = new Date(end)
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) {
+    return `${formatDate(start, locale)} – ${formatDate(end, locale)}`
+  }
+  const parts = new Intl.DateTimeFormat(bcp47, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return parts.formatRange(s, e)
+}
+
+/** Humanize an action verb for display: 'calls-upon' → 'Calls upon'. */
+export function humanizeVerb(type: string | undefined): string {
+  if (!type) return ''
+  const words = type.replace(/[-_]+/g, ' ')
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}

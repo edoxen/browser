@@ -168,10 +168,16 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
       items: cache.payloads.decisionsList.items.map((d) => ({
         ...d,
         title: pickLocalizedValue(d.title, locale),
+        subject: pickLocalizedValue(d.subject, locale),
+        snippet: pickLocalizedValue(d.snippet, locale),
+        // Card/meeting-chip deep links use the meeting *page* URN.
+        meetingUrn: d.meetingPageUrn ?? d.meetingUrn,
       })),
       facetBodies: [...cache.payloads.decisionsList.facets.bodies],
       facetKinds: [...cache.payloads.decisionsList.facets.kinds],
       facetYears: [...cache.payloads.decisionsList.facets.years],
+      facetActions: [...cache.payloads.decisionsList.facets.actionTypes],
+      facetStatuses: [...cache.payloads.decisionsList.facets.statuses],
     })
   }
   if (name === 'registers') {
