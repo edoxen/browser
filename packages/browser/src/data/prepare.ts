@@ -21,6 +21,18 @@ export interface DecisionListItem {
   readonly dates: readonly { readonly type: string; readonly date: string }[]
   readonly meetingUrn?: string
   readonly bodyType?: string
+  readonly status?: string
+  /** Distinct action verbs on the decision, source order (e.g. 'approves'). */
+  readonly actionTypes: readonly string[]
+  /** Subject line(s) — rendered as the secondary line on cards. */
+  readonly subject: readonly LocalizedString[]
+  /** First action message — rendered as a clamped snippet on cards. */
+  readonly snippet: readonly LocalizedString[]
+  /** Adoption (or first dated) ISO date — the card's primary date. */
+  readonly date?: string
+  readonly year?: number
+  /** URN of the meeting page this decision links to (via meeting refs). */
+  readonly meetingPageUrn?: string
 }
 
 export interface DecisionListFacets {
@@ -28,6 +40,8 @@ export interface DecisionListFacets {
   readonly kinds: readonly string[]
   readonly bodies: readonly string[]
   readonly meetingUrns: readonly string[]
+  readonly actionTypes: readonly string[]
+  readonly statuses: readonly string[]
 }
 
 export interface DecisionListPayload {
@@ -46,6 +60,10 @@ export interface MeetingListItem {
   readonly city?: string
   readonly countryCode?: string
   readonly status?: string
+  /** Resolved committee code (three-tier: inline → local_ref → register). */
+  readonly committeeCode?: string
+  /** Number of decisions cross-linked to this meeting. */
+  readonly decisionCount?: number
 }
 
 export interface MeetingListFacets {
@@ -70,6 +88,11 @@ export interface AgendaItemLink {
   readonly label: string
 }
 
+/** Stable anchor id for an agenda item row on a meeting page. */
+export function agendaAnchor(label: string): string {
+  return `agenda-item-${label}`
+}
+
 export interface PagePayloads {
   readonly decisionsList: DecisionListPayload
   readonly meetingsList: MeetingListPayload
@@ -78,6 +101,8 @@ export interface PagePayloads {
   readonly decisionsByMeetingUrn: Readonly<Record<string, readonly DecisionListItem[]>>
   readonly meetingLinkByDecisionId: Readonly<Record<string, DecisionMeetingLink>>
   readonly agendaItemByUrn: Readonly<Record<string, AgendaItemLink>>
+  /** Decision cross-linked from an agenda row, keyed `${meetingUrn}::${label}`. */
+  readonly decisionByAgendaItem: Readonly<Record<string, DecisionListItem>>
   readonly contactByUrn: Readonly<Record<string, Contact>>
   readonly venueByUrn: Readonly<Record<string, Venue>>
   readonly bodyByCode: Readonly<Record<string, Body>>
@@ -134,8 +159,28 @@ function uniqSortedNumbers(values: Iterable<number>): readonly number[] {
   return [...set].sort((a, b) => a - b)
 }
 
+function primaryDateOf(d: Decision): string | undefined {
+  const dates = d.dates ?? []
+  return dates.find((dt) => dt.type === 'adoption')?.date ?? dates[0]?.date
+}
+
+function actionTypesOf(d: Decision): readonly string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const a of d.actions ?? []) {
+    const type = a.type
+    if (type && !seen.has(type)) {
+      seen.add(type)
+      out.push(type)
+    }
+  }
+  return out
+}
+
 function toDecisionListItem(d: Decision): DecisionListItem {
   const meetingKey = meetingKeyOf(d)
+  const date = primaryDateOf(d)
+  const year = effectiveYearOf(d)
   return {
     urn: d.urn ?? '',
     identifier: formatIdentifier(d.identifier),
@@ -144,6 +189,12 @@ function toDecisionListItem(d: Decision): DecisionListItem {
     dates: (d.dates ?? []).map((dt) => ({ type: dt.type ?? '', date: dt.date ?? '' })),
     meetingUrn: meetingKey,
     bodyType: d.body_type,
+    status: d.status,
+    actionTypes: actionTypesOf(d),
+    subject: d.subject ?? [],
+    snippet: d.actions?.[0]?.message ?? [],
+    date,
+    year: year ?? undefined,
   }
 }
 
@@ -175,6 +226,8 @@ export function prepareDecisionsList(project: EdoxenProject): DecisionListPayloa
       kinds: uniqSorted(project.decisions.map((d) => d.kind ?? '')),
       bodies: uniqSorted(project.decisions.map((d) => d.body_type ?? '')),
       meetingUrns: uniqSorted(project.decisions.map((d) => meetingKeyOf(d) ?? '')),
+      actionTypes: uniqSorted(project.decisions.flatMap((d) => actionTypesOf(d))),
+      statuses: uniqSorted(project.decisions.map((d) => d.status ?? '')),
     },
   }
 }
@@ -336,27 +389,72 @@ export function preparePayloads(project: EdoxenProject, registers?: LoadedRegist
   const meetingLinkByDecisionId = buildMeetingLinkByDecisionId(project.meetings)
   const agendaItemByUrn = buildAgendaItemByUrn(project.meetings)
 
-  const decisionsList = prepareDecisionsList(project)
+  // Attach the meeting-page URN so cards/detail pages can deep-link
+  // decision → meeting (the plain meetingUrn field is the source-data
+  // meeting key, e.g. a date, not a page identifier).
+  const decisionsListRaw = prepareDecisionsList(project)
+  const decisionsList: DecisionListPayload = {
+    ...decisionsListRaw,
+    items: decisionsListRaw.items.map((item) => {
+      const link = meetingLinkByDecisionId[item.identifier]
+      return link ? { ...item, meetingPageUrn: link.meetingUrn } : item
+    }),
+  }
   const decisionsByMeetingUrn: Record<string, readonly DecisionListItem[]> = {}
   for (const item of decisionsList.items) {
-    const link = meetingLinkByDecisionId[item.identifier]
-    if (!link) continue
-    const list = decisionsByMeetingUrn[link.meetingUrn]
+    if (!item.meetingPageUrn) continue
+    const list = decisionsByMeetingUrn[item.meetingPageUrn]
     if (list) (list as DecisionListItem[]).push(item)
-    else decisionsByMeetingUrn[link.meetingUrn] = [item]
+    else decisionsByMeetingUrn[item.meetingPageUrn] = [item]
+  }
+
+  // Agenda rows → the decision they produced. A decision names its agenda
+  // item by label (decision.agenda_item); the meeting-side match is keyed
+  // `${meetingUrn}::${label}` so meeting pages can link rows to decisions
+  // and decision pages can point at the `#agenda-item-{label}` anchor.
+  const decisionByAgendaItem: Record<string, DecisionListItem> = {}
+  for (const d of project.decisions) {
+    const label = d.agenda_item
+    if (!label) continue
+    const identifier = formatIdentifier(d.identifier)
+    const link = meetingLinkByDecisionId[identifier]
+    if (!link) continue
+    const key = `${link.meetingUrn}::${label}`
+    if (decisionByAgendaItem[key]) continue
+    const item = decisionsList.items.find((i) => i.urn === (d.urn ?? ''))
+    if (item) decisionByAgendaItem[key] = item
+  }
+
+  const bodyByCode = buildBodyByCode(registers?.bodies?.bodies ?? [])
+  const meetingsListRaw = prepareMeetingsList(project)
+  const meetingsList: MeetingListPayload = {
+    ...meetingsListRaw,
+    items: meetingsListRaw.items.map((item) => {
+      const meeting = meetingByUrn[item.urn]
+      const committee = meeting?.committee
+        ? resolveBody(meeting.committee, meeting.bodies, bodyByCode)
+        : undefined
+      const decisionCount = decisionsByMeetingUrn[item.urn]?.length ?? 0
+      return {
+        ...item,
+        ...(committee?.code ? { committeeCode: committee.code } : {}),
+        ...(decisionCount > 0 ? { decisionCount } : {}),
+      }
+    }),
   }
 
   return {
     decisionsList,
-    meetingsList: prepareMeetingsList(project),
+    meetingsList,
     decisionByUrn,
     meetingByUrn,
     decisionsByMeetingUrn,
     meetingLinkByDecisionId,
     agendaItemByUrn,
+    decisionByAgendaItem,
     contactByUrn: buildContactByUrn(registers?.contacts?.contacts ?? []),
     venueByUrn: buildVenueByUrn(registers?.venues?.venues ?? []),
-    bodyByCode: buildBodyByCode(registers?.bodies?.bodies ?? []),
+    bodyByCode,
   }
 }
 

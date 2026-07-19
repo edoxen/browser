@@ -19,6 +19,7 @@ export {
   preparePayloads,
   prepareDecisionsList,
   prepareMeetingsList,
+  agendaAnchor,
   resolveBody,
   resolveContact,
   resolveVenue,

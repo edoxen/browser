@@ -11,9 +11,9 @@ import {
 } from './search-filter-core.js'
 
 const items: SearchableItem[] = [
-  { urn: 'urn:a:1', title: 'First decision', bodyType: 'ciml', kind: 'resolution', year: 2024 },
-  { urn: 'urn:a:2', title: 'Second decision', bodyType: 'ciml', kind: 'recommendation', year: 2023 },
-  { urn: 'urn:b:1', title: 'Other body decision', bodyType: 'conference', kind: 'resolution', year: 2024 },
+  { urn: 'urn:a:1', title: 'First decision', bodyType: 'ciml', kind: 'resolution', year: 2024, actionTypes: ['approves'], snippet: 'Approves the plan.' },
+  { urn: 'urn:a:2', title: 'Second decision', bodyType: 'ciml', kind: 'recommendation', year: 2023, actionTypes: ['recommends', 'requests'] },
+  { urn: 'urn:b:1', title: 'Other body decision', bodyType: 'conference', kind: 'resolution', year: 2024, actionTypes: ['approves', 'welcomes'] },
 ]
 
 describe('filterItems', () => {
@@ -39,6 +39,20 @@ describe('filterItems', () => {
   it('is case-insensitive on the query', () => {
     expect(filterItems(items, { ...EMPTY_STATE, query: 'FIRST' }).map((i) => i.urn)).toEqual(['urn:a:1'])
   })
+
+  it('matches against the snippet text', () => {
+    expect(filterItems(items, { ...EMPTY_STATE, query: 'plan' }).map((i) => i.urn)).toEqual(['urn:a:1'])
+  })
+
+  it('filters by action type (any match per item)', () => {
+    const state = { ...EMPTY_STATE, actions: new Set(['approves']) }
+    expect(filterItems(items, state).map((i) => i.urn)).toEqual(['urn:a:1', 'urn:b:1'])
+  })
+
+  it('combines action + kind filters', () => {
+    const state = { ...EMPTY_STATE, actions: new Set(['approves']), kinds: new Set(['recommendation']) }
+    expect(filterItems(items, state).length).toBe(0)
+  })
 })
 
 describe('countFacets', () => {
@@ -48,6 +62,12 @@ describe('countFacets', () => {
     expect(facets.bodies.get('conference')).toBe(1)
     expect(facets.kinds.get('resolution')).toBe(2)
     expect(facets.years.get(2024)).toBe(2)
+  })
+
+  it('counts action types across items', () => {
+    const facets = countFacets(items)
+    expect(facets.actions.get('approves')).toBe(2)
+    expect(facets.actions.get('recommends')).toBe(1)
   })
 })
 
@@ -67,6 +87,7 @@ describe('encodeState / decodeState', () => {
       bodies: new Set(['ciml', 'conference']),
       kinds: new Set(['resolution']),
       years: new Set([2023, 2024]),
+      actions: new Set(['approves']),
     }
     const hash = encodeState(state)
     const restored = decodeState(hash)
@@ -74,6 +95,7 @@ describe('encodeState / decodeState', () => {
     expect([...restored.bodies].sort()).toEqual(['ciml', 'conference'])
     expect([...restored.kinds]).toEqual(['resolution'])
     expect([...restored.years].sort()).toEqual([2023, 2024])
+    expect([...restored.actions]).toEqual(['approves'])
   })
 
   it('returns empty state for empty hash', () => {
