@@ -1,0 +1,57 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import MeetingList from './MeetingList.astro'
+import DecadeTimeline from './DecadeTimeline.astro'
+import { t } from '../../i18n/index.js'
+
+// Meetings index body: decade timeline + meetings grouped into anchored
+// decade sections so the timeline actually scrolls somewhere.
+
+interface Props {
+  locale: string
+  urlPrefix: string
+}
+const { locale, urlPrefix } = Astro.props
+const items = payloads.meetingsList.items
+const facetsDecades = payloads.meetingsList.facets.decades
+
+function decadeOf(m: (typeof items)[number]): number {
+  return Math.floor((m.year ?? 0) / 10) * 10
+}
+const byDecade = new Map<number, typeof items>()
+for (const m of items) {
+  const d = decadeOf(m)
+  const list = byDecade.get(d) ?? []
+  byDecade.set(d, [...list, m] as typeof items)
+}
+const decades = [...byDecade.keys()].sort((a, b) => b - a)
+const undated = byDecade.get(0) ?? []
+---
+
+<decade-scroller>
+  <DecadeTimeline decades={facetsDecades} />
+</decade-scroller>
+
+{decades.filter((d) => d > 0).map((d) => (
+  <section id={`decade-${d}`} class="edoxen-decade-section">
+    <h2 class="edoxen-decade-section__heading">{d}s</h2>
+    <MeetingList items={byDecade.get(d) ?? []} lang={locale} urlPrefix={urlPrefix} />
+  </section>
+))}
+
+{undated.length > 0 && (
+  <section class="edoxen-decade-section">
+    <h2 class="edoxen-decade-section__heading">{t('nav.meetings', locale, cfg.uiStrings)}</h2>
+    <MeetingList items={undated} lang={locale} urlPrefix={urlPrefix} />
+  </section>
+)}
+
+<style>
+.edoxen-decade-section {
+  scroll-margin-top: 1.5rem;
+}
+.edoxen-decade-section__heading {
+  font-size: 1.75rem;
+}
+</style>

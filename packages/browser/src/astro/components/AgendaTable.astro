@@ -1,12 +1,24 @@
 ---
 import type { AgendaItem } from '@edoxen/edoxen'
+import type { DecisionListItem } from '../../data/index.js'
+import { agendaAnchor } from '../../data/index.js'
 import { pickLocalizedValue } from '../../i18n/index.js'
+import { urnToPath } from '../../urn.js'
+
+// Agenda rows are deep-link targets (#agenda-item-{label}, matching the
+// urn:...:agenda:{label} pattern) and link through to the decision each
+// item produced when the data cross-references one.
 
 interface Props {
   items: readonly AgendaItem[]
   locale: string
+  /** Meeting page URN — keys the decisionByAgendaItem lookup. */
+  meetingUrn: string
+  /** payloads.decisionByAgendaItem, keyed `${meetingUrn}::${label}`. */
+  decisions: Readonly<Record<string, DecisionListItem>>
+  urlPrefix: string
 }
-const { items, locale } = Astro.props
+const { items, locale, meetingUrn, decisions, urlPrefix } = Astro.props
 ---
 
 <table class="edoxen-agenda">
@@ -14,13 +26,29 @@ const { items, locale } = Astro.props
     <tr><th scope="col">#</th><th scope="col">Title</th><th scope="col">Outcome</th></tr>
   </thead>
   <tbody>
-    {items.map((item) => (
-      <tr>
-        <td><code>{item.label}</code></td>
-        <td>{pickLocalizedValue(item.title, locale, item.label ?? '')}</td>
-        <td>{item.outcome ?? ''}</td>
-      </tr>
-    ))}
+    {items.map((item) => {
+      const decision = item.label ? decisions[`${meetingUrn}::${item.label}`] : undefined
+      const title = pickLocalizedValue(item.title, locale, item.label ?? '')
+      return (
+        <tr id={item.label ? agendaAnchor(item.label) : undefined}>
+          <td><code>{item.label}</code></td>
+          <td>
+            {decision
+              ? <a href={`${urlPrefix}decisions/${urnToPath(decision.urn)}`}>{title}</a>
+              : title}
+            {item.kind && <span class="edoxen-agenda__kind">{item.kind}</span>}
+          </td>
+          <td>
+            {item.outcome ?? ''}
+            {decision && (
+              <a class="edoxen-agenda__decision" href={`${urlPrefix}decisions/${urnToPath(decision.urn)}`}>
+                {decision.identifier || '→'}
+              </a>
+            )}
+          </td>
+        </tr>
+      )
+    })}
   </tbody>
 </table>
 
@@ -54,6 +82,11 @@ const { items, locale } = Astro.props
 .edoxen-agenda tbody tr:hover {
   background: color-mix(in srgb, var(--edoxen-color-text) 4%, transparent);
 }
+/* Deep-linked row (from a decision page's agenda chip) lights up. */
+.edoxen-agenda tbody tr:target {
+  background: color-mix(in srgb, var(--edoxen-color-accent) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--edoxen-color-accent);
+}
 .edoxen-agenda tbody tr:last-child td {
   border-bottom: none;
 }
@@ -61,5 +94,18 @@ const { items, locale } = Astro.props
   font-family: var(--edoxen-font-mono, ui-monospace, monospace);
   background: none;
   padding: 0;
+}
+.edoxen-agenda__kind {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--edoxen-color-muted);
+  text-transform: capitalize;
+}
+.edoxen-agenda__decision {
+  margin-left: 0.5rem;
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 </style>

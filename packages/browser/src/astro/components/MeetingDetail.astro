@@ -1,0 +1,433 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import type { Contact, HostRef, Meeting } from '@edoxen/edoxen'
+import Breadcrumb from './Breadcrumb.astro'
+import UrnBar from './UrnBar.astro'
+import BodyBadge from './BodyBadge.astro'
+import AgendaTable from './AgendaTable.astro'
+import ScheduleTable from './ScheduleTable.astro'
+import MinutesSection from './MinutesSection.astro'
+import MeetingTimes from './MeetingTimes.astro'
+import DeclarationList from './DeclarationList.astro'
+import OfficerList from './OfficerList.astro'
+import DecisionList from './DecisionList.astro'
+import { resolveBody, resolveVenue } from '../../data/prepare.js'
+import {
+  pickLocalizedValue,
+  formatDate,
+  formatDateRange,
+  t,
+  urlPrefix,
+} from '../../i18n/index.js'
+import { urnToPath } from '../../urn.js'
+import { countryFlag } from '@edoxen/edoxen'
+
+// Full meeting record: badge row (type/status/committee/dates/place),
+// localized title, URN bar, then every data section — committee, venue,
+// officers, hosts, schedule, deadlines, agenda (with decision links),
+// decisions, source documents, note.
+
+interface Props {
+  meeting: Meeting
+  locale: string
+}
+const { meeting, locale } = Astro.props
+const prefix = urlPrefix(cfg, locale)
+
+const identifier = (meeting.identifier ?? []).map((id) => `${id.prefix}-${id.number}`)[0] ?? ''
+const flag = meeting.country_code ? countryFlag(meeting.country_code) : ''
+const dateRange = meeting.scheduled_date_range
+  ? formatDateRange(meeting.scheduled_date_range.start, meeting.scheduled_date_range.end, locale)
+  : ''
+
+// Three-tier resolution: inline venue data → meeting-scoped local_ref →
+// global venue register (ref). Falls back to the meeting's own city.
+const venues = (meeting.venues ?? []).map((v) => resolveVenue(v, meeting.venues, payloads.venueByUrn))
+const committee = meeting.committee
+  ? resolveBody(meeting.committee, meeting.bodies, payloads.bodyByCode)
+  : undefined
+const committeeName = committee ? pickLocalizedValue(committee.name, locale) : ''
+
+const officers = meeting.officers ?? []
+const hosts = meeting.hosts ?? []
+const components = meeting.components ?? []
+const deadlines = meeting.deadlines ?? []
+const agendaItems = meeting.agenda?.items ?? []
+const minutes = meeting.minutes ?? []
+const declarations = meeting.declarations ?? []
+const linkedDecisions = payloads.decisionsByMeetingUrn[meeting.urn ?? ''] ?? []
+const sourceUrls = meeting.source_urls ?? []
+const hasNote = (meeting.note ?? []).length > 0
+const generalArea = pickLocalizedValue(meeting.general_area, locale)
+
+function contactName(c: Contact | undefined): string {
+  if (!c) return ''
+  const names = c.name ?? []
+  const hit = names[0]?.value
+  if (!hit) return ''
+  if (typeof hit === 'string') return hit
+  return hit.formatted ?? ''
+}
+
+// Host refs point into the contact register; resolve by URN suffix
+// (`urn:edoxen:contact:{scope}:{ref}`) and fall back to the raw ref.
+function hostLabel(h: HostRef): string {
+  if (h.contact) {
+    const inline = contactName(h.contact)
+    if (inline) return inline
+  }
+  const contacts = Object.values(payloads.contactByUrn)
+  const hit = contacts.find((c) => c.urn === h.ref || c.urn?.endsWith(`:${h.ref}`))
+  const resolved = hit ? contactName(hit) : ''
+  return resolved || h.ref
+}
+---
+
+<reading-progress />
+
+<Breadcrumb
+  items={[
+    { label: t('nav.home', locale, cfg.uiStrings), href: prefix },
+    { label: t('nav.meetings', locale, cfg.uiStrings), href: `${prefix}meetings` },
+    { label: identifier || pickLocalizedValue(meeting.title, locale, meeting.urn ?? '') },
+  ]}
+/>
+
+<a href={`${prefix}meetings`} class="edoxen-back-link edoxen-enter" style="--nth: 1">
+  ← {t('nav.meetings', locale, cfg.uiStrings)}
+</a>
+
+<header class="edoxen-meeting__header edoxen-enter" style="--nth: 2">
+  <div class="edoxen-meta-row">
+    {meeting.type && <span class="edoxen-badge">{meeting.type}</span>}
+    {meeting.status && (
+      <span class="edoxen-badge edoxen-badge--status" data-status={meeting.status}>{meeting.status}</span>
+    )}
+    {identifier && <span class="edoxen-badge edoxen-badge--mono">{identifier}</span>}
+    {meeting.ordinal != null && <span class="edoxen-badge">№ {meeting.ordinal}</span>}
+    {committee?.code && (
+      <span class="edoxen-meeting__committee-chip">{committee.code}</span>
+    )}
+    {dateRange && (
+      <span class="edoxen-meeting__dates">
+        <time datetime={meeting.scheduled_date_range?.start}>{dateRange}</time>
+      </span>
+    )}
+    {(meeting.city || meeting.country_code) && (
+      <span class="edoxen-meeting__place">
+        {flag && <span aria-hidden="true">{flag}</span>}
+        {meeting.city}
+        {meeting.country_code && <span class="edoxen-meeting__country">{meeting.country_code}</span>}
+      </span>
+    )}
+    {meeting.body_type && <BodyBadge code={meeting.body_type} />}
+  </div>
+
+  <h1 class="edoxen-meeting__title">{pickLocalizedValue(meeting.title, locale, meeting.urn ?? '')}</h1>
+
+  {generalArea && <p class="edoxen-standfirst">{generalArea}</p>}
+</header>
+
+<div class="edoxen-enter" style="--nth: 3">
+  <UrnBar urn={meeting.urn ?? ''} />
+</div>
+
+{(meeting.scheduled_date_range || meeting.occurred_date_range) && (
+  <section class="edoxen-enter" style="--nth: 4">
+    <h2>{t('section.when', locale, cfg.uiStrings)}</h2>
+    <MeetingTimes scheduled={meeting.scheduled_date_range} occurred={meeting.occurred_date_range} />
+  </section>
+)}
+
+{(committeeName || committee?.code) && (
+  <section class="edoxen-enter" style="--nth: 5">
+    <h2>{t('section.committee', locale, cfg.uiStrings)}</h2>
+    <p>
+      {committee?.code && <span class="edoxen-meeting__committee-chip">{committee.code}</span>}{' '}
+      {committeeName}
+    </p>
+  </section>
+)}
+
+{venues.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 6">
+    <h2>{t('section.venue', locale, cfg.uiStrings)}</h2>
+    <div class="edoxen-meeting__venues">
+      {venues.map((v) => {
+        const name = pickLocalizedValue(v.name, locale)
+        const address = pickLocalizedValue(v.address, locale)
+        const parts = [
+          v.unlocode && v.unlocode !== v.city ? v.unlocode : undefined,
+          v.city,
+          v.country_code,
+        ].filter(Boolean)
+        return (
+          <div class="edoxen-venue-card">
+            <div class="edoxen-venue-card__head">
+              {v.kind && <span class="edoxen-badge">{v.kind}</span>}
+              {name && <strong class="edoxen-venue-card__name">{name}</strong>}
+            </div>
+            {address && <p class="edoxen-venue-card__address">{address}</p>}
+            {parts.length > 0 && (
+              <p class="edoxen-venue-card__meta">
+                {v.country_code && countryFlag(v.country_code) && (
+                  <span aria-hidden="true">{countryFlag(v.country_code)} </span>
+                )}
+                {parts.join(' · ')}
+              </p>
+            )}
+            {v.url && (
+              <p class="edoxen-venue-card__map">
+                <a href={v.url} rel="external">{t('label.venue', locale, cfg.uiStrings)} ↗</a>
+              </p>
+            )}
+          </div>
+        )
+      })}
+    </div>
+    {venues.length === 0 && (meeting.city || meeting.country_code) && (
+      <p>{meeting.city}{meeting.country_code ? `, ${meeting.country_code}` : ''}</p>
+    )}
+  </section>
+)}
+
+{officers.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 7">
+    <h2>{t('section.officers', locale, cfg.uiStrings)}</h2>
+    <OfficerList officers={officers} locale={locale} />
+  </section>
+)}
+
+{hosts.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 8">
+    <h2>{t('section.hosts', locale, cfg.uiStrings)}</h2>
+    <ul class="edoxen-meeting__hosts">
+      {hosts.map((h) => (
+        <li>
+          <span class="edoxen-meeting__host-name">{hostLabel(h)}</span>
+          {(h.role ?? h.type) && (
+            <span class="edoxen-badge">{h.role ?? h.type}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+{components.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 9">
+    <h2>{t('section.schedule', locale, cfg.uiStrings)}</h2>
+    <ScheduleTable components={components} locale={locale} />
+  </section>
+)}
+
+{deadlines.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 10">
+    <h2>{t('section.deadlines', locale, cfg.uiStrings)}</h2>
+    <table class="edoxen-meeting__deadlines">
+      <tbody>
+        {deadlines.map((d) => (
+          <tr>
+            <td><time datetime={d.date}>{formatDate(d.date, locale)}</time></td>
+            <td>{pickLocalizedValue(d.description, locale)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+)}
+
+{agendaItems.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 11">
+    <h2>{t('section.agenda', locale, cfg.uiStrings)}</h2>
+    <AgendaTable
+      items={agendaItems}
+      locale={locale}
+      meetingUrn={meeting.urn ?? ''}
+      decisions={payloads.decisionByAgendaItem}
+      urlPrefix={prefix}
+    />
+  </section>
+)}
+
+{/* With an agenda, decisions are linked from their agenda rows; without
+    one they get a plain list of their own. */}
+{agendaItems.length === 0 && linkedDecisions.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 12">
+    <h2>{t('section.adoptedDecisions', locale, cfg.uiStrings)}</h2>
+    <DecisionList items={linkedDecisions} lang={locale} urlPrefix={prefix} compact />
+  </section>
+)}
+
+{declarations.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 13">
+    <h2>{t('section.declarations', locale, cfg.uiStrings)}</h2>
+    <DeclarationList declarations={declarations} locale={locale} />
+  </section>
+)}
+
+{minutes.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 14">
+    <h2>{t('section.minutes', locale, cfg.uiStrings)}</h2>
+    {minutes.map((m) => (
+      <MinutesSection minutes={m} locale={locale} />
+    ))}
+  </section>
+)}
+
+{sourceUrls.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 15">
+    <h2>{t('section.sourceDocs', locale, cfg.uiStrings)}</h2>
+    <ul class="edoxen-meeting__sources">
+      {sourceUrls.map((s) => (
+        <li>
+          <a href={s.ref} rel="external">
+            {[s.kind, s.format].filter(Boolean).join(' · ') || s.ref}
+          </a>
+          {s.spelling && <span class="edoxen-badge edoxen-badge--mono">{s.spelling}</span>}
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+{hasNote && (
+  <section class="edoxen-enter" style="--nth: 16">
+    <h2>{t('section.note', locale, cfg.uiStrings)}</h2>
+    <p>{pickLocalizedValue(meeting.note, locale)}</p>
+  </section>
+)}
+
+<style>
+.edoxen-meeting__header {
+  margin-bottom: 1.75rem;
+}
+.edoxen-meeting__title {
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  font-size: clamp(2rem, 1.6rem + 2vw, 3rem);
+  line-height: 1.12;
+  max-width: 24ch;
+}
+.edoxen-meeting__committee-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: calc(var(--edoxen-radius-sm) * 0.6);
+  font-family: var(--edoxen-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--edoxen-color-accent);
+  border: 1px solid color-mix(in srgb, var(--edoxen-color-accent) 30%, transparent);
+}
+.edoxen-meeting__dates {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--edoxen-color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.125rem 0.25rem;
+}
+.edoxen-meeting__place {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-meeting__country {
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+}
+.edoxen-meeting__venues {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.edoxen-venue-card {
+  padding: 1.125rem 1.375rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+}
+.edoxen-venue-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.375rem;
+}
+.edoxen-venue-card__name {
+  font-size: 1.0625rem;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-venue-card__address {
+  margin: 0 0 0.25rem;
+  color: var(--edoxen-color-text);
+}
+.edoxen-venue-card__meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-venue-card__map {
+  margin: 0.375rem 0 0;
+  font-size: 0.875rem;
+}
+.edoxen-meeting__hosts {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.edoxen-meeting__hosts li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+}
+.edoxen-meeting__host-name {
+  font-weight: 600;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-meeting__deadlines {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  background: var(--edoxen-color-surface);
+}
+.edoxen-meeting__deadlines td {
+  text-align: left;
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--edoxen-color-border);
+}
+.edoxen-meeting__deadlines td:first-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--edoxen-color-muted);
+  width: 10rem;
+}
+.edoxen-meeting__deadlines tr:last-child td {
+  border-bottom: none;
+}
+.edoxen-meeting__sources {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.edoxen-meeting__sources li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+}
+.edoxen-meeting__sources a {
+  text-transform: capitalize;
+}
+</style>

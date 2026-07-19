@@ -1,10 +1,8 @@
 ---
 import cfg from 'virtual:edoxen-config'
-import payloads from 'virtual:edoxen-payloads'
 import BaseLayout from '../../../layouts/BaseLayout.astro'
-import MeetingList from '../../../components/MeetingList.astro'
-import DecadeTimeline from '../../../components/DecadeTimeline.astro'
-import { urlPrefix } from '../../../../i18n/index.js'
+import MeetingsIndex from '../../../components/MeetingsIndex.astro'
+import { urlPrefix, t } from '../../../../i18n/index.js'
 
 export function getStaticPaths() {
   return cfg.locales
@@ -12,18 +10,12 @@ export function getStaticPaths() {
     .map((l) => ({ params: { lang: l.code } }))
 }
 
-const items = payloads.meetingsList.items
-const decades = payloads.meetingsList.facets.decades
 const lang = Astro.params.lang ?? cfg.site.locale
 const prefix = urlPrefix(cfg, lang)
 ---
 
-<BaseLayout config={cfg} lang={lang} title={`Meetings — ${cfg.site.title}`}>
-  <h1>Meetings</h1>
+<BaseLayout config={cfg} lang={lang} title={`${t('nav.meetings', lang, cfg.uiStrings)} — ${cfg.site.title}`}>
+  <h1>{t('nav.meetings', lang, cfg.uiStrings)}</h1>
 
-  <decade-scroller>
-    <DecadeTimeline decades={decades} />
-  </decade-scroller>
-
-  <MeetingList items={items} lang={lang} urlPrefix={prefix} />
+  <MeetingsIndex locale={lang} urlPrefix={prefix} />
 </BaseLayout>
