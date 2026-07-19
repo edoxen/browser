@@ -18,9 +18,15 @@ interface DayGroup {
 function formatTime(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  // Render in UTC: source timestamps carry an explicit offset and the
-  // build server's timezone must not shift the displayed times.
-  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })
+  // Render the source's own wall time: shift the instant by the explicit
+  // offset and format in UTC, so 09:00+08:00 reads 09:00 regardless of
+  // the build server's timezone.
+  const m = iso.match(/([+-])(\d{2}):?(\d{2})$/)
+  const offsetMin = m
+    ? (Number(m[2]) * 60 + Number(m[3])) * (m[1] === '+' ? 1 : -1)
+    : 0
+  const wall = new Date(d.getTime() + offsetMin * 60_000)
+  return wall.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })
 }
 
 function formatTz(iso: string): string {
@@ -181,7 +187,7 @@ const tzLabel = scheduled[0]?.starts_at ? formatTz(scheduled[0].starts_at) : ''
 }
 .edoxen-schedule__title {
   margin: 0;
-  font-family: var(--edoxen-font-display, "Iowan Old Style",
+  font-family: var(--edoxen-font-display-resolved, "Iowan Old Style",
     "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
   font-size: 1rem;
   font-weight: 600;
