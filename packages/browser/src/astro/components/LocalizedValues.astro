@@ -1,0 +1,23 @@
+---
+import type { LocalizedString } from '@edoxen/edoxen'
+import { pickLocalizedString } from '../../i18n/index.js'
+
+// Per-spelling spans for a LocalizedString[] field, wired for switching
+// by a sibling LocaleTabs row (shared `field` key). The locale-resolved
+// spelling renders visible; the rest render `hidden` so the field is
+// complete in the markup and tab-switchable with JS.
+
+interface Props {
+  values: readonly LocalizedString[] | undefined
+  locale: string
+  /** Unique key shared by these spans and their LocaleTabs. */
+  field: string
+}
+const { values, locale, field } = Astro.props
+const list = values ?? []
+const active = pickLocalizedString(list, locale)?.spelling ?? list[0]?.spelling ?? ''
+---
+
+{list.map((ls) => (
+  <span data-tab-target={field} data-spelling={ls.spelling} hidden={ls.spelling !== active}>{ls.value}</span>
+))}

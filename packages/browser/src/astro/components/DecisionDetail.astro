@@ -1,0 +1,385 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import type { Decision } from '@edoxen/edoxen'
+import Breadcrumb from './Breadcrumb.astro'
+import UrnBar from './UrnBar.astro'
+import BodyBadge from './BodyBadge.astro'
+import LocaleTabs from './LocaleTabs.astro'
+import LocalizedValues from './LocalizedValues.astro'
+import PrevNextNav from './PrevNextNav.astro'
+import { agendaAnchor } from '../../data/index.js'
+import {
+  pickLocalizedValue,
+  pickLocalizedString,
+  availableSpellings,
+  formatDate,
+  humanizeVerb,
+  t,
+  urlPrefix,
+} from '../../i18n/index.js'
+import { urnToPath } from '../../urn.js'
+
+// Full decision record: badge row, localized title + standfirst, URN bar,
+// then every data section (actions, considerations, approvals, relations,
+// categories, dates, reference documents) and prev/next navigation.
+
+interface Props {
+  decision: Decision
+  locale: string
+}
+const { decision, locale } = Astro.props
+const prefix = urlPrefix(cfg, locale)
+
+const identifiers = (decision.identifier ?? []).map((id) => `${id.prefix}-${id.number}`)
+const identifier = identifiers[0] ?? ''
+const isAcclamation = (decision.identifier ?? []).some((id) =>
+  (id.number ?? '').toLowerCase().includes('acclaim'),
+)
+
+const titleSpellings = availableSpellings(decision.title)
+const titleActive = pickLocalizedString(decision.title, locale)?.spelling ?? titleSpellings[0] ?? ''
+const subjectSpellings = availableSpellings(decision.subject)
+const subjectActive = pickLocalizedString(decision.subject, locale)?.spelling ?? subjectSpellings[0] ?? ''
+const hasSubject = (decision.subject ?? []).length > 0
+const consideringSpellings = availableSpellings(decision.considering)
+const consideringActive = pickLocalizedString(decision.considering, locale)?.spelling ?? consideringSpellings[0] ?? ''
+
+const adoptionEntry = (decision.dates ?? []).find((d) => d.type === 'adoption') ?? (decision.dates ?? [])[0]
+const adoptionKey = (decision.dates ?? []).some((d) => d.type === 'adoption') ? 'label.adopted' : 'label.date'
+
+const meetingLink = identifier ? payloads.meetingLinkByDecisionId[identifier] : undefined
+const meeting = meetingLink ? payloads.meetingByUrn[meetingLink.meetingUrn] : undefined
+const meetingTitle = meeting ? pickLocalizedValue(meeting.title, locale) : ''
+const agendaItem = decision.agenda_item
+
+const actions = decision.actions ?? []
+const considerations = decision.considerations ?? []
+const approvals = decision.approvals ?? []
+const relations = decision.relations ?? []
+const categories = decision.categories ?? []
+const dates = decision.dates ?? []
+const urls = decision.urls ?? []
+
+// Relations reference decisions by StructuredIdentifier — resolve to a
+// page link when the related decision exists in this dataset.
+const urnByIdentifier = new Map(payloads.decisionsList.items.map((i) => [i.identifier, i.urn]))
+
+// Prev/next in the global date-descending order.
+const ordered = payloads.decisionsList.items
+const selfIdx = ordered.findIndex((i) => i.urn === (decision.urn ?? ''))
+const nextItem = selfIdx > 0 ? ordered[selfIdx - 1] : undefined
+const prevItem = selfIdx >= 0 && selfIdx < ordered.length - 1 ? ordered[selfIdx + 1] : undefined
+const navEntry = (i: (typeof ordered)[number] | undefined) =>
+  i ? { urn: i.urn, title: pickLocalizedValue(i.title, locale, i.urn) } : undefined
+---
+
+<reading-progress />
+
+<Breadcrumb
+  items={[
+    { label: t('nav.home', locale, cfg.uiStrings), href: prefix },
+    { label: t('nav.decisions', locale, cfg.uiStrings), href: `${prefix}decisions` },
+    { label: identifier || pickLocalizedValue(decision.title, locale, decision.urn ?? '') },
+  ]}
+/>
+
+<a href={`${prefix}decisions`} class="edoxen-back-link edoxen-enter" style="--nth: 1">
+  ← {t('nav.decisions', locale, cfg.uiStrings)}
+</a>
+
+<header class="edoxen-decision__header edoxen-enter" style="--nth: 2">
+  <div class="edoxen-meta-row">
+    {isAcclamation && (
+      <span class="edoxen-badge edoxen-badge--acclamation">{t('label.acclamation', locale, cfg.uiStrings)}</span>
+    )}
+    {decision.kind && <span class="edoxen-badge">{decision.kind}</span>}
+    {decision.status && (
+      <span class="edoxen-badge edoxen-badge--status" data-status={decision.status}>{decision.status}</span>
+    )}
+    {identifiers.map((id) => (
+      <span class="edoxen-badge edoxen-badge--mono">{id}</span>
+    ))}
+    {adoptionEntry?.date && (
+      <span class="edoxen-badge edoxen-decision__adopted">
+        {t(adoptionKey, locale, cfg.uiStrings)} <time datetime={adoptionEntry.date}>{formatDate(adoptionEntry.date, locale)}</time>
+      </span>
+    )}
+    {decision.body_type && <BodyBadge code={decision.body_type} />}
+    {agendaItem && meetingLink && (
+      <a class="edoxen-meeting-link" href={`${prefix}meetings/${urnToPath(meetingLink.meetingUrn)}#${agendaAnchor(agendaItem)}`}>
+        {t('section.agenda', locale, cfg.uiStrings)} {agendaItem}
+      </a>
+    )}
+    {meetingLink && (
+      <a class="edoxen-meeting-link" href={`${prefix}meetings/${urnToPath(meetingLink.meetingUrn)}`}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span class="edoxen-meeting-link__text">{meetingTitle || meetingLink.meetingUrn}</span>
+        <svg class="edoxen-meeting-link__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    )}
+  </div>
+
+  <h1 class="edoxen-decision__title">
+    <LocalizedValues values={decision.title} locale={locale} field="decision-title" />
+    {(decision.title ?? []).length === 0 && identifier}
+  </h1>
+  {titleSpellings.length > 1 && <LocaleTabs spellings={titleSpellings} active={titleActive} field="decision-title" />}
+
+  {hasSubject && (
+    <p class="edoxen-standfirst edoxen-decision__standfirst">
+      <LocalizedValues values={decision.subject} locale={locale} field="decision-subject" />
+    </p>
+  )}
+  {subjectSpellings.length > 1 && <LocaleTabs spellings={subjectSpellings} active={subjectActive} field="decision-subject" />}
+</header>
+
+<div class="edoxen-enter" style="--nth: 3">
+  <UrnBar urn={decision.urn ?? ''} />
+  {decision.doi && (
+    <p class="edoxen-decision__doi">
+      DOI: <a href={`https://doi.org/${decision.doi}`} rel="external">{decision.doi}</a>
+    </p>
+  )}
+</div>
+
+{(decision.considering ?? []).length > 0 && (
+  <section class="edoxen-enter" style="--nth: 4">
+    <h2>{t('section.considering', locale, cfg.uiStrings)}</h2>
+    <p>
+      <LocalizedValues values={decision.considering} locale={locale} field="decision-considering" />
+    </p>
+    {consideringSpellings.length > 1 && (
+      <LocaleTabs spellings={consideringSpellings} active={consideringActive} field="decision-considering" />
+    )}
+  </section>
+)}
+
+{actions.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 5">
+    <h2>{t('section.actions', locale, cfg.uiStrings)}</h2>
+    <div class="edoxen-decision__cards">
+      {actions.map((a, i) => {
+        const messageSpellings = availableSpellings(a.message)
+        const messageActive = pickLocalizedString(a.message, locale)?.spelling ?? messageSpellings[0] ?? ''
+        return (
+          <div class="edoxen-action-card">
+            <div class="edoxen-action-card__head">
+              {a.type && <span class="edoxen-badge edoxen-badge--action">{humanizeVerb(a.type)}</span>}
+              {a.date_effective?.date && (
+                <span class="edoxen-action-card__date">
+                  {t('label.effective', locale, cfg.uiStrings)} <time datetime={a.date_effective.date}>{formatDate(a.date_effective.date, locale)}</time>
+                </span>
+              )}
+            </div>
+            <div class="edoxen-action-card__message">
+              <LocalizedValues values={a.message} locale={locale} field={`action-${i}-message`} />
+            </div>
+            {messageSpellings.length > 1 && (
+              <LocaleTabs spellings={messageSpellings} active={messageActive} field={`action-${i}-message`} />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  </section>
+)}
+
+{considerations.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 6">
+    <h2>{t('section.considerations', locale, cfg.uiStrings)}</h2>
+    <div class="edoxen-decision__cards">
+      {considerations.map((c, i) => {
+        const messageSpellings = availableSpellings(c.message)
+        const messageActive = pickLocalizedString(c.message, locale)?.spelling ?? messageSpellings[0] ?? ''
+        return (
+          <div class="edoxen-consideration-card">
+            <div class="edoxen-consideration-card__head">
+              {c.type && <span class="edoxen-badge">{humanizeVerb(c.type)}</span>}
+              {c.date_effective?.date && (
+                <span class="edoxen-consideration-card__date">
+                  <time datetime={c.date_effective.date}>{formatDate(c.date_effective.date, locale)}</time>
+                </span>
+              )}
+            </div>
+            <div class="edoxen-consideration-card__message">
+              <LocalizedValues values={c.message} locale={locale} field={`consideration-${i}-message`} />
+            </div>
+            {messageSpellings.length > 1 && (
+              <LocaleTabs spellings={messageSpellings} active={messageActive} field={`consideration-${i}-message`} />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  </section>
+)}
+
+{approvals.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 7">
+    <h2>{t('section.approvals', locale, cfg.uiStrings)}</h2>
+    <div class="edoxen-decision__cards">
+      {approvals.map((a) => (
+        <div class="edoxen-approval-card">
+          <div class="edoxen-approval-card__head">
+            {a.degree && <strong class="edoxen-approval-card__degree">{a.degree}</strong>}
+            {a.type && <span class="edoxen-badge">{humanizeVerb(a.type)}</span>}
+            {a.date?.date && (
+              <span class="edoxen-approval-card__date">
+                <time datetime={a.date.date}>{formatDate(a.date.date, locale)}</time>
+              </span>
+            )}
+          </div>
+          {(a.message ?? []).length > 0 && (
+            <p class="edoxen-approval-card__message">{pickLocalizedValue(a.message, locale)}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
+{relations.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 8">
+    <h2>{t('section.related', locale, cfg.uiStrings)}</h2>
+    <ul class="edoxen-decision__relations">
+      {relations.map((r) => {
+        const destId = `${r.destination?.prefix ?? ''}-${r.destination?.number ?? ''}`
+        const destUrn = urnByIdentifier.get(destId)
+        return (
+          <li>
+            <span class="edoxen-badge">{humanizeVerb(r.type)}</span>{' '}
+            {destUrn
+              ? <a href={`${prefix}decisions/${urnToPath(destUrn)}`}>{destId}</a>
+              : <code>{destId}</code>}
+          </li>
+        )
+      })}
+    </ul>
+  </section>
+)}
+
+{categories.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 9">
+    <h2>{t('section.categories', locale, cfg.uiStrings)}</h2>
+    <div class="edoxen-meta-row">
+      {categories.map((c) => <span class="edoxen-badge">{c}</span>)}
+    </div>
+  </section>
+)}
+
+{dates.length > 1 && (
+  <section class="edoxen-enter" style="--nth: 10">
+    <h2>{t('section.dates', locale, cfg.uiStrings)}</h2>
+    <dl class="edoxen-deflist">
+      {dates.map((d) => (
+        <>
+          <dt>{humanizeVerb(d.type)}</dt>
+          <dd><time datetime={d.date}>{formatDate(d.date, locale)}</time></dd>
+        </>
+      ))}
+    </dl>
+  </section>
+)}
+
+{urls.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 11">
+    <h2>{t('section.referenceDocs', locale, cfg.uiStrings)}</h2>
+    <ul>
+      {urls.map((u) => (
+        <li><a href={u.ref} rel="external">{humanizeVerb(u.kind) || u.ref}</a>{u.format ? ` (${u.format})` : ''}</li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<PrevNextNav
+  prev={navEntry(prevItem)}
+  next={navEntry(nextItem)}
+  basePath={`${prefix}decisions`}
+/>
+
+<style>
+.edoxen-decision__header {
+  margin-bottom: 1.75rem;
+}
+.edoxen-decision__title {
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  font-size: clamp(2rem, 1.6rem + 2vw, 3rem);
+  line-height: 1.12;
+  max-width: 22ch;
+}
+.edoxen-decision__standfirst {
+  margin-bottom: 0;
+}
+.edoxen-decision__adopted {
+  font-weight: 500;
+}
+.edoxen-decision__doi {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--edoxen-color-muted);
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+}
+.edoxen-decision__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.edoxen-action-card,
+.edoxen-consideration-card,
+.edoxen-approval-card {
+  position: relative;
+  padding: 1.125rem 1.375rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  box-shadow: var(--edoxen-shadow-sm, 0 1px 2px rgb(28 25 23 / 0.05));
+}
+/* The action card's accent spine — the operative record stands out. */
+.edoxen-action-card {
+  border-left: 3px solid var(--edoxen-color-accent);
+}
+.edoxen-action-card__head,
+.edoxen-consideration-card__head,
+.edoxen-approval-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.edoxen-action-card__date,
+.edoxen-consideration-card__date,
+.edoxen-approval-card__date {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--edoxen-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.edoxen-action-card__message,
+.edoxen-consideration-card__message {
+  line-height: 1.75;
+  max-width: 68ch;
+}
+.edoxen-approval-card__degree {
+  text-transform: capitalize;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-approval-card__message {
+  margin: 0;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-decision__relations {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+</style>

@@ -1,7 +1,9 @@
 ---
 import BaseLayout from './BaseLayout.astro'
 import type { EdoxenConfig } from '../../config/index.js'
-import { urlPrefix } from '../../i18n/index.js'
+
+// Thin shell: the record header (breadcrumb, badge row, localized title)
+// lives in DecisionDetail so the root and [lang] routes share it.
 
 interface LayoutItem {
   readonly urn: string
@@ -19,33 +21,10 @@ interface Props {
 }
 const { config, item, lang = config.site.locale } = Astro.props
 const title = `${item.title} — ${config.site.title}`
-const prefix = urlPrefix(config, lang)
 ---
 
 <BaseLayout config={config} lang={lang} title={title} description={item.kind}>
   <article class="edoxen-decision">
-    <a href={`${prefix}decisions`} class="edoxen-back-link">← Decisions</a>
-    <h1>{item.title}</h1>
-    <p class="edoxen-decision__urn"><code>{item.urn}</code></p>
     <slot />
   </article>
 </BaseLayout>
-
-<style>
-.edoxen-back-link {
-  display: inline-block;
-  margin-bottom: 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--edoxen-color-muted);
-}
-.edoxen-back-link:hover {
-  color: var(--edoxen-color-accent);
-  text-decoration: none;
-}
-.edoxen-decision__urn {
-  margin-top: -0.5rem;
-}
-</style>

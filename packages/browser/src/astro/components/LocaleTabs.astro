@@ -2,19 +2,22 @@
 interface Props {
   spellings: readonly string[]
   active: string
+  /** Unique key matching the [data-tab-target] blocks this tab row switches. */
   field: string
 }
 const { spellings, active, field } = Astro.props
 ---
 
+{/* Wrapped in the <section-tabs> island: clicking a tab toggles the
+    [data-tab-target="{field}"] blocks' hidden state client-side. */}
 {spellings.length > 1 && (
-  <nav class="edoxen-locale-tabs" aria-label={`Available languages for ${field}`} data-field={field}>
+  <section-tabs data-target={field} class="edoxen-locale-tabs" aria-label={`Available languages for ${field}`} data-field={field}>
     {spellings.map((sp) => (
       <button type="button" class="edoxen-locale-tabs__tab" data-spelling={sp} aria-pressed={sp === active}>
         {sp}
       </button>
     ))}
-  </nav>
+  </section-tabs>
 )}
 
 <style>
@@ -26,6 +29,7 @@ const { spellings, active, field } = Astro.props
   border: 1px solid var(--edoxen-color-border);
   border-radius: 9999px;
   background: color-mix(in srgb, var(--edoxen-color-text) 4%, transparent);
+  width: fit-content;
 }
 .edoxen-locale-tabs__tab {
   border: 0;
