@@ -1,7 +1,9 @@
 ---
 import BaseLayout from './BaseLayout.astro'
 import type { EdoxenConfig } from '../../config/index.js'
-import { urlPrefix } from '../../i18n/index.js'
+
+// Thin shell: the record header (breadcrumb, badge row, title) lives in
+// MeetingDetail so the root and [lang] routes share it.
 
 interface LayoutItem {
   readonly urn: string
@@ -22,35 +24,10 @@ interface Props {
 }
 const { config, item, lang = config.site.locale } = Astro.props
 const title = `${item.title} — ${config.site.title}`
-const prefix = urlPrefix(config, lang)
 ---
 
 <BaseLayout config={config} lang={lang} title={title} description={item.identifier}>
   <article class="edoxen-meeting">
-    <a href={`${prefix}meetings`} class="edoxen-back-link">← Meetings</a>
-    <h1>{item.title}</h1>
-    {item.startDate && <p class="edoxen-meeting__dates">{item.startDate}{item.endDate && ` – ${item.endDate}`}</p>}
     <slot />
   </article>
 </BaseLayout>
-
-<style>
-.edoxen-back-link {
-  display: inline-block;
-  margin-bottom: 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--edoxen-color-muted);
-}
-.edoxen-back-link:hover {
-  color: var(--edoxen-color-accent);
-  text-decoration: none;
-}
-.edoxen-meeting__dates {
-  margin-top: -0.5rem;
-  color: var(--edoxen-color-muted);
-  font-variant-numeric: tabular-nums;
-}
-</style>

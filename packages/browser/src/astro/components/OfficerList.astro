@@ -1,24 +1,61 @@
 ---
-import type { Officer } from '@edoxen/edoxen'
+import type { ContactMethod, LocalizedName, Officer } from '@edoxen/edoxen'
+import { pickLocalizedValue, twoToThree } from '../../i18n/index.js'
 
 interface Props {
   officers: readonly Officer[]
+  locale: string
 }
-const { officers } = Astro.props
+const { officers, locale } = Astro.props
+
+function personName(names: readonly LocalizedName[] | undefined, loc: string): string {
+  if (!names || names.length === 0) return ''
+  const norm = loc.toLowerCase()
+  const three = twoToThree(norm)
+  const hit = names.find((n) => (n.spelling ?? '').toLowerCase() === norm || (n.spelling ?? '').toLowerCase() === three) ?? names[0]
+  const v = hit?.value
+  if (!v) return ''
+  if (typeof v === 'string') return v
+  return v.formatted ?? [v.given, v.family].filter(Boolean).join(' ')
+}
+
+function contactHref(m: ContactMethod): string | undefined {
+  const kind = (m.kind ?? '').toLowerCase()
+  if (!m.value) return undefined
+  if (kind === 'email') return `mailto:${m.value}`
+  if (kind === 'url' || kind === 'website' || kind === 'homepage') return m.value
+  if (kind === 'phone' || kind === 'tel') return `tel:${m.value}`
+  return undefined
+}
 ---
 
 {officers.length > 0 && (
   <ul class="edoxen-officer-list">
-    {officers.map((o) => (
-      <li class="edoxen-officer-list__item">
-        <span class="edoxen-officer-list__role">{o.role}</span>
-        {o.person && (
-          <span class="edoxen-officer-list__name">
-            {o.person.name?.map((n) => n.value).filter(Boolean).join(' ') || ''}
+    {officers.map((o) => {
+      const name = personName(o.person?.name, locale)
+      const affiliation = pickLocalizedValue(o.person?.affiliation, locale)
+      const methods = (o.person?.contact_methods ?? []).filter((m) => m.value)
+      return (
+        <li class="edoxen-officer-list__item">
+          <span class="edoxen-officer-list__role">{o.role}</span>
+          <span class="edoxen-officer-list__person">
+            {name && <span class="edoxen-officer-list__name">{name}</span>}
+            {affiliation && <span class="edoxen-officer-list__affiliation">{affiliation}</span>}
+            {methods.length > 0 && (
+              <span class="edoxen-officer-list__contacts">
+                {methods.map((m) => {
+                  const href = contactHref(m)
+                  const label = m.label ?? m.kind ?? m.value ?? ''
+                  return href
+                    ? <a href={href}>{label}</a>
+                    : <span>{label}{m.value && label !== m.value ? `: ${m.value}` : ''}</span>
+                })}
+              </span>
+            )}
           </span>
-        )}
-      </li>
-    ))}
+        </li>
+      )
+    })}
   </ul>
 )}
 
@@ -33,7 +70,7 @@ const { officers } = Astro.props
 .edoxen-officer-list__item {
   display: flex;
   gap: 0.875rem;
-  padding: 0.5rem 0;
+  padding: 0.625rem 0;
   border-bottom: 1px solid var(--edoxen-color-border);
 }
 .edoxen-officer-list__item:last-child {
@@ -45,7 +82,24 @@ const { officers } = Astro.props
   min-width: 8rem;
   color: var(--edoxen-color-muted);
 }
+.edoxen-officer-list__person {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
 .edoxen-officer-list__name {
+  font-weight: 600;
+  color: var(--edoxen-color-primary);
+}
+.edoxen-officer-list__affiliation {
+  font-size: 0.875rem;
   color: var(--edoxen-color-text);
+}
+.edoxen-officer-list__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--edoxen-color-muted);
 }
 </style>

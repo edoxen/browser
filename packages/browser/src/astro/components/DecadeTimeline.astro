@@ -2,8 +2,11 @@
 interface Props {
   decades: readonly number[]
   active?: number
+  /** When set, links point at another page's anchors (`${baseHref}#decade-N`)
+      instead of in-page `#decade-N` hashes. */
+  baseHref?: string
 }
-const { decades, active } = Astro.props
+const { decades, active, baseHref } = Astro.props
 const sorted = [...decades].sort((a, b) => b - a)
 ---
 
@@ -11,7 +14,7 @@ const sorted = [...decades].sort((a, b) => b - a)
   <nav class="edoxen-decade-timeline" aria-label="Browse by decade">
     {sorted.map((d) => (
       <a
-        href={`#decade-${d}`}
+        href={`${baseHref ?? ''}#decade-${d}`}
         class={`edoxen-decade-timeline__link${active === d ? ' edoxen-decade-timeline__link--active' : ''}`}
       >
         <span class="edoxen-decade-timeline__decade">{d}s</span>
