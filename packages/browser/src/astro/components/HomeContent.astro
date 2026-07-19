@@ -1,0 +1,129 @@
+---
+import cfg from 'virtual:edoxen-config'
+import payloads from 'virtual:edoxen-payloads'
+import DecisionCard from './DecisionCard.astro'
+import MeetingCard from './MeetingCard.astro'
+import DecadeTimeline from './DecadeTimeline.astro'
+import { t } from '../../i18n/index.js'
+
+// Editorial home: hero with site title/description and a stat strip drawn
+// from the data, browse-by-decade into the meetings archive, and the most
+// recent decisions + meetings as full record cards.
+
+interface Props {
+  locale: string
+  urlPrefix: string
+}
+const { locale, urlPrefix: prefix } = Astro.props
+
+const decisions = payloads.decisionsList.items
+const meetings = payloads.meetingsList.items
+const recentDecisions = decisions.slice(0, 5)
+const recentMeetings = meetings.slice(0, 3)
+const years = payloads.decisionsList.facets.years
+const yearSpan = years.length > 0 ? `${years[0]}–${years[years.length - 1]}` : ''
+const decades = payloads.meetingsList.facets.decades
+---
+
+<section class="edoxen-home-hero edoxen-enter" style="--nth: 1">
+  <p class="edoxen-eyebrow">{t('page.home.heroLabel', locale, cfg.uiStrings)}</p>
+  <h1>{cfg.site.title}</h1>
+  <p class="edoxen-home-hero__lede">{cfg.site.description}</p>
+  <div class="edoxen-stat-strip" role="list">
+    <div class="edoxen-stat-strip__stat" role="listitem">
+      <span class="edoxen-stat-strip__value">{decisions.length.toLocaleString()}</span>
+      <span class="edoxen-stat-strip__label">{t('page.home.stats.decisions', locale, cfg.uiStrings)}</span>
+    </div>
+    <div class="edoxen-stat-strip__stat" role="listitem">
+      <span class="edoxen-stat-strip__value">{meetings.length.toLocaleString()}</span>
+      <span class="edoxen-stat-strip__label">{t('page.home.stats.meetings', locale, cfg.uiStrings)}</span>
+    </div>
+    {yearSpan && (
+      <div class="edoxen-stat-strip__stat" role="listitem">
+        <span class="edoxen-stat-strip__value">{yearSpan}</span>
+        <span class="edoxen-stat-strip__label">{t('page.home.stats.span', locale, cfg.uiStrings)}</span>
+      </div>
+    )}
+  </div>
+</section>
+
+{decades.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 2">
+    <h2>{t('decade.browseLabel', locale, cfg.uiStrings)}</h2>
+    <DecadeTimeline decades={decades} baseHref={`${prefix}meetings`} />
+  </section>
+)}
+
+<section class="edoxen-enter" style="--nth: 3">
+  <div class="edoxen-home-section-head">
+    <h2>{t('page.home.latestDecisions', locale, cfg.uiStrings)}</h2>
+    <a class="edoxen-home-view-all" href={`${prefix}decisions`}>{t('page.home.viewAll', locale, cfg.uiStrings)} →</a>
+  </div>
+  <ul class="edoxen-home-cards">
+    {recentDecisions.map((d) => (
+      <DecisionCard item={d} lang={locale} urlPrefix={prefix} />
+    ))}
+  </ul>
+</section>
+
+{recentMeetings.length > 0 && (
+  <section class="edoxen-enter" style="--nth: 4">
+    <div class="edoxen-home-section-head">
+      <h2>{t('page.home.recentMeetings', locale, cfg.uiStrings)}</h2>
+      <a class="edoxen-home-view-all" href={`${prefix}meetings`}>{t('page.home.viewAll', locale, cfg.uiStrings)} →</a>
+    </div>
+    <ul class="edoxen-home-cards">
+      {recentMeetings.map((m) => (
+        <MeetingCard item={m} lang={locale} urlPrefix={prefix} />
+      ))}
+    </ul>
+  </section>
+)}
+
+<section class="edoxen-enter" style="--nth: 5">
+  <p class="edoxen-home-about">
+    <a href={`${prefix}about`}>{t('nav.about', locale, cfg.uiStrings)} →</a>
+  </p>
+</section>
+
+<style>
+.edoxen-home-hero {
+  padding: 1.5rem 0 0.5rem;
+}
+.edoxen-home-hero h1 {
+  font-size: clamp(2.5rem, 2rem + 2.5vw, 3.5rem);
+  max-width: 20ch;
+}
+.edoxen-home-hero__lede {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: var(--edoxen-color-muted);
+  max-width: 62ch;
+  margin-bottom: 2rem;
+}
+.edoxen-home-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.edoxen-home-section-head h2 {
+  flex: 1;
+}
+.edoxen-home-view-all {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.edoxen-home-cards {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.edoxen-home-about {
+  font-size: 0.9375rem;
+}
+</style>
