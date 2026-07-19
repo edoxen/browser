@@ -18,23 +18,23 @@ test.describe('basePath site — links carry the deployment prefix', () => {
 
   test('home recent-item links carry the prefix', async ({ page }) => {
     await page.goto(`${BASE}/`)
-    await expect(page.locator(`main a[href^="${BASE}/decisions/urn%3A"]`).first()).toBeVisible()
-    await expect(page.locator(`main a[href^="${BASE}/meetings/urn%3A"]`).first()).toBeVisible()
+    await expect(page.locator(`main a[href^="${BASE}/decisions/urn:"]`).first()).toBeVisible()
+    await expect(page.locator(`main a[href^="${BASE}/meetings/urn:"]`).first()).toBeVisible()
   })
 
   test('decision list links are prefixed and navigable', async ({ page }) => {
     await page.goto(`${BASE}/decisions`)
-    const link = page.locator(`main a[href="${BASE}/decisions/urn%3Atest%3Aresolution%3A1"]`).first()
+    const link = page.locator(`main a[href="${BASE}/decisions/urn:test:resolution:1"]`).first()
     await expect(link).toBeVisible()
     await link.click()
-    await expect(page).toHaveURL(new RegExp(`${BASE}/decisions/urn%3Atest%3Aresolution%3A1`))
+    await expect(page).toHaveURL(new RegExp(`${BASE}/decisions/urn:test:resolution:1`))
     await expect(page.locator('h1')).toContainText('First test decision')
     await expect(page.locator('article a', { hasText: '← Decisions' })).toHaveAttribute('href', `${BASE}/decisions`)
   })
 
   test('meeting list and detail links are prefixed', async ({ page }) => {
     await page.goto(`${BASE}/meetings`)
-    const link = page.locator(`main a[href="${BASE}/meetings/urn%3Atest%3Ameeting%3A2025"]`).first()
+    const link = page.locator(`main a[href="${BASE}/meetings/urn:test:meeting:2025"]`).first()
     await expect(link).toBeVisible()
     await link.click()
     await expect(page.locator('h1')).toContainText('2025 Refs Plenary')
@@ -42,9 +42,9 @@ test.describe('basePath site — links carry the deployment prefix', () => {
   })
 
   test('linked decisions on a meeting page are prefixed', async ({ page }) => {
-    await page.goto(`${BASE}/meetings/urn%3Atest%3Ameeting%3A2025`)
+    await page.goto(`${BASE}/meetings/urn:test:meeting:2025`)
     const link = page.locator('section a', { hasText: 'First test decision' })
-    await expect(link).toHaveAttribute('href', `${BASE}/decisions/urn%3Atest%3Aresolution%3A1`)
+    await expect(link).toHaveAttribute('href', `${BASE}/decisions/urn:test:resolution:1`)
   })
 
   test('search-filter fetches data and builds result links under the prefix', async ({ page }) => {

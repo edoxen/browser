@@ -12,6 +12,7 @@ import DeclarationList from '../../components/DeclarationList.astro'
 import { meetingJsonLd } from '../../../seo/index.js'
 import { pickLocalizedValue, t, urlPrefix } from '../../../i18n/index.js'
 import { resolveBody, resolveVenue } from '../../../data/prepare.js'
+import { urnToPath } from '../../../urn.js'
 
 export function getStaticPaths() {
   return Object.keys(payloads.meetingByUrn).filter(urn => !urn.includes('/')).map((urn) => ({
@@ -144,7 +145,7 @@ const committeeName = committee ? pickLocalizedValue(committee.name, locale) : '
       <h2>{t('section.adoptedDecisions', locale, cfg.uiStrings)}</h2>
       <ul>
         {linkedDecisions.map((d) => (
-          <li><a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
+          <li><a href={`${prefix}decisions/${urnToPath(d.urn)}`}>{pickLocalizedValue(d.title, locale, d.urn)}</a></li>
         ))}
       </ul>
     </section>

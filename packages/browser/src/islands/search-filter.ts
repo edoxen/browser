@@ -1,3 +1,4 @@
+import { urnToPath } from '../urn.js'
 import {
   type FilterState,
   type SearchableItem,
@@ -19,7 +20,7 @@ function buildListItem(item: SearchableItem, basePath: string): HTMLLIElement {
   const li = document.createElement('li')
   li.className = 'edoxen-search-filter__result'
   const link = document.createElement('a')
-  link.href = `${basePath}/${encodeURIComponent(item.urn)}`
+  link.href = `${basePath}/${urnToPath(item.urn)}`
   link.textContent = item.title || item.urn
   li.appendChild(link)
   if (item.bodyType) {

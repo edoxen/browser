@@ -101,12 +101,12 @@ test.describe('standalone mode — CLI build with no consumer astro.config', () 
     await page.goto(origin)
     await expect(page.locator('h1')).toContainText('Standalone E2E Site')
 
-    await page.goto(`${origin}/decisions/urn%3Atest%3Aresolution%3A1`)
+    await page.goto(`${origin}/decisions/urn:test:resolution:1`)
     await expect(page.locator('h1')).toContainText('First test decision')
   })
 
   test('meeting page resolves register refs', async ({ page }) => {
-    await page.goto(`${origin}/meetings/urn%3Atest%3Ameeting%3A2026`)
+    await page.goto(`${origin}/meetings/urn:test:meeting:2026`)
     await expect(page.locator('section', { hasText: 'CICG Geneva' }).first()).toBeVisible()
     await expect(page.locator('section', { hasText: 'CIML' }).first()).toBeVisible()
   })

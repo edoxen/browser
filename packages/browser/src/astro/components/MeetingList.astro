@@ -1,6 +1,7 @@
 ---
 import type { MeetingListItem } from '../../data/index.js'
 import { pickLocalizedValue } from '../../i18n/index.js'
+import { urnToPath } from '../../urn.js'
 
 interface Props {
   items: readonly MeetingListItem[]
@@ -18,7 +19,7 @@ const listClass = compact ? 'edoxen-meeting-list edoxen-meeting-list--compact' :
   <ul class={listClass}>
     {items.map((m) => (
       <li class="edoxen-meeting-list__item">
-        <a href={`${prefix}meetings/${encodeURIComponent(m.urn)}`}>{pickLocalizedValue(m.title, lang, m.urn)}</a>
+        <a href={`${prefix}meetings/${urnToPath(m.urn)}`}>{pickLocalizedValue(m.title, lang, m.urn)}</a>
         {!compact && (
           <dl class="edoxen-meeting-list__meta">
             <dt>URN</dt>

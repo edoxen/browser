@@ -10,24 +10,24 @@ test.describe('fixture site — navigation and rendering', () => {
 
   test('decisions list navigates to a decision detail page', async ({ page }) => {
     await page.goto('/decisions')
-    const link = page.locator('main a[href="/decisions/urn%3Atest%3Aresolution%3A1"]').first()
+    const link = page.locator('main a[href="/decisions/urn:test:resolution:1"]').first()
     await expect(link).toBeVisible()
     await link.click()
-    await expect(page).toHaveURL(/\/decisions\/urn%3Atest%3Aresolution%3A1/)
+    await expect(page).toHaveURL(/\/decisions\/urn:test:resolution:1/)
     await expect(page.locator('h1')).toContainText('First test decision')
   })
 
   test('meetings list navigates to a meeting detail page', async ({ page }) => {
     await page.goto('/meetings')
-    const link = page.locator('main a[href="/meetings/urn%3Atest%3Ameeting%3A2025"]').first()
+    const link = page.locator('main a[href="/meetings/urn:test:meeting:2025"]').first()
     await expect(link).toBeVisible()
     await link.click()
-    await expect(page).toHaveURL(/\/meetings\/urn%3Atest%3Ameeting%3A2025/)
+    await expect(page).toHaveURL(/\/meetings\/urn:test:meeting:2025/)
     await expect(page.locator('h1')).toContainText('2025 Refs Plenary')
   })
 
   test('decision detail back-link points at the decisions index', async ({ page }) => {
-    await page.goto('/decisions/urn%3Atest%3Aresolution%3A1')
+    await page.goto('/decisions/urn:test:resolution:1')
     const back = page.locator('article a', { hasText: '← Decisions' })
     await expect(back).toHaveAttribute('href', '/decisions')
   })
@@ -35,22 +35,22 @@ test.describe('fixture site — navigation and rendering', () => {
 
 test.describe('fixture site — register resolution on meeting pages', () => {
   test('register refs resolve: venue and committee from the registers', async ({ page }) => {
-    await page.goto('/meetings/urn%3Atest%3Ameeting%3A2026')
+    await page.goto('/meetings/urn:test:meeting:2026')
     await expect(page.locator('section', { hasText: 'CICG Geneva' }).first()).toBeVisible()
     await expect(page.locator('section', { hasText: 'CIML' }).first()).toBeVisible()
   })
 
   test('local_ref resolves against the meeting-scoped collections', async ({ page }) => {
-    await page.goto('/meetings/urn%3Atest%3Ameeting%3A2025')
+    await page.goto('/meetings/urn:test:meeting:2025')
     await expect(page.locator('section', { hasText: 'Grand Hall (inline)' }).first()).toBeVisible()
     await expect(page.locator('section', { hasText: 'SC 1 (inline)' }).first()).toBeVisible()
   })
 
   test('linked decisions render with a working absolute link', async ({ page }) => {
-    await page.goto('/meetings/urn%3Atest%3Ameeting%3A2025')
+    await page.goto('/meetings/urn:test:meeting:2025')
     const section = page.locator('section', { has: page.locator('h2', { hasText: 'Resolutions' }) })
     const link = section.locator('a', { hasText: 'First test decision' })
-    await expect(link).toHaveAttribute('href', '/decisions/urn%3Atest%3Aresolution%3A1')
+    await expect(link).toHaveAttribute('href', '/decisions/urn:test:resolution:1')
     await link.click()
     await expect(page.locator('h1')).toContainText('First test decision')
   })

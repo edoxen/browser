@@ -1,4 +1,6 @@
 ---
+import { urnToPath } from '../../urn.js'
+
 interface Props {
   prev?: { urn: string; title: string }
   next?: { urn: string; title: string }
@@ -11,7 +13,7 @@ const { prev, next, basePath } = Astro.props
   <nav class="edoxen-prev-next" aria-label="Adjacent items">
     <div class="edoxen-prev-next__cell">
       {prev && (
-        <a href={`${basePath}/${encodeURIComponent(prev.urn)}`} rel="prev">
+        <a href={`${basePath}/${urnToPath(prev.urn)}`} rel="prev">
           <span class="edoxen-prev-next__label">← Previous</span>
           <span class="edoxen-prev-next__title">{prev.title}</span>
         </a>
@@ -19,7 +21,7 @@ const { prev, next, basePath } = Astro.props
     </div>
     <div class="edoxen-prev-next__cell edoxen-prev-next__cell--right">
       {next && (
-        <a href={`${basePath}/${encodeURIComponent(next.urn)}`} rel="next">
+        <a href={`${basePath}/${urnToPath(next.urn)}`} rel="next">
           <span class="edoxen-prev-next__label">Next →</span>
           <span class="edoxen-prev-next__title">{next.title}</span>
         </a>
