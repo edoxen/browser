@@ -1,5 +1,12 @@
 # @edoxen/browser-example-multibody
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [a1963b6]
+  - @edoxen/browser@0.1.9
+
 ## 0.0.3
 
 ### Patch Changes
