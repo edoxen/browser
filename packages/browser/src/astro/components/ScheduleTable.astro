@@ -18,10 +18,13 @@ interface DayGroup {
 function formatTime(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  // Render in UTC: source timestamps carry an explicit offset and the
+  // build server's timezone must not shift the displayed times.
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })
 }
 
 function formatTz(iso: string): string {
+  if (iso.endsWith('Z')) return 'UTC'
   const match = iso.match(/[+-]\d{2}:?\d{2}$/)
   return match ? `UTC${match[0].slice(0, 3)}` : ''
 }

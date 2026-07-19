@@ -45,10 +45,11 @@ function contactHref(m: ContactMethod): string | undefined {
               <span class="edoxen-officer-list__contacts">
                 {methods.map((m) => {
                   const href = contactHref(m)
-                  const label = m.label ?? m.kind ?? m.value ?? ''
+                  // Linked methods show the value (an email address reads
+                  // better than the word 'email'); unlinked show kind: value.
                   return href
-                    ? <a href={href}>{label}</a>
-                    : <span>{label}{m.value && label !== m.value ? `: ${m.value}` : ''}</span>
+                    ? <a href={href}>{m.label ?? m.value}</a>
+                    : <span>{[m.label ?? m.kind, m.value].filter(Boolean).join(': ')}</span>
                 })}
               </span>
             )}

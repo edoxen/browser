@@ -80,7 +80,7 @@ const decades = payloads.meetingsList.facets.decades
   </section>
 )}
 
-<section class="edoxen-enter" style="--nth: 5">
+<section class="edoxen-enter edoxen-home-about-section" style="--nth: 5">
   <p class="edoxen-home-about">
     <a href={`${prefix}about`}>{t('nav.about', locale, cfg.uiStrings)} →</a>
   </p>
@@ -125,5 +125,8 @@ const decades = payloads.meetingsList.facets.decades
 }
 .edoxen-home-about {
   font-size: 0.9375rem;
+}
+.edoxen-home-about-section {
+  margin-top: 2.5rem;
 }
 </style>

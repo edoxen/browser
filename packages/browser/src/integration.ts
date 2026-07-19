@@ -170,8 +170,9 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
         title: pickLocalizedValue(d.title, locale),
         subject: pickLocalizedValue(d.subject, locale),
         snippet: pickLocalizedValue(d.snippet, locale),
-        // Card/meeting-chip deep links use the meeting *page* URN.
-        meetingUrn: d.meetingPageUrn ?? d.meetingUrn,
+        // Card/meeting-chip deep links use the meeting *page* URN only;
+        // without one there is no meeting page to link to.
+        meetingUrn: d.meetingPageUrn ?? undefined,
       })),
       facetBodies: [...cache.payloads.decisionsList.facets.bodies],
       facetKinds: [...cache.payloads.decisionsList.facets.kinds],
