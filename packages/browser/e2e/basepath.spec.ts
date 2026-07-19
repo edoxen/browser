@@ -29,7 +29,7 @@ test.describe('basePath site — links carry the deployment prefix', () => {
     await link.click()
     await expect(page).toHaveURL(new RegExp(`${BASE}/decisions/urn:test:resolution:1`))
     await expect(page.locator('h1')).toContainText('First test decision')
-    await expect(page.locator('article a', { hasText: '← Decisions' })).toHaveAttribute('href', `${BASE}/decisions`)
+    await expect(page.locator('article a', { hasText: '← Resolutions' })).toHaveAttribute('href', `${BASE}/decisions`)
   })
 
   test('meeting list and detail links are prefixed', async ({ page }) => {

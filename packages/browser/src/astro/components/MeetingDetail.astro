@@ -42,8 +42,18 @@ const dateRange = meeting.scheduled_date_range
   : ''
 
 // Three-tier resolution: inline venue data → meeting-scoped local_ref →
-// global venue register (ref). Falls back to the meeting's own city.
-const venues = (meeting.venues ?? []).map((v) => resolveVenue(v, meeting.venues, payloads.venueByUrn))
+// global venue register (ref). A local_ref into the meeting's own venue
+// list resolves to the same record, so dedupe by URN — one card per
+// distinct venue. Falls back to the meeting's own city.
+const seenVenueUrns = new Set<string>()
+const venues = (meeting.venues ?? [])
+  .map((v) => resolveVenue(v, meeting.venues, payloads.venueByUrn))
+  .filter((v) => {
+    const key = v.urn ?? pickLocalizedValue(v.name, locale)
+    if (!key || seenVenueUrns.has(key)) return false
+    seenVenueUrns.add(key)
+    return true
+  })
 const committee = meeting.committee
   ? resolveBody(meeting.committee, meeting.bodies, payloads.bodyByCode)
   : undefined

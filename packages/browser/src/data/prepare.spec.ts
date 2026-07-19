@@ -135,3 +135,71 @@ describe('preparePayloads', () => {
     expect(payloads.meetingByUrn['urn:test:meeting:2024']?.city).toBe('CNSHA')
   })
 })
+
+// Rich card/detail surfaces — exercised against the enriched fixture set
+// (decisions with actions/considerations/approvals/agenda_item, meetings
+// with agenda + committee refs + registers).
+const richCfg: DataConfig = {
+  decisions: resolve(fixtures, 'decisions/sample.yaml'),
+  meetings: resolve(fixtures, 'meetings/with-refs-meeting.yaml'),
+  contacts: resolve(fixtures, 'registers/contacts.yaml'),
+  venues: resolve(fixtures, 'registers/venues.yaml'),
+  bodies: resolve(fixtures, 'registers/bodies.yaml'),
+}
+
+async function richPayloads() {
+  const loaded = await loadAll(richCfg)
+  if (!loaded.ok) throw new Error('load failed')
+  return preparePayloads(buildProjectFromLoaded(loaded.value), loaded.value.registers)
+}
+
+describe('rich list payloads', () => {
+  it('decision items carry actionTypes, status, date and a snippet', async () => {
+    const payloads = await richPayloads()
+    const first = payloads.decisionsList.items.find((i) => i.urn === 'urn:test:resolution:1')
+    expect(first?.actionTypes).toEqual(['publishes', 'thanks'])
+    expect(first?.status).toBe('decided')
+    expect(first?.date).toBe('2024-06-15')
+    expect(first?.year).toBe(2024)
+    expect(first?.snippet[0]?.value).toContain('Publishes the test standard')
+    expect(first?.subject.length).toBeGreaterThan(0)
+  })
+
+  it('exposes actionTypes + statuses facets', async () => {
+    const payloads = await richPayloads()
+    expect(payloads.decisionsList.facets.actionTypes).toEqual(['publishes', 'recommends', 'thanks'])
+    expect(payloads.decisionsList.facets.statuses).toEqual(['decided'])
+  })
+
+  it('resolves meetingPageUrn through the meeting decision refs', async () => {
+    const payloads = await richPayloads()
+    const first = payloads.decisionsList.items.find((i) => i.urn === 'urn:test:resolution:1')
+    expect(first?.meetingPageUrn).toBe('urn:test:meeting:2025')
+    const second = payloads.decisionsList.items.find((i) => i.urn === 'urn:test:resolution:2')
+    expect(second?.meetingPageUrn).toBeUndefined()
+  })
+
+  it('maps agenda items to the decision they produced', async () => {
+    const payloads = await richPayloads()
+    const hit = payloads.decisionByAgendaItem['urn:test:meeting:2025::2']
+    expect(hit?.urn).toBe('urn:test:resolution:1')
+    expect(payloads.decisionByAgendaItem['urn:test:meeting:2025::1']).toBeUndefined()
+  })
+
+  it('meeting items carry resolved committeeCode and decisionCount', async () => {
+    const payloads = await richPayloads()
+    const m2025 = payloads.meetingsList.items.find((i) => i.urn === 'urn:test:meeting:2025')
+    expect(m2025?.committeeCode).toBe('sc-1')
+    expect(m2025?.decisionCount).toBe(1)
+    const m2026 = payloads.meetingsList.items.find((i) => i.urn === 'urn:test:meeting:2026')
+    expect(m2026?.committeeCode).toBe('ciml')
+    expect(m2026?.decisionCount).toBeUndefined()
+  })
+
+  it('groups linked decisions under their meeting', async () => {
+    const payloads = await richPayloads()
+    const linked = payloads.decisionsByMeetingUrn['urn:test:meeting:2025'] ?? []
+    expect(linked.map((d) => d.urn)).toEqual(['urn:test:resolution:1'])
+    expect(linked[0]?.meetingPageUrn).toBe('urn:test:meeting:2025')
+  })
+})
