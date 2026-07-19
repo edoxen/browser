@@ -1,6 +1,7 @@
 ---
 import type { DecisionListItem } from '../../data/index.js'
 import { pickLocalizedValue } from '../../i18n/index.js'
+import { urnToPath } from '../../urn.js'
 
 interface Props {
   items: readonly DecisionListItem[]
@@ -18,7 +19,7 @@ const listClass = compact ? 'edoxen-decision-list edoxen-decision-list--compact'
   <ul class={listClass}>
     {items.map((d) => (
       <li class="edoxen-decision-list__item">
-        <a href={`${prefix}decisions/${encodeURIComponent(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
+        <a href={`${prefix}decisions/${urnToPath(d.urn)}`}>{pickLocalizedValue(d.title, lang, d.urn)}</a>
         {!compact && (
           <dl class="edoxen-decision-list__meta">
             <dt>URN</dt>
