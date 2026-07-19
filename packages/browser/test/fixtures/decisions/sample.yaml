@@ -13,6 +13,11 @@ decisions:
     status: decided
     urn: urn:test:resolution:1
     body_type: committee
+    doi: 10.1234/test.2024.1
+    agenda_item: "2"
+    categories:
+      - Testing
+      - Governance
     dates:
       - date: '2024-06-15'
         type: effective
@@ -30,6 +35,16 @@ decisions:
         value: Tests
       - spelling: fra
         value: Tests
+    considerations:
+      - type: considers
+        date_effective:
+          date: '2024-06-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Considering the need for a stable, well-documented test fixture.
+          - spelling: fra
+            value: Considérant la nécessité d'un jeu d'essai stable et documenté.
     actions:
       - type: publishes
         date_effective:
@@ -38,6 +53,33 @@ decisions:
         message:
           - spelling: eng
             value: Publishes the test standard.
+          - spelling: fra
+            value: Publie la norme d'essai.
+      - type: thanks
+        date_effective:
+          date: '2024-06-15'
+          type: adoption
+        message:
+          - spelling: eng
+            value: Thanks the drafting group for its thorough work.
+    approvals:
+      - type: affirmative
+        degree: unanimous
+        date:
+          date: '2024-06-15'
+          type: adoption
+    relations:
+      - source:
+          prefix: TEST
+          number: "1"
+        destination:
+          prefix: TEST
+          number: "2"
+        type: refines
+    urls:
+      - kind: access
+        ref: https://example.org/docs/test-1
+        format: html
   - identifier:
       - prefix: TEST
         number: "2"

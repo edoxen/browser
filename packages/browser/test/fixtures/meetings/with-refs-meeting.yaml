@@ -14,14 +14,25 @@ meetings:
     title:
       - spelling: eng
         value: 2025 Refs Plenary
+    general_area:
+      - spelling: eng
+        value: Berlin metropolitan area
+    note:
+      - spelling: eng
+        value: Registration closes two weeks before the plenary.
     venues:
       - urn: urn:edoxen:venue:test:grand-hall
         kind: physical
         name:
           - spelling: eng
             value: Grand Hall (inline)
+        address:
+          - spelling: eng
+            value: 1 Testplatz, Berlin
         city: Berlin
         country_code: DE
+        unlocode: DEBER
+        url: https://example.org/map/grand-hall
       - local_ref: urn:edoxen:venue:test:grand-hall
       - ref: urn:edoxen:venue:test:geneva-cicg
     bodies:
@@ -32,9 +43,73 @@ meetings:
             value: SC 1 (inline)
     committee:
       local_ref: sc-1
+    officers:
+      - role: chair
+        person:
+          name:
+            - spelling: eng
+              value: { formatted: Ada Test-Chair }
+          affiliation:
+            - spelling: eng
+              value: Test Standards Body
+          contact_methods:
+            - kind: email
+              value: ada@example.org
+      - role: secretary
+        person:
+          name:
+            - spelling: eng
+              value: { formatted: Sam Test-Secretary }
+    hosts:
+      - ref: j-doe
+        type: organizer
+        role: host
+      - ref: urn:edoxen:contact:test:j-doe
+        type: liaison
+    components:
+      - kind: plenary_session
+        title:
+          - spelling: eng
+            value: Opening plenary
+        starts_at: '2025-03-10T09:00:00Z'
+        ends_at: '2025-03-10T12:00:00Z'
+    deadlines:
+      - date: '2025-02-24'
+        description:
+          - spelling: eng
+            value: Registration closes
+      - date: '2025-03-03'
+        description:
+          - spelling: eng
+            value: Document submission
+    agenda:
+      status: final
+      items:
+        - label: "1"
+          kind: opening
+          title:
+            - spelling: eng
+              value: Opening of the meeting
+        - label: "2"
+          kind: numbered
+          title:
+            - spelling: eng
+              value: Adoption of TEST-1 (first test decision)
+          outcome: adopted
+        - label: "3"
+          kind: numbered
+          title:
+            - spelling: eng
+              value: Future work items
+          outcome: discussed
     decisions:
       - prefix: TEST
         number: "1"
+    source_urls:
+      - ref: https://example.org/meetings/2025/agenda.pdf
+        kind: agenda_pdf
+        format: pdf
+        spelling: eng
   - identifier:
       - prefix: TEST
         number: "2026"
