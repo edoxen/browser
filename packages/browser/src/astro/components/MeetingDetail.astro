@@ -17,6 +17,7 @@ import {
   pickLocalizedValue,
   formatDate,
   formatDateRange,
+  humanizeVerb,
   t,
   urlPrefix,
 } from '../../i18n/index.js'
@@ -36,7 +37,6 @@ const { meeting, locale } = Astro.props
 const prefix = urlPrefix(cfg, locale)
 
 const identifier = (meeting.identifier ?? []).map((id) => `${id.prefix}-${id.number}`)[0] ?? ''
-const flag = meeting.country_code ? countryFlag(meeting.country_code) : ''
 const dateRange = meeting.scheduled_date_range
   ? formatDateRange(meeting.scheduled_date_range.start, meeting.scheduled_date_range.end, locale)
   : ''
@@ -54,6 +54,9 @@ const venues = (meeting.venues ?? [])
     seenVenueUrns.add(key)
     return true
   })
+const placeCity = meeting.city ?? venues[0]?.city
+const placeCountry = meeting.country_code ?? venues[0]?.country_code
+const flag = placeCountry ? countryFlag(placeCountry) : ''
 const committee = meeting.committee
   ? resolveBody(meeting.committee, meeting.bodies, payloads.bodyByCode)
   : undefined
@@ -124,11 +127,11 @@ function hostLabel(h: HostRef): string {
         <time datetime={meeting.scheduled_date_range?.start}>{dateRange}</time>
       </span>
     )}
-    {(meeting.city || meeting.country_code) && (
+    {(placeCity || placeCountry) && (
       <span class="edoxen-meeting__place">
         {flag && <span aria-hidden="true">{flag}</span>}
-        {meeting.city}
-        {meeting.country_code && <span class="edoxen-meeting__country">{meeting.country_code}</span>}
+        {placeCity}
+        {placeCountry && <span class="edoxen-meeting__country">{placeCountry}</span>}
       </span>
     )}
     {meeting.body_type && <BodyBadge code={meeting.body_type} />}
@@ -293,7 +296,7 @@ function hostLabel(h: HostRef): string {
       {sourceUrls.map((s) => (
         <li>
           <a href={s.ref} rel="external">
-            {[s.kind, s.format].filter(Boolean).join(' · ') || s.ref}
+            {humanizeVerb(s.kind) || s.ref}{s.format ? ` (${s.format.toUpperCase()})` : ''}
           </a>
           {s.spelling && <span class="edoxen-badge edoxen-badge--mono">{s.spelling}</span>}
         </li>
@@ -436,8 +439,5 @@ function hostLabel(h: HostRef): string {
   align-items: center;
   gap: 0.625rem;
   margin: 0;
-}
-.edoxen-meeting__sources a {
-  text-transform: capitalize;
 }
 </style>

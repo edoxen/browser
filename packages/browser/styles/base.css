@@ -631,7 +631,8 @@ reading-progress {
 
 .edoxen-enter {
   animation: edoxen-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(var(--nth, 1) * 60ms);
+  /* Long records cap the stagger so late sections still appear promptly. */
+  animation-delay: calc(min(var(--nth, 1), 8) * 60ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
