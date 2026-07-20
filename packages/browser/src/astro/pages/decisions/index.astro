@@ -19,6 +19,10 @@ const endpoint = `${prefix}data/decisions.json`
     data-endpoint={endpoint}
     data-base-path={decisionsBase(cfg, prefix)}
     data-meetings-base-path={`${prefix}meetings`}
+    data-placeholder={t('search.placeholder', lang, cfg.uiStrings, cfg.terminology)}
+    data-aria-label={t('search.ariaLabel', lang, cfg.uiStrings, cfg.terminology)}
+    data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
+    data-meeting-label={t('label.meeting', lang, cfg.uiStrings, cfg.terminology)}
   ></search-filter>
   <noscript>
     <DecisionList items={items} lang={lang} urlPrefix={prefix} />

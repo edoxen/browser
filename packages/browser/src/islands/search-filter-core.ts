@@ -14,6 +14,15 @@ export interface SearchableItem {
   readonly meetingUrn?: string
   /** First action message, flattened for the island's result cards. */
   readonly snippet?: string
+  // Meetings-mode fields (the same island consumes /data/meetings.json).
+  /** Meeting start (or only) ISO date. */
+  readonly startDate?: string
+  readonly endDate?: string
+  readonly city?: string
+  readonly countryCode?: string
+  /** Resolved committee code — searched and shown as a chip. */
+  readonly committeeCode?: string
+  readonly decisionCount?: number
 }
 
 export interface FilterState {
@@ -22,6 +31,8 @@ export interface FilterState {
   readonly kinds: ReadonlySet<string>
   readonly years: ReadonlySet<number>
   readonly actions: ReadonlySet<string>
+  readonly decades: ReadonlySet<number>
+  readonly countries: ReadonlySet<string>
 }
 
 export const EMPTY_STATE: FilterState = {
@@ -30,6 +41,12 @@ export const EMPTY_STATE: FilterState = {
   kinds: new Set(),
   years: new Set(),
   actions: new Set(),
+  decades: new Set(),
+  countries: new Set(),
+}
+
+export function decadeOfYear(year: number): number {
+  return Math.floor(year / 10) * 10
 }
 
 export function filterItems<T extends SearchableItem>(
@@ -42,8 +59,10 @@ export function filterItems<T extends SearchableItem>(
     if (state.kinds.size > 0 && !state.kinds.has(item.kind ?? '')) return false
     if (state.years.size > 0 && !state.years.has(item.year ?? -1)) return false
     if (state.actions.size > 0 && !(item.actionTypes ?? []).some((a) => state.actions.has(a))) return false
+    if (state.decades.size > 0 && !state.decades.has(typeof item.year === 'number' ? decadeOfYear(item.year) : -1)) return false
+    if (state.countries.size > 0 && !state.countries.has(item.countryCode ?? '')) return false
     if (q) {
-      const hay = `${item.title} ${item.urn} ${item.identifier ?? ''} ${item.snippet ?? ''}`.toLowerCase()
+      const hay = `${item.title} ${item.urn} ${item.identifier ?? ''} ${item.snippet ?? ''} ${item.committeeCode ?? ''} ${item.city ?? ''}`.toLowerCase()
       if (!hay.includes(q)) return false
     }
     return true
@@ -55,6 +74,8 @@ export interface FacetCounts {
   readonly kinds: ReadonlyMap<string, number>
   readonly years: ReadonlyMap<number, number>
   readonly actions: ReadonlyMap<string, number>
+  readonly decades: ReadonlyMap<number, number>
+  readonly countries: ReadonlyMap<string, number>
 }
 
 export function countFacets<T extends SearchableItem>(items: readonly T[]): FacetCounts {
@@ -62,13 +83,20 @@ export function countFacets<T extends SearchableItem>(items: readonly T[]): Face
   const kinds = new Map<string, number>()
   const years = new Map<number, number>()
   const actions = new Map<string, number>()
+  const decades = new Map<number, number>()
+  const countries = new Map<string, number>()
   for (const item of items) {
     if (item.bodyType) bodies.set(item.bodyType, (bodies.get(item.bodyType) ?? 0) + 1)
     if (item.kind) kinds.set(item.kind, (kinds.get(item.kind) ?? 0) + 1)
-    if (typeof item.year === 'number') years.set(item.year, (years.get(item.year) ?? 0) + 1)
+    if (typeof item.year === 'number') {
+      years.set(item.year, (years.get(item.year) ?? 0) + 1)
+      const decade = decadeOfYear(item.year)
+      decades.set(decade, (decades.get(decade) ?? 0) + 1)
+    }
+    if (item.countryCode) countries.set(item.countryCode, (countries.get(item.countryCode) ?? 0) + 1)
     for (const a of item.actionTypes ?? []) actions.set(a, (actions.get(a) ?? 0) + 1)
   }
-  return { bodies, kinds, years, actions }
+  return { bodies, kinds, years, actions, decades, countries }
 }
 
 export function toggle<K>(set: ReadonlySet<K>, key: K): Set<K> {
@@ -85,23 +113,41 @@ export function encodeState(state: FilterState): string {
   if (state.kinds.size > 0) params.set('kinds', [...state.kinds].sort().join(','))
   if (state.years.size > 0) params.set('years', [...state.years].sort().map(String).join(','))
   if (state.actions.size > 0) params.set('actions', [...state.actions].sort().join(','))
+  if (state.decades.size > 0) params.set('decades', [...state.decades].sort().map(String).join(','))
+  if (state.countries.size > 0) params.set('countries', [...state.countries].sort().join(','))
   const s = params.toString()
   return s ? `#${s}` : ''
 }
 
 export function decodeState(hash: string): FilterState {
   const trimmed = hash.startsWith('#') ? hash.slice(1) : hash
-  if (!trimmed) return { ...EMPTY_STATE, bodies: new Set(), kinds: new Set(), years: new Set(), actions: new Set() }
+  if (!trimmed) return freshEmptyState()
   const params = new URLSearchParams(trimmed)
   const bodies = (params.get('bodies') ?? '').split(',').filter(Boolean)
   const kinds = (params.get('kinds') ?? '').split(',').filter(Boolean)
   const years = (params.get('years') ?? '').split(',').filter(Boolean).map(Number).filter(Number.isFinite)
   const actions = (params.get('actions') ?? '').split(',').filter(Boolean)
+  const decades = (params.get('decades') ?? '').split(',').filter(Boolean).map(Number).filter(Number.isFinite)
+  const countries = (params.get('countries') ?? '').split(',').filter(Boolean)
   return {
     query: params.get('q') ?? '',
     bodies: new Set(bodies),
     kinds: new Set(kinds),
     years: new Set(years),
     actions: new Set(actions),
+    decades: new Set(decades),
+    countries: new Set(countries),
+  }
+}
+
+function freshEmptyState(): FilterState {
+  return {
+    query: '',
+    bodies: new Set(),
+    kinds: new Set(),
+    years: new Set(),
+    actions: new Set(),
+    decades: new Set(),
+    countries: new Set(),
   }
 }
