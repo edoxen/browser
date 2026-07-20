@@ -50,6 +50,7 @@ interface IntegrationCache {
   readonly registers: LoadedData['registers']
   readonly redirects: ReadonlyArray<readonly [string, string, AstroRedirectStatus]>
   readonly customCss: string | null
+  readonly customCssImports: readonly string[]
 }
 
 type AstroRedirectStatus = 300 | 301 | 302 | 303 | 304 | 307 | 308
@@ -126,13 +127,20 @@ async function buildCache(opts: IntegrationOptions, logger: AstroIntegrationLogg
     (loaded.value.registers?.bodies?.bodies?.length ?? 0)
   logger.info(`Loaded ${project.decisions.length} decisions, ${project.meetings.length} meetings, ${registerCount} register entries, ${redirects.length} redirects`)
   const customCss = detectCustomCss(cfg)
-  if (customCss) logger.info(`Custom stylesheet: ${customCss}`)
+  let customCssImports: string[] = []
+  if (customCss) {
+    logger.info(`Custom stylesheet: ${customCss}`)
+    const { urls } = extractExternalImports(await readFile(customCss, 'utf-8'))
+    customCssImports = urls
+    if (urls.length > 0) logger.info(`  ↳ ${urls.length} external stylesheet import(s) emitted as <head> links`)
+  }
   return {
     config: cfg,
     payloads,
     registers: loaded.value.registers,
     redirects: redirects.map((r) => [r.from, r.to, r.status ?? 301] as const),
     customCss,
+    customCssImports,
   }
 }
 
@@ -155,6 +163,22 @@ function detectCustomCss(cfg: EdoxenConfig): string | null {
     if (existsSync(candidate)) return candidate
   }
   return null
+}
+
+// External (http/https) @import lines — e.g. webfont URLs. These must
+// NOT stay inside the bundled CSS: a stylesheet cannot apply until its
+// @imports resolve, so a fonts CDN in the override turns every page
+// navigation into a flash of unstyled content. They are extracted and
+// emitted as parallel <link rel="stylesheet"> tags in <head> instead.
+const EXTERNAL_IMPORT_RE = /^@import\s+(?:url\(\s*)?["']?(https?:\/\/[^"')\s]+)["']?\s*\)?\s*;.*$/gm
+
+function extractExternalImports(css: string): { urls: string[]; stripped: string } {
+  const urls: string[] = []
+  const stripped = css.replace(EXTERNAL_IMPORT_RE, (_m, url: string) => {
+    urls.push(url)
+    return ''
+  })
+  return { urls, stripped }
 }
 
 type DataEndpointName = 'decisions' | 'meetings' | 'registers'
@@ -248,7 +272,7 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
                 load(id: string): string | null {
                   if (!cache) throw new EdoxenBrowserError('build', 'Integration cache not ready')
                   if (id === `\0${VIRTUAL_CONFIG}`) {
-                    return `export default ${JSON.stringify(cache.config)}`
+                    return `export default ${JSON.stringify({ ...cache.config, customCssImports: cache.customCssImports })}`
                   }
                   if (id === `\0${VIRTUAL_PAYLOADS}`) {
                     return `export default ${JSON.stringify(cache.payloads)}`
@@ -256,8 +280,19 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
                   if (id === `\0${VIRTUAL_CUSTOM_CSS}`) {
                     // Re-import the real file by absolute path so Vite
                     // runs it through the consumer's CSS pipeline
-                    // (Tailwind/PostCSS apply; external @import URLs stay).
+                    // (Tailwind/PostCSS apply; external @import URLs are
+                    // stripped by the transform hook below and emitted
+                    // as <head> links instead — see extractExternalImports).
                     return cache.customCss ? `import ${JSON.stringify(cache.customCss)}` : 'export {}'
+                  }
+                  return null
+                },
+                transform(code: string, id: string): string | null {
+                  // Strip external @imports from the consumer override
+                  // before Vite bundles it — a stylesheet cannot apply
+                  // until its imports resolve, which is the FOUC source.
+                  if (cache?.customCss && id === cache.customCss) {
+                    return extractExternalImports(code).stripped
                   }
                   return null
                 },
