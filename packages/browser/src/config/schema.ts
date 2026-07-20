@@ -104,12 +104,47 @@ export const NavItemSchema = z.object({
 })
 export type NavItem = z.infer<typeof NavItemSchema>
 
+// Default nav: Meetings + Decisions + About. A zero-config consumer
+// sees these three top-level entries; overriding `nav` in the config
+// replaces them wholesale.
+const DEFAULT_NAV: NavItem[] = [
+  { label: 'Meetings', href: '/meetings' },
+  { label: 'Decisions', href: '/decisions' },
+  { label: 'About', href: '/about' },
+]
+
 export const SocialItemSchema = z.object({
   label: z.string().min(1),
   href: z.string().url(),
   icon: z.enum(['github', 'email', 'linkedin', 'twitter', 'website', 'rss']).optional(),
 })
 export type SocialItem = z.infer<typeof SocialItemSchema>
+
+// Footer config block. When `message` and `copyright` are unset the
+// package auto-generates them from the site title + current year, so a
+// zero-config consumer gets a sensible footer without lifting a finger.
+export const FooterSchema = z.object({
+  message: z.string().optional(),
+  copyright: z.string().optional(),
+  showEdoxenAttribution: z.boolean().default(true),
+})
+export type FooterConfig = z.infer<typeof FooterSchema>
+
+/**
+ * Auto-generate the footer message + copyright lines for a given site
+ * title. Used by BaseLayout when the consumer hasn't supplied them.
+ */
+export function resolveFooter(
+  siteTitle: string,
+  footer: FooterConfig,
+  year: number = new Date().getFullYear(),
+): Required<Pick<FooterConfig, 'message' | 'copyright'>> & Pick<FooterConfig, 'showEdoxenAttribution'> {
+  return {
+    message: footer.message ?? `An Edoxen-powered registry of meetings and decisions.`,
+    copyright: footer.copyright ?? `Copyright © ${year} ${siteTitle}.`,
+    showEdoxenAttribution: footer.showEdoxenAttribution,
+  }
+}
 
 export const FeaturesSchema = z.object({
   search: z.boolean().default(true),
@@ -132,8 +167,9 @@ export const EdoxenConfigSchema = z.object({
   bodies: z.array(BodySchema).default([{ code: 'committee', name: 'Committee' }]),
   locales: z.array(LocaleEntrySchema).default([{ code: 'en', label: 'English', routePrefix: '' }]),
   theme: ThemeSchema.default({}),
-  nav: z.array(NavItemSchema).default([]),
+  nav: z.array(NavItemSchema).default(DEFAULT_NAV),
   social: z.array(SocialItemSchema).default([]),
+  footer: FooterSchema.default({}),
   features: FeaturesSchema.default({}),
   uiStrings: z.record(z.string(), z.record(z.string(), z.string())).default({}),
 })

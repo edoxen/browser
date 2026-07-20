@@ -4,10 +4,12 @@ import {
   BodySchema,
   EdoxenConfigSchema,
   FeaturesSchema,
+  FooterSchema,
   LocaleEntrySchema,
   NavItemSchema,
   SocialItemSchema,
   defineConfig,
+  resolveFooter,
 } from './schema.js'
 
 describe('EdoxenConfigSchema', () => {
@@ -258,6 +260,70 @@ describe('EdoxenConfigSchema', () => {
           data: { decisions: './data/decisions' },
         }),
       ).toThrow()
+    })
+
+    it('ships Meetings + Decisions + About as the default nav', () => {
+      const cfg = defineConfig({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+      })
+      expect(cfg.nav.map((n) => n.label)).toEqual([
+        'Meetings',
+        'Decisions',
+        'About',
+      ])
+    })
+
+    it('replaces the default nav wholesale when provided', () => {
+      const cfg = defineConfig({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+        nav: [{ label: 'Members', href: '/members' }],
+      })
+      expect(cfg.nav).toEqual([{ label: 'Members', href: '/members' }])
+    })
+  })
+
+  describe('footer', () => {
+    it('applies the showEdoxenAttribution=true default', () => {
+      const f = FooterSchema.parse({})
+      expect(f.showEdoxenAttribution).toBe(true)
+    })
+
+    it('respects explicit overrides', () => {
+      const f = FooterSchema.parse({
+        message: 'Hello',
+        copyright: '© 1999 X',
+        showEdoxenAttribution: false,
+      })
+      expect(f).toEqual({
+        message: 'Hello',
+        copyright: '© 1999 X',
+        showEdoxenAttribution: false,
+      })
+    })
+
+    it('auto-generates a tagline + copyright from site title', () => {
+      const f = resolveFooter('TC 154', FooterSchema.parse({}), 2026)
+      expect(f.message).toMatch(/Edoxen-powered registry/)
+      expect(f.copyright).toBe('Copyright © 2026 TC 154.')
+    })
+
+    it('respects an explicit message + copyright', () => {
+      const resolved = resolveFooter(
+        'TC 154',
+        FooterSchema.parse({ message: 'Maintained by X', copyright: '© 2000 X' }),
+      )
+      expect(resolved.message).toBe('Maintained by X')
+      expect(resolved.copyright).toBe('© 2000 X')
+    })
+
+    it('honours showEdoxenAttribution=false from the config', () => {
+      const resolved = resolveFooter(
+        'X',
+        FooterSchema.parse({ showEdoxenAttribution: false }),
+      )
+      expect(resolved.showEdoxenAttribution).toBe(false)
     })
   })
 })

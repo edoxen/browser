@@ -1,6 +1,6 @@
 ---
 import type { EdoxenConfig } from '../../config/index.js'
-import { generateCssTokens } from '../../config/index.js'
+import { generateCssTokens, resolveFooter } from '../../config/index.js'
 import { urlPrefix } from '../../i18n/index.js'
 import '../../../styles/base.css'
 // Consumer override stylesheet (virtual: resolved to the consumer's
@@ -22,6 +22,7 @@ const tokens = generateCssTokens(config.theme)
 const canonical = new URL(Astro.url.pathname, config.site.url).toString()
 const prefix = urlPrefix(config, lang)
 const navHref = (href: string): string => `${prefix}${href}`.replace(/\/{2,}/g, '/')
+const footer = resolveFooter(config.site.title, config.footer)
 ---
 
 <!doctype html>
@@ -75,7 +76,13 @@ const navHref = (href: string): string => `${prefix}${href}`.replace(/\/{2,}/g, 
           <li><a href={s.href}>{s.label}</a></li>
         ))}
       </ul>
-      <p>Powered by <a href="https://edoxen.github.io">Edoxen</a>.</p>
+      <p class="edoxen-footer__message" set:html={footer.message} />
+      <p class="edoxen-footer__copyright">{footer.copyright}</p>
+      {footer.showEdoxenAttribution && (
+        <p class="edoxen-footer__attribution">
+          Powered by <a href="https://edoxen.github.io">Edoxen</a>.
+        </p>
+      )}
     </footer>
     <script>
       import '../../islands/theme-toggle.ts'
