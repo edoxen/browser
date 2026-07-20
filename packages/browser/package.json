@@ -89,6 +89,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@asciidoctor/core": "^3.0.4",
     "@astrojs/sitemap": "^3.7.3",
     "jiti": "^2.4.0",
     "yaml": "^2.6.0",

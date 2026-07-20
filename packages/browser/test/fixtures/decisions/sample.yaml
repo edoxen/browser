@@ -52,7 +52,15 @@ decisions:
           type: adoption
         message:
           - spelling: eng
-            value: Publishes the test standard.
+            value: |
+              Publishes the test standard. The following parts are issued:
+
+              |===
+              |Part |Title |Status
+
+              |Part 1 |General requirements |Active
+              |Part 2 |Test methods |Active
+              |===
           - spelling: fra
             value: Publie la norme d'essai.
       - type: thanks

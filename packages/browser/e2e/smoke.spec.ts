@@ -75,6 +75,11 @@ test.describe('fixture site — decision detail full record', () => {
     await expect(actions.locator('.edoxen-badge--action').first()).toHaveText('Publishes')
     await expect(actions).toContainText('Publishes the test standard.')
     await expect(actions).toContainText('Thanks the drafting group')
+    // AsciiDoc tables in messages render as real tables
+    const adocTable = actions.locator('.edoxen-adoc table')
+    await expect(adocTable).toHaveCount(1)
+    await expect(adocTable.locator('thead th').first()).toHaveText('Part')
+    await expect(adocTable).toContainText('Test methods')
 
     const considerations = page.locator('section', { has: page.locator('h2', { hasText: 'Considerations' }) })
     await expect(considerations).toContainText('well-documented test fixture')
