@@ -215,6 +215,16 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(page.locator('.edoxen-decade-timeline__link').first()).toHaveAttribute('href', '#decade-2020')
   })
 
+  test('search island is DOM-bounded by default (pageSize 50, Show more hidden under it)', async ({ page }) => {
+    await page.goto('/decisions')
+    const island = page.locator('search-filter')
+    await expect(island).toHaveAttribute('data-page-size', '50')
+    await expect(island.locator('input[type="search"]')).toBeVisible()
+    // 2 fixture decisions < pageSize → no Show more control offered
+    await expect(island.getByRole('button', { name: 'Show more' })).toBeHidden()
+    await expect(island.locator('.edoxen-search-filter__result')).toHaveCount(2)
+  })
+
   test('search-filter island hydrates, filters, and exposes an action facet', async ({ page }) => {
     await page.goto('/decisions')
     await expect(page.locator('search-filter')).toBeAttached()
