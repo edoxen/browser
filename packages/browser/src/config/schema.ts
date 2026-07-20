@@ -171,7 +171,11 @@ export const FeaturesSchema = z.object({
   darkMode: z.boolean().default(true),
   printStyles: z.boolean().default(true),
   pagination: z.object({
-    enabled: z.boolean().default(false),
+    // Bounded DOM by default: the search island renders pageSize cards
+    // and grows by "Show more" instead of mounting thousands of cards.
+    // Set enabled: false to render the full filtered list (DOM-heavy
+    // for large archives).
+    enabled: z.boolean().default(true),
     pageSize: z.number().int().positive().default(50),
   }).default({}),
   home: z.object({

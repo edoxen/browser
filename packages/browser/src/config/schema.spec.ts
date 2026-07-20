@@ -226,7 +226,7 @@ describe('EdoxenConfigSchema', () => {
       const f = FeaturesSchema.parse({})
       expect(f.search).toBe(true)
       expect(f.doi).toBe(false)
-      expect(f.pagination.enabled).toBe(false)
+      expect(f.pagination.enabled).toBe(true)
       expect(f.pagination.pageSize).toBe(50)
     })
 
