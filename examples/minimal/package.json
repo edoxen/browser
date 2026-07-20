@@ -1,6 +1,6 @@
 {
   "name": "@edoxen/browser-example-minimal",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": true,
   "type": "module",
   "description": "Minimal @edoxen/browser example — single-locale, decisions-only.",
