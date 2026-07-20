@@ -24,6 +24,10 @@
 #
 # Locale codes use ISO 639-2/639-3 (3-letter): deu, eng, fra, jpn, zho, etc.
 # Set `rtl: true` on a locale entry for right-to-left languages.
+#
+# Note: to rename "decisions"/"meetings" in English UI strings you
+# usually want the `terminology` config instead of per-key overrides —
+# see the README's Terminology section.
 
 # ── Navigation (header bar) ──────────────────────────────────────────
 'nav.home': Home                    # Header link to the home page
@@ -71,11 +75,16 @@
 'section.sourceDocs': Source documents     # Meeting detail — source links
 'section.declarations': Declarations       # Meeting detail — declarations
 
-# ── Search & filter (decisions list) ────────────────────────────────
+# ── Search & filter (decisions + meetings lists) ────────────────────
 'search.placeholder': Search…        # Search input placeholder
 'search.empty': No matches found.    # Shown when search returns nothing
 'search.allBodies': All bodies       # "All bodies" option in the body filter
 'search.allKinds': All kinds         # "All kinds" option in the kind filter
+'search.ariaLabel': Search decisions          # Aria label of the decisions search input
+'search.ariaLabelMeetings': Search meetings   # Aria label of the meetings search input
+'search.dateFrom': From              # Date-range lower-bound input label (decisions)
+'search.dateTo': To                  # Date-range upper-bound input label (decisions)
+'search.showMore': Show more         # Pagination cap control (features.pagination)
 
 # ── Empty states ────────────────────────────────────────────────────
 'decisions.empty': No decisions.     # Shown when the decisions list is empty
