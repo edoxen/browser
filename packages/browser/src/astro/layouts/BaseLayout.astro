@@ -44,7 +44,7 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
       // with light tokens and the theme-toggle island flips to dark only
       // after its JS hydrates — the dark-mode FOUC.
       <script is:inline>
-        {`(function () {
+        (function () {
           try {
             var stored = localStorage.getItem('edoxen-theme');
             var theme = (stored === 'light' || stored === 'dark')
@@ -52,7 +52,7 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
               : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', theme);
           } catch (e) {}
-        })()`}
+        })();
       </script>
     )}
     <title>{pageTitle}</title>

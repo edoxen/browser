@@ -8,6 +8,25 @@ test.describe('fixture site — navigation and rendering', () => {
     await expect(page.locator('h1')).toContainText('E2E Fixture Site')
   })
 
+  test('dark theme is applied pre-paint by an inline script (no hydration wait)', async ({ page }) => {
+    // Emulate a dark-mode visitor. The inline head script must set
+    // data-theme synchronously — i.e. it must be real, executable JS
+    // (a previous version shipped the template literal verbatim).
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.goto('/')
+    const theme = await page.evaluate(() => document.documentElement.dataset.theme)
+    expect(theme).toBe('dark')
+    // And the script itself must be parseable JS (not template text —
+    // a previous version shipped the template literal verbatim and
+    // never executed). hasText uses visible-text semantics which
+    // exclude <script> contents, so read the raw document instead.
+    const html = await page.content()
+    const m = html.match(/<script[^>]*>([\s\S]*?edoxen-theme[\s\S]*?)<\/script>/)
+    expect(m).toBeTruthy()
+    expect(m![1]).not.toContain('`')
+    expect(m![1].trimStart().startsWith('(function')).toBe(true)
+  })
+
   test('decisions list navigates to a decision detail page', async ({ page }) => {
     await page.goto('/decisions')
     const link = page.locator('main a[href="/decisions/urn:test:resolution:1"]').first()
