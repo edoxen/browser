@@ -1,6 +1,6 @@
 {
   "name": "@edoxen/browser-example-bilingual",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "private": true,
   "type": "module",
   "description": "Bilingual @edoxen/browser example — EN + FR content via per-field LocalizedString.",
