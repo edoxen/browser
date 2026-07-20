@@ -1,6 +1,6 @@
 declare module 'virtual:edoxen-config' {
   import type { EdoxenConfig } from './config/index.js'
-  const config: EdoxenConfig
+  const config: EdoxenConfig & { customCssImports?: string[] }
   export default config
 }
 
