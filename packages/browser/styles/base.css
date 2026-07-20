@@ -924,6 +924,115 @@ search-filter {
   }
 }
 
+/* ── Rendered AsciiDoc (.edoxen-adoc) ──────────────────────────────
+   Prose fields (action/consideration/approval messages) rendered
+   through the AsciiDoc pipeline. Booktabs tables, clean lists,
+   code chips — all token-driven, both themes. */
+.edoxen-adoc {
+  font-size: var(--edoxen-font-size-body, 1.0625rem);
+  line-height: 1.65;
+}
+
+.edoxen-adoc > p,
+.edoxen-adoc .paragraph > p {
+  margin: 0 0 0.75em;
+}
+
+.edoxen-adoc > p:last-child,
+.edoxen-adoc .paragraph:last-child > p {
+  margin-bottom: 0;
+}
+
+.edoxen-adoc ul,
+.edoxen-adoc ol {
+  margin: 0 0 0.75em;
+  padding-inline-start: 1.5em;
+}
+
+.edoxen-adoc li {
+  margin: 0.2em 0;
+}
+
+.edoxen-adoc li > p {
+  margin: 0;
+}
+
+.edoxen-adoc a {
+  color: var(--edoxen-color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.edoxen-adoc code,
+.edoxen-adoc kbd {
+  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--edoxen-radius-sm, 0.375rem);
+  background: var(--edoxen-color-background);
+  border: 1px solid var(--edoxen-color-border);
+}
+
+.edoxen-adoc table {
+  width: 100%;
+  margin: 1em 0 1.25em;
+  border-collapse: collapse;
+  font-size: 0.9375em;
+  break-inside: avoid;
+}
+
+.edoxen-adoc table caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.4em;
+  color: var(--edoxen-color-text);
+}
+
+.edoxen-adoc thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--edoxen-color-text);
+  padding: 0.45em 0.75em 0.45em 0;
+  border-bottom: 2px solid var(--edoxen-color-text);
+  white-space: nowrap;
+}
+
+.edoxen-adoc tbody th,
+.edoxen-adoc td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45em 0.75em 0.45em 0;
+  border-bottom: 1px solid var(--edoxen-color-border);
+  color: var(--edoxen-color-text);
+}
+
+.edoxen-adoc tbody tr:last-child th,
+.edoxen-adoc tbody tr:last-child td {
+  border-bottom-color: var(--edoxen-color-text);
+}
+
+.edoxen-adoc tbody tr:hover th,
+.edoxen-adoc tbody tr:hover td {
+  background: var(--edoxen-color-background);
+}
+
+.edoxen-adoc blockquote {
+  margin: 0.75em 0;
+  padding: 0.25em 0 0.25em 1em;
+  border-left: 3px solid var(--edoxen-color-accent);
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-adoc hr {
+  border: 0;
+  border-top: 1px solid var(--edoxen-color-border);
+  margin: 1.25em 0;
+}
+
+.edoxen-adoc strong {
+  font-weight: 600;
+}
+
 /* ── Print ───────────────────────────────────────────────────────
    Chrome and interactive islands drop out; tokens are re-pointed at
    ink-safe values so dark-mode visitors still get black-on-white.

@@ -32,7 +32,7 @@ const publicDir = process.env.EDOXEN_PUBLIC_DIR
 // the package's own runtime deps from there. 'zod/v4' is listed
 // explicitly: Astro's runtime imports it by that exact specifier and
 // the externalizer matches strings exactly.
-const BUNDLE_DEPS = ['@edoxen/browser', '@edoxen/edoxen', 'zod', 'zod/v4', 'yaml']
+const BUNDLE_DEPS = ['@edoxen/browser', '@edoxen/edoxen', '@asciidoctor/core', 'zod', 'zod/v4', 'yaml']
 
 // Set noExternal via the configEnvironment plugin hook rather than the
 // vite.environments config key: Astro resolves the Vite config once per

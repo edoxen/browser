@@ -63,6 +63,9 @@ importers:
 
   packages/browser:
     dependencies:
+      '@asciidoctor/core':
+        specifier: ^3.0.4
+        version: 3.0.4
       '@astrojs/sitemap':
         specifier: ^3.7.3
         version: 3.7.3

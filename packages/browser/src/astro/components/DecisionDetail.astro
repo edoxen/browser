@@ -177,7 +177,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
               )}
             </div>
             <div class="edoxen-action-card__message">
-              <LocalizedValues values={a.message} locale={locale} field={`action-${i}-message`} />
+              <LocalizedValues values={a.message} locale={locale} field={`action-${i}-message`} format="asciidoc" />
             </div>
             {messageSpellings.length > 1 && (
               <LocaleTabs spellings={messageSpellings} active={messageActive} field={`action-${i}-message`} />
@@ -207,7 +207,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
               )}
             </div>
             <div class="edoxen-consideration-card__message">
-              <LocalizedValues values={c.message} locale={locale} field={`consideration-${i}-message`} />
+              <LocalizedValues values={c.message} locale={locale} field={`consideration-${i}-message`} format="asciidoc" />
             </div>
             {messageSpellings.length > 1 && (
               <LocaleTabs spellings={messageSpellings} active={messageActive} field={`consideration-${i}-message`} />
@@ -223,7 +223,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   <section class="edoxen-enter" style="--nth: 7">
     <h2>{t('section.approvals', locale, cfg.uiStrings)}</h2>
     <div class="edoxen-decision__cards">
-      {approvals.map((a) => (
+      {approvals.map((a, i) => (
         <div class="edoxen-approval-card">
           <div class="edoxen-approval-card__head">
             {a.degree && <strong class="edoxen-approval-card__degree">{a.degree}</strong>}
@@ -235,7 +235,9 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
             )}
           </div>
           {(a.message ?? []).length > 0 && (
-            <p class="edoxen-approval-card__message">{pickLocalizedValue(a.message, locale)}</p>
+            <div class="edoxen-approval-card__message">
+              <LocalizedValues values={a.message} locale={locale} field={`approval-${i}-message`} format="asciidoc" />
+            </div>
           )}
         </div>
       ))}
