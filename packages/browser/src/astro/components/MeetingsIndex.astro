@@ -42,7 +42,7 @@ const undated = byDecade.get(0) ?? []
 
 {undated.length > 0 && (
   <section class="edoxen-decade-section">
-    <h2 class="edoxen-decade-section__heading">{t('nav.meetings', locale, cfg.uiStrings)}</h2>
+    <h2 class="edoxen-decade-section__heading">{t('nav.meetings', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <MeetingList items={undated} lang={locale} urlPrefix={urlPrefix} />
   </section>
 )}

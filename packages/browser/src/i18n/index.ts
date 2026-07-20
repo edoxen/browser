@@ -86,6 +86,8 @@ export {
   normalizeUiLocale,
   isRtl,
   availableUiLocales,
+  applyTerminology,
+  DEFAULT_TERMINOLOGY,
   SUPPORTED_UI_LOCALES,
   LOCALE_LABELS,
   type UiLocale,

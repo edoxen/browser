@@ -1,6 +1,8 @@
 ---
 import type { DecisionListItem } from '../../data/index.js'
 import DecisionCard from './DecisionCard.astro'
+import { t } from '../../i18n/index.js'
+import cfg from 'virtual:edoxen-config'
 
 interface Props {
   items: readonly DecisionListItem[]
@@ -13,7 +15,7 @@ const listClass = compact ? 'edoxen-decision-list edoxen-decision-list--compact'
 ---
 
 {items.length === 0 ? (
-  <p class="edoxen-empty">No decisions.</p>
+  <p class="edoxen-empty">{t('decisions.empty', lang, cfg.uiStrings, cfg.terminology)}</p>
 ) : (
   <ul class={listClass}>
     {items.map((d) => (

@@ -7,6 +7,8 @@ export interface SeoContext {
   readonly siteUrl: string
   readonly siteTitle: string
   readonly defaultLocale: string
+  /** Route segment of the decision pages (config decisionsSlug). */
+  readonly decisionsSlug?: string
 }
 
 export interface JsonLd {
@@ -21,7 +23,7 @@ function firstLocalizedValue(list: readonly LocalizedString[] | undefined, fallb
 
 export function decisionJsonLd(decision: Decision, ctx: SeoContext): JsonLd {
   const title = firstLocalizedValue(decision.title, decision.urn ?? '')
-  const url = `${ctx.siteUrl}/decisions/${urnToPath(decision.urn ?? '')}`
+  const url = `${ctx.siteUrl}/${ctx.decisionsSlug ?? 'decisions'}/${urnToPath(decision.urn ?? '')}`
   const sameAs = decision.doi ? `https://doi.org/${decision.doi}` : undefined
   const datePublished = (decision.dates ?? []).find((d) => d.type === 'published')?.date
   const legislationDate = (decision.dates ?? []).find((d) => d.type === 'effective')?.date
@@ -46,7 +48,7 @@ export function decisionListItemJsonLd(item: DecisionListItem, ctx: SeoContext):
     '@type': 'Legislation',
     name: item.title,
     identifier: item.urn,
-    url: `${ctx.siteUrl}/decisions/${urnToPath(item.urn)}`,
+    url: `${ctx.siteUrl}/${ctx.decisionsSlug ?? 'decisions'}/${urnToPath(item.urn)}`,
     legislationType: item.kind || undefined,
   }
 }

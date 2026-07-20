@@ -1,3 +1,5 @@
+import type { Terminology } from '../config/schema.js'
+
 export type UiLocale = 'eng' | 'fra' | 'zho' | 'spa' | 'ara' | 'rus'
 
 export const SUPPORTED_UI_LOCALES: readonly UiLocale[] = ['eng', 'fra', 'zho', 'spa', 'ara', 'rus']
@@ -74,6 +76,11 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.placeholder': 'Search…',
     'search.allBodies': 'All bodies',
     'search.allKinds': 'All kinds',
+    'search.ariaLabel': 'Search decisions',
+    'search.ariaLabelMeetings': 'Search meetings',
+    'search.dateFrom': 'From',
+    'search.dateTo': 'To',
+    'search.showMore': 'Show more',
 
     'nav.prev': '← Previous',
     'nav.next': 'Next →',
@@ -150,6 +157,11 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.placeholder': 'Rechercher…',
     'search.allBodies': 'Tous les organes',
     'search.allKinds': 'Tous les types',
+    'search.ariaLabel': 'Rechercher dans les décisions',
+    'search.ariaLabelMeetings': 'Rechercher dans les réunions',
+    'search.dateFrom': 'De',
+    'search.dateTo': 'À',
+    'search.showMore': 'Afficher plus',
 
     'nav.prev': '← Précédent',
     'nav.next': 'Suivant →',
@@ -226,6 +238,11 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.placeholder': '搜索…',
     'search.allBodies': '全部机构',
     'search.allKinds': '全部类型',
+    'search.ariaLabel': '搜索决定',
+    'search.ariaLabelMeetings': '搜索会议',
+    'search.dateFrom': '从',
+    'search.dateTo': '至',
+    'search.showMore': '显示更多',
 
     'nav.prev': '← 上一条',
     'nav.next': '下一条 →',
@@ -302,6 +319,11 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.placeholder': 'Buscar…',
     'search.allBodies': 'Todos los órganos',
     'search.allKinds': 'Todos los tipos',
+    'search.ariaLabel': 'Buscar decisiones',
+    'search.ariaLabelMeetings': 'Buscar reuniones',
+    'search.dateFrom': 'Desde',
+    'search.dateTo': 'Hasta',
+    'search.showMore': 'Mostrar más',
 
     'nav.prev': '← Anterior',
     'nav.next': 'Siguiente →',
@@ -378,6 +400,11 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.placeholder': 'بحث…',
     'search.allBodies': 'جميع الهيئات',
     'search.allKinds': 'جميع الأنواع',
+    'search.ariaLabel': 'البحث في القرارات',
+    'search.ariaLabelMeetings': 'البحث في الاجتماعات',
+    'search.dateFrom': 'من',
+    'search.dateTo': 'إلى',
+    'search.showMore': 'عرض المزيد',
 
     'nav.prev': '→ السابق',
     'nav.next': 'التالي ←',
@@ -454,6 +481,11 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.placeholder': 'Поиск…',
     'search.allBodies': 'Все органы',
     'search.allKinds': 'Все типы',
+    'search.ariaLabel': 'Поиск решений',
+    'search.ariaLabelMeetings': 'Поиск заседаний',
+    'search.dateFrom': 'С',
+    'search.dateTo': 'По',
+    'search.showMore': 'Показать ещё',
 
     'nav.prev': '← Предыдущее',
     'nav.next': 'Следующее →',
@@ -494,13 +526,87 @@ export function isRtl(locale: string, extraRtlLocales: readonly string[] = []): 
   return RTL_LOCALES.includes(code) || extraRtlLocales.includes(code) || extraRtlLocales.includes(locale.toLowerCase())
 }
 
-export function t(key: string, locale: string, customStrings?: CustomUiStrings): string {
+export const DEFAULT_TERMINOLOGY: Terminology = {
+  decision: 'decision',
+  decisions: 'decisions',
+  meeting: 'meeting',
+  meetings: 'meetings',
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// Preserve the first-letter case of the replaced word: a lowercase
+// mid-sentence 'decisions' takes the terminology in lowercase, a
+// capitalized 'Decisions' takes it capitalized.
+function matchCase(original: string, replacement: string): string {
+  return original.charAt(0) === original.charAt(0).toUpperCase()
+    ? capitalize(replacement)
+    : replacement.charAt(0).toLowerCase() + replacement.slice(1)
+}
+
+const TERMINOLOGY_WORD_RE = /\bdecisions\b|\bDecisions\b|\bdecision\b|\bDecision\b|\bmeetings\b|\bMeetings\b|\bmeeting\b|\bMeeting\b/g
+
+// Single-pass whole-word substitution, so replacement values that
+// themselves contain 'meeting'/'decision' are never re-processed.
+export function applyTerminology(text: string, term: Terminology): string {
+  return text.replace(TERMINOLOGY_WORD_RE, (word) => {
+    switch (word) {
+      case 'decisions': return matchCase(word, term.decisions)
+      case 'Decisions': return matchCase(word, term.decisions)
+      case 'decision': return matchCase(word, term.decision)
+      case 'Decision': return matchCase(word, term.decision)
+      case 'meetings': return matchCase(word, term.meetings)
+      case 'Meetings': return matchCase(word, term.meetings)
+      case 'meeting': return matchCase(word, term.meeting)
+      case 'Meeting': return matchCase(word, term.meeting)
+      default: return word
+    }
+  })
+}
+
+// Keys that are pure record-name labels. Their built-in English values
+// carry no 'decision'/'meeting' word to substitute ('nav.decisions' is
+// 'Resolutions'), so they map onto the terminology directly — but only
+// when the consumer actually renamed the record, otherwise the richer
+// built-in wording keeps its say.
+function terminologyLabel(key: string, term: Terminology): string | null {
+  switch (key) {
+    case 'nav.decisions':
+    case 'section.adoptedDecisions':
+    case 'about.stats.decisions':
+      return term.decisions !== DEFAULT_TERMINOLOGY.decisions ? capitalize(term.decisions) : null
+    case 'nav.meetings':
+    case 'about.stats.meetings':
+      return term.meetings !== DEFAULT_TERMINOLOGY.meetings ? capitalize(term.meetings) : null
+    case 'label.meeting':
+      return term.meeting !== DEFAULT_TERMINOLOGY.meeting ? capitalize(term.meeting) : null
+    default:
+      return null
+  }
+}
+
+// Resolution order: uiStrings[locale][key] → terminology override →
+// built-in locale table. Terminology shapes English rendering only —
+// other locales keep their built-in translations unless the consumer
+// overrides them per-locale via uiStrings.
+export function t(
+  key: string,
+  locale: string,
+  customStrings?: CustomUiStrings,
+  terminology?: Partial<Terminology>,
+): string {
   const code = normalizeUiLocale(locale)
   const custom = customStrings?.[code]?.[key]
   if (custom) return custom
   const builtIn = STRINGS[code]?.[key]
-  if (builtIn) return builtIn
-  return STRINGS.eng?.[key] ?? key
+  if (builtIn && code !== 'eng') return builtIn
+  const english = builtIn ?? STRINGS.eng?.[key]
+  if (!english) return key
+  if (!terminology) return english
+  const term = { ...DEFAULT_TERMINOLOGY, ...terminology }
+  return terminologyLabel(key, term) ?? applyTerminology(english, term)
 }
 
 export function availableUiLocales(configuredLocales: readonly { code: string }[]): string[] {

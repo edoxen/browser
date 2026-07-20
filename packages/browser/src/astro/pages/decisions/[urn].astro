@@ -19,7 +19,7 @@ interface Props {
 const { decision } = Astro.props
 const locale = cfg.site.locale
 const title = pickLocalizedValue(decision.title, locale, decision.urn ?? '')
-const jsonld = decisionJsonLd(decision, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale })
+const jsonld = decisionJsonLd(decision, { siteUrl: cfg.site.url, siteTitle: cfg.site.title, defaultLocale: locale, decisionsSlug: cfg.decisionsSlug })
 ---
 
 <DecisionLayout

@@ -101,14 +101,14 @@ function hostLabel(h: HostRef): string {
 
 <Breadcrumb
   items={[
-    { label: t('nav.home', locale, cfg.uiStrings), href: prefix },
-    { label: t('nav.meetings', locale, cfg.uiStrings), href: `${prefix}meetings` },
+    { label: t('nav.home', locale, cfg.uiStrings, cfg.terminology), href: prefix },
+    { label: t('nav.meetings', locale, cfg.uiStrings, cfg.terminology), href: `${prefix}meetings` },
     { label: identifier || pickLocalizedValue(meeting.title, locale, meeting.urn ?? '') },
   ]}
 />
 
 <a href={`${prefix}meetings`} class="edoxen-back-link edoxen-enter" style="--nth: 1">
-  ← {t('nav.meetings', locale, cfg.uiStrings)}
+  ← {t('nav.meetings', locale, cfg.uiStrings, cfg.terminology)}
 </a>
 
 <header class="edoxen-meeting__header edoxen-enter" style="--nth: 2">
@@ -148,14 +148,14 @@ function hostLabel(h: HostRef): string {
 
 {(meeting.scheduled_date_range || meeting.occurred_date_range) && (
   <section class="edoxen-enter" style="--nth: 4">
-    <h2>{t('section.when', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.when', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <MeetingTimes scheduled={meeting.scheduled_date_range} occurred={meeting.occurred_date_range} />
   </section>
 )}
 
 {(committeeName || committee?.code) && (
   <section class="edoxen-enter" style="--nth: 5">
-    <h2>{t('section.committee', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.committee', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <p>
       {committee?.code && <span class="edoxen-meeting__committee-chip">{committee.code}</span>}{' '}
       {committeeName}
@@ -165,7 +165,7 @@ function hostLabel(h: HostRef): string {
 
 {venues.length > 0 && (
   <section class="edoxen-enter" style="--nth: 6">
-    <h2>{t('section.venue', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.venue', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-meeting__venues">
       {venues.map((v) => {
         const name = pickLocalizedValue(v.name, locale)
@@ -192,7 +192,7 @@ function hostLabel(h: HostRef): string {
             )}
             {v.url && (
               <p class="edoxen-venue-card__map">
-                <a href={v.url} rel="external">{t('label.venue', locale, cfg.uiStrings)} ↗</a>
+                <a href={v.url} rel="external">{t('label.venue', locale, cfg.uiStrings, cfg.terminology)} ↗</a>
               </p>
             )}
           </div>
@@ -207,14 +207,14 @@ function hostLabel(h: HostRef): string {
 
 {officers.length > 0 && (
   <section class="edoxen-enter" style="--nth: 7">
-    <h2>{t('section.officers', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.officers', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <OfficerList officers={officers} locale={locale} />
   </section>
 )}
 
 {hosts.length > 0 && (
   <section class="edoxen-enter" style="--nth: 8">
-    <h2>{t('section.hosts', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.hosts', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ul class="edoxen-meeting__hosts">
       {hosts.map((h) => (
         <li>
@@ -230,14 +230,14 @@ function hostLabel(h: HostRef): string {
 
 {components.length > 0 && (
   <section class="edoxen-enter" style="--nth: 9">
-    <h2>{t('section.schedule', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.schedule', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ScheduleTable components={components} locale={locale} />
   </section>
 )}
 
 {deadlines.length > 0 && (
   <section class="edoxen-enter" style="--nth: 10">
-    <h2>{t('section.deadlines', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.deadlines', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <table class="edoxen-meeting__deadlines">
       <tbody>
         {deadlines.map((d) => (
@@ -253,7 +253,7 @@ function hostLabel(h: HostRef): string {
 
 {agendaItems.length > 0 && (
   <section class="edoxen-enter" style="--nth: 11">
-    <h2>{t('section.agenda', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.agenda', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <AgendaTable
       items={agendaItems}
       locale={locale}
@@ -268,21 +268,21 @@ function hostLabel(h: HostRef): string {
     one they get a plain list of their own. */}
 {agendaItems.length === 0 && linkedDecisions.length > 0 && (
   <section class="edoxen-enter" style="--nth: 12">
-    <h2>{t('section.adoptedDecisions', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.adoptedDecisions', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <DecisionList items={linkedDecisions} lang={locale} urlPrefix={prefix} compact />
   </section>
 )}
 
 {declarations.length > 0 && (
   <section class="edoxen-enter" style="--nth: 13">
-    <h2>{t('section.declarations', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.declarations', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <DeclarationList declarations={declarations} locale={locale} />
   </section>
 )}
 
 {minutes.length > 0 && (
   <section class="edoxen-enter" style="--nth: 14">
-    <h2>{t('section.minutes', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.minutes', locale, cfg.uiStrings, cfg.terminology)}</h2>
     {minutes.map((m) => (
       <MinutesSection minutes={m} locale={locale} />
     ))}
@@ -291,7 +291,7 @@ function hostLabel(h: HostRef): string {
 
 {sourceUrls.length > 0 && (
   <section class="edoxen-enter" style="--nth: 15">
-    <h2>{t('section.sourceDocs', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.sourceDocs', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ul class="edoxen-meeting__sources">
       {sourceUrls.map((s) => (
         <li>
@@ -307,7 +307,7 @@ function hostLabel(h: HostRef): string {
 
 {hasNote && (
   <section class="edoxen-enter" style="--nth: 16">
-    <h2>{t('section.note', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.note', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <p>{pickLocalizedValue(meeting.note, locale)}</p>
   </section>
 )}
