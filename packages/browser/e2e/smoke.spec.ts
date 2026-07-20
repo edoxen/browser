@@ -213,6 +213,72 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(result.locator('.edoxen-search-filter__meeting-chip')).toHaveAttribute('href', '/meetings/urn:test:meeting:2025')
   })
 
+  test('date-range inputs narrow the decisions results and round-trip via hash', async ({ page }) => {
+    await page.goto('/decisions')
+    const island = page.locator('search-filter')
+    const results = island.locator('.edoxen-search-filter__result')
+    const from = island.locator('input[aria-label="From"]')
+    const to = island.locator('input[aria-label="To"]')
+    await expect(from).toBeVisible()
+    await expect(to).toBeVisible()
+    await expect(results).toHaveCount(2)
+
+    // Bare year expands to the whole calendar year: 2024 keeps TEST-1 only.
+    await from.fill('2024')
+    await expect(results).toHaveCount(1)
+    await expect(results.first()).toContainText('First test decision')
+    await expect(page).toHaveURL(/#.*from=2024/)
+
+    // A full ISO upper bound keeps TEST-2 (2023-09-12) only.
+    await from.fill('')
+    await to.fill('2023-12-31')
+    await expect(results).toHaveCount(1)
+    await expect(results.first()).toContainText('Second test decision')
+    await expect(page).toHaveURL(/#.*to=2023-12-31/)
+
+    // Clearing the range restores every result.
+    await to.fill('')
+    await expect(results).toHaveCount(2)
+  })
+
+  test('meetings search island renders, filters by text, country and decade', async ({ page }) => {
+    await page.goto('/meetings')
+    const island = page.locator('search-filter[data-mode="meetings"]')
+    await expect(island).toBeAttached()
+    const results = island.locator('.edoxen-search-filter__result')
+
+    // Text search hits the flattened title and the committee code.
+    const input = island.locator('input[type="search"]')
+    await expect(input).toBeVisible()
+    await input.fill('sc-1')
+    await expect(results).toHaveCount(1)
+    await expect(results.first()).toContainText('2025 Refs Plenary')
+    await expect(results.first().locator('a.edoxen-search-filter__result-title'))
+      .toHaveAttribute('href', '/meetings/urn:test:meeting:2025')
+    await input.fill('')
+    await expect(results).toHaveCount(2)
+
+    // Country facet narrows to the Geneva meeting; the hash follows.
+    const chChip = island.locator('.edoxen-search-filter__facet--country', { hasText: 'CH' })
+    await expect(chChip).toContainText('(1)')
+    await chChip.click()
+    await expect(results).toHaveCount(1)
+    await expect(results.first()).toContainText('2026 Register Refs Plenary')
+    await expect(page).toHaveURL(/#.*countries=CH/)
+    await chChip.click()
+    await expect(results).toHaveCount(2)
+
+    // Both meetings sit in the 2020s — a single decade chip.
+    const decadeChip = island.locator('.edoxen-search-filter__facet--decade', { hasText: '2020s' })
+    await expect(decadeChip).toContainText('(2)')
+    await decadeChip.click()
+    await expect(results).toHaveCount(2)
+
+    // The decade scroller and the server-rendered list stay put.
+    await expect(page.locator('decade-scroller')).toBeAttached()
+    await expect(page.locator('section#decade-2020')).toBeVisible()
+  })
+
   test('JSON data endpoints are served from the built site', async ({ request }) => {
     const decisions = await request.get('/data/decisions.json')
     expect(decisions.ok()).toBeTruthy()
@@ -230,6 +296,13 @@ test.describe('fixture site — home, lists and data endpoints', () => {
 
     const meetings = await request.get('/data/meetings.json')
     expect(meetings.ok()).toBeTruthy()
+    const meetingsBody = (await meetings.json()) as { items: Array<Record<string, unknown>> }
+    const m2025 = meetingsBody.items.find((i) => i['urn'] === 'urn:test:meeting:2025')
+    // The island searches the flattened title + committee code + city.
+    expect(typeof m2025?.['title']).toBe('string')
+    expect(m2025?.['committeeCode']).toBe('sc-1')
+    expect(m2025?.['city']).toBe('DEBER')
+    expect(m2025?.['countryCode']).toBe('DE')
 
     const registers = await request.get('/data/registers.json')
     expect(registers.ok()).toBeTruthy()

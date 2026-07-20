@@ -8,6 +8,6 @@
       "@edoxen/browser/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "e2e/**/*.ts", "playwright.config.ts", "test/e2e-app/**/*.ts", "test/e2e-app-basepath/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "e2e/**/*.ts", "playwright.config.ts", "test/e2e-app/**/*.ts", "test/e2e-app-basepath/**/*.ts", "test/e2e-app-custom/**/*.ts"],
   "exclude": ["node_modules", "dist", "dist-playground"]
 }

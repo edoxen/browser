@@ -11,6 +11,8 @@ meetings:
     scheduled_date_range:
       start: '2025-03-10'
       end: '2025-03-14'
+    city: DEBER
+    country_code: DE
     title:
       - spelling: eng
         value: 2025 Refs Plenary
@@ -121,6 +123,8 @@ meetings:
     scheduled_date_range:
       start: '2026-05-04'
       end: '2026-05-08'
+    city: CHGVA
+    country_code: CH
     title:
       - spelling: eng
         value: 2026 Register Refs Plenary
