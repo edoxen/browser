@@ -1,6 +1,6 @@
 {
   "name": "@edoxen/browser-example-standalone",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "private": true,
   "type": "module",
   "description": "Standalone-mode @edoxen/browser showcase — no astro.config: edoxen.config.ts + data + src/styles/override.css theming demo.",
