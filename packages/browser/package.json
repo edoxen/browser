@@ -1,6 +1,6 @@
 {
   "name": "@edoxen/browser",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Astro-based browser for edoxen YAML data — drop in your data and ship a resolutions archive site.",
   "type": "module",
   "license": "BSD-2-Clause",
