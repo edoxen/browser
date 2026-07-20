@@ -1,5 +1,12 @@
 # @edoxen/browser-example-minimal
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies [994625f]
+  - @edoxen/browser@0.4.2
+
 ## 0.0.10
 
 ### Patch Changes
