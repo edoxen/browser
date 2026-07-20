@@ -168,6 +168,12 @@ class SearchFilter extends HTMLElement {
   private decisionsLabel = 'Resolutions'
   private dateFromLabel = 'From'
   private dateToLabel = 'To'
+  private showMoreLabel = 'Show more'
+  /** features.pagination: cap rendered results, growing by pageSize per
+      'Show more' click. 0 = render everything (flag off). */
+  private pageSize = 0
+  private visible = 0
+  private lastSignature: string | null = null
 
   async connectedCallback(): Promise<void> {
     this.mode = this.dataset.mode === 'meetings' ? 'meetings' : 'decisions'
@@ -181,6 +187,9 @@ class SearchFilter extends HTMLElement {
     this.decisionsLabel = this.dataset.decisionsLabel ?? this.decisionsLabel
     this.dateFromLabel = this.dataset.dateFromLabel ?? this.dateFromLabel
     this.dateToLabel = this.dataset.dateToLabel ?? this.dateToLabel
+    this.showMoreLabel = this.dataset.showMoreLabel ?? this.showMoreLabel
+    const pageSize = Number(this.dataset.pageSize ?? '0')
+    this.pageSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.floor(pageSize) : 0
     this.state = decodeState(window.location.hash)
 
     this.renderShell()
@@ -248,6 +257,20 @@ class SearchFilter extends HTMLElement {
     results.className = 'edoxen-search-filter__results'
     results.setAttribute('data-role', 'results')
     form.appendChild(results)
+
+    if (this.pageSize > 0) {
+      const more = document.createElement('button')
+      more.type = 'button'
+      more.className = 'edoxen-search-filter__more'
+      more.setAttribute('data-role', 'more')
+      more.textContent = this.showMoreLabel
+      more.hidden = true
+      more.addEventListener('click', () => {
+        this.visible += this.pageSize
+        this.render()
+      })
+      form.appendChild(more)
+    }
 
     this.replaceChildren(form)
   }
@@ -357,14 +380,30 @@ class SearchFilter extends HTMLElement {
       empty.className = 'edoxen-empty'
       empty.textContent = this.emptyLabel
       resultsEl.replaceChildren(empty)
+      this.updateMoreButton(0, 0)
       return
     }
+    // Any filter change rewinds the capped view to the first page.
+    const signature = encodeState(this.state)
+    if (signature !== this.lastSignature) {
+      this.visible = this.pageSize
+      this.lastSignature = signature
+    }
+    const shown = this.pageSize > 0 ? matches.slice(0, this.visible) : matches
     const lang = document.documentElement.lang || 'en'
-    resultsEl.replaceChildren(...matches.map((item) => (
+    resultsEl.replaceChildren(...shown.map((item) => (
       this.mode === 'meetings'
         ? buildMeetingListItem(item, this.basePath, lang, this.decisionsLabel)
         : buildDecisionListItem(item, this.basePath, this.meetingsBasePath, lang, this.meetingLabel)
     )))
+    this.updateMoreButton(matches.length, shown.length)
+  }
+
+  private updateMoreButton(total: number, shown: number): void {
+    const more = this.querySelector('[data-role="more"]')
+    if (more instanceof HTMLButtonElement) {
+      more.hidden = this.pageSize === 0 || shown >= total
+    }
   }
 
   private syncHash(): void {

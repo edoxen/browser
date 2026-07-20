@@ -17,10 +17,12 @@ interface Props {
 }
 const { locale, urlPrefix: prefix } = Astro.props
 
+// features.home toggles: stat strip, recent-item counts, browse-by-decade.
+const home = cfg.features.home
 const decisions = payloads.decisionsList.items
 const meetings = payloads.meetingsList.items
-const recentDecisions = decisions.slice(0, 5)
-const recentMeetings = meetings.slice(0, 3)
+const recentDecisions = decisions.slice(0, home.recentDecisions)
+const recentMeetings = meetings.slice(0, home.recentMeetings)
 const years = payloads.decisionsList.facets.years
 const yearSpan = years.length > 0 ? `${years[0]}–${years[years.length - 1]}` : ''
 const decades = payloads.meetingsList.facets.decades
@@ -30,44 +32,48 @@ const decades = payloads.meetingsList.facets.decades
   <p class="edoxen-eyebrow">{t('page.home.heroLabel', locale, cfg.uiStrings, cfg.terminology)}</p>
   <h1>{cfg.site.title}</h1>
   <p class="edoxen-home-hero__lede">{cfg.site.description}</p>
-  <div class="edoxen-stat-strip" role="list">
-    <div class="edoxen-stat-strip__stat" role="listitem">
-      <span class="edoxen-stat-strip__value">{decisions.length.toLocaleString()}</span>
-      <span class="edoxen-stat-strip__label">{t('page.home.stats.decisions', locale, cfg.uiStrings, cfg.terminology)}</span>
-    </div>
-    <div class="edoxen-stat-strip__stat" role="listitem">
-      <span class="edoxen-stat-strip__value">{meetings.length.toLocaleString()}</span>
-      <span class="edoxen-stat-strip__label">{t('page.home.stats.meetings', locale, cfg.uiStrings, cfg.terminology)}</span>
-    </div>
-    {yearSpan && (
+  {home.stats && (
+    <div class="edoxen-stat-strip" role="list">
       <div class="edoxen-stat-strip__stat" role="listitem">
-        <span class="edoxen-stat-strip__value">{yearSpan}</span>
-        <span class="edoxen-stat-strip__label">{t('page.home.stats.span', locale, cfg.uiStrings, cfg.terminology)}</span>
+        <span class="edoxen-stat-strip__value">{decisions.length.toLocaleString()}</span>
+        <span class="edoxen-stat-strip__label">{t('page.home.stats.decisions', locale, cfg.uiStrings, cfg.terminology)}</span>
       </div>
-    )}
-  </div>
+      <div class="edoxen-stat-strip__stat" role="listitem">
+        <span class="edoxen-stat-strip__value">{meetings.length.toLocaleString()}</span>
+        <span class="edoxen-stat-strip__label">{t('page.home.stats.meetings', locale, cfg.uiStrings, cfg.terminology)}</span>
+      </div>
+      {yearSpan && (
+        <div class="edoxen-stat-strip__stat" role="listitem">
+          <span class="edoxen-stat-strip__value">{yearSpan}</span>
+          <span class="edoxen-stat-strip__label">{t('page.home.stats.span', locale, cfg.uiStrings, cfg.terminology)}</span>
+        </div>
+      )}
+    </div>
+  )}
 </section>
 
-{decades.length > 0 && (
+{home.browseByDecade && decades.length > 0 && (
   <section class="edoxen-enter" style="--nth: 2">
     <h2>{t('decade.browseLabel', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <DecadeTimeline decades={decades} baseHref={`${prefix}meetings`} />
   </section>
 )}
 
-<section class="edoxen-enter" style="--nth: 3">
-  <div class="edoxen-home-section-head">
-    <h2>{t('page.home.latestDecisions', locale, cfg.uiStrings, cfg.terminology)}</h2>
-    <a class="edoxen-home-view-all" href={decisionsBase(cfg, prefix)}>{t('page.home.viewAll', locale, cfg.uiStrings, cfg.terminology)} →</a>
-  </div>
-  <ul class="edoxen-home-cards">
-    {recentDecisions.map((d) => (
-      <DecisionCard item={d} lang={locale} urlPrefix={prefix} />
-    ))}
-  </ul>
-</section>
+{home.recentDecisions > 0 && (
+  <section class="edoxen-enter" style="--nth: 3">
+    <div class="edoxen-home-section-head">
+      <h2>{t('page.home.latestDecisions', locale, cfg.uiStrings, cfg.terminology)}</h2>
+      <a class="edoxen-home-view-all" href={decisionsBase(cfg, prefix)}>{t('page.home.viewAll', locale, cfg.uiStrings, cfg.terminology)} →</a>
+    </div>
+    <ul class="edoxen-home-cards">
+      {recentDecisions.map((d) => (
+        <DecisionCard item={d} lang={locale} urlPrefix={prefix} />
+      ))}
+    </ul>
+  </section>
+)}
 
-{recentMeetings.length > 0 && (
+{home.recentMeetings > 0 && recentMeetings.length > 0 && (
   <section class="edoxen-enter" style="--nth: 4">
     <div class="edoxen-home-section-head">
       <h2>{t('page.home.recentMeetings', locale, cfg.uiStrings, cfg.terminology)}</h2>

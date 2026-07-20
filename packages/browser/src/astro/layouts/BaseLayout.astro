@@ -3,6 +3,10 @@ import type { EdoxenConfig } from '../../config/index.js'
 import { generateCssTokens, resolveFooter } from '../../config/index.js'
 import { urlPrefix } from '../../i18n/index.js'
 import '../../../styles/base.css'
+// Print styles are gated on features.printStyles: imported as a raw
+// string and inlined only when the flag is on, so `false` omits the
+// print CSS from the output entirely.
+import printCss from '../../../styles/print.css?raw'
 // Consumer override stylesheet (virtual: resolved to the consumer's
 // theme.customCss path or <root>/src/styles/override.css when present,
 // empty module otherwise). Imported after base.css so consumers win.
@@ -69,6 +73,9 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
     ))}
 
     <style is:global set:html={tokens} />
+    {config.features.printStyles && (
+      <style is:global set:html={printCss} />
+    )}
     <slot name="head" />
   </head>
   <body>

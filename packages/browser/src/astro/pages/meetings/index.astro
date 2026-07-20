@@ -11,15 +11,19 @@ const prefix = urlPrefix(cfg, lang)
 <BaseLayout config={cfg} lang={lang} title={`${t('nav.meetings', lang, cfg.uiStrings, cfg.terminology)} — ${cfg.site.title}`}>
   <h1>{t('nav.meetings', lang, cfg.uiStrings, cfg.terminology)}</h1>
 
-  <search-filter
-    data-mode="meetings"
-    data-endpoint={`${prefix}data/meetings.json`}
-    data-base-path={`${prefix}meetings`}
-    data-placeholder={t('search.placeholder', lang, cfg.uiStrings, cfg.terminology)}
-    data-aria-label={t('search.ariaLabelMeetings', lang, cfg.uiStrings, cfg.terminology)}
-    data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
-    data-decisions-label={t('section.adoptedDecisions', lang, cfg.uiStrings, cfg.terminology)}
-  ></search-filter>
+  {cfg.features.search && (
+    <search-filter
+      data-mode="meetings"
+      data-endpoint={`${prefix}data/meetings.json`}
+      data-base-path={`${prefix}meetings`}
+      data-placeholder={t('search.placeholder', lang, cfg.uiStrings, cfg.terminology)}
+      data-aria-label={t('search.ariaLabelMeetings', lang, cfg.uiStrings, cfg.terminology)}
+      data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
+      data-decisions-label={t('section.adoptedDecisions', lang, cfg.uiStrings, cfg.terminology)}
+      data-show-more-label={t('search.showMore', lang, cfg.uiStrings, cfg.terminology)}
+      data-page-size={cfg.features.pagination.enabled ? String(cfg.features.pagination.pageSize) : undefined}
+    ></search-filter>
+  )}
 
   <MeetingsIndex locale={lang} urlPrefix={prefix} />
 </BaseLayout>

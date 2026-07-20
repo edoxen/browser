@@ -140,7 +140,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 </header>
 
 <div class="edoxen-enter" style="--nth: 3">
-  <UrnBar urn={decision.urn ?? ''} />
+  <UrnBar urn={decision.urn ?? ''} copyable={cfg.features.urnCopy} />
   {decision.doi && (
     <p class="edoxen-decision__doi">
       DOI: <a href={`https://doi.org/${decision.doi}`} rel="external">{decision.doi}</a>
