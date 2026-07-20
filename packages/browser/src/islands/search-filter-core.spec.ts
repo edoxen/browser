@@ -90,6 +90,51 @@ describe('filterItems — meetings mode', () => {
   })
 })
 
+describe('filterItems — date range', () => {
+  const dated: SearchableItem[] = [
+    { urn: 'urn:d:1', title: 'Adopted 2023', date: '2023-06-15', dates: [{ type: 'adoption', date: '2023-06-15' }] },
+    { urn: 'urn:d:2', title: 'Adopted 2024', date: '2024-01-20', dates: [{ type: 'adoption', date: '2024-01-20' }, { type: 'effective', date: '2024-07-01' }] },
+    { urn: 'urn:d:3', title: 'Bare year', date: '2025' },
+    { urn: 'urn:d:4', title: 'Undated' },
+  ]
+
+  it('filters by a full ISO range, inclusive on both ends', () => {
+    const state = { ...EMPTY_STATE, dateFrom: '2024-01-20', dateTo: '2024-07-01' }
+    expect(filterItems(dated, state).map((i) => i.urn)).toEqual(['urn:d:2'])
+  })
+
+  it('matches any of the item dates, not just the primary one', () => {
+    // urn:d:2's primary date is 2024-01-20 but its effective date falls
+    // inside July 2024.
+    const state = { ...EMPTY_STATE, dateFrom: '2024-06-01', dateTo: '2024-07-31' }
+    expect(filterItems(dated, state).map((i) => i.urn)).toEqual(['urn:d:2'])
+  })
+
+  it('expands bare-year bounds to the whole year', () => {
+    expect(filterItems(dated, { ...EMPTY_STATE, dateFrom: '2024' }).map((i) => i.urn))
+      .toEqual(['urn:d:2', 'urn:d:3'])
+    expect(filterItems(dated, { ...EMPTY_STATE, dateTo: '2023' }).map((i) => i.urn))
+      .toEqual(['urn:d:1'])
+  })
+
+  it('treats a bare-year item date as its whole year', () => {
+    expect(filterItems(dated, { ...EMPTY_STATE, dateFrom: '2025-06-01', dateTo: '2025-08-31' }).map((i) => i.urn))
+      .toEqual(['urn:d:3'])
+    expect(filterItems(dated, { ...EMPTY_STATE, dateFrom: '2026-01-01' }).map((i) => i.urn))
+      .toEqual([])
+  })
+
+  it('excludes undated items once a range is set', () => {
+    const state = { ...EMPTY_STATE, dateFrom: '1900' }
+    expect(filterItems(dated, state).map((i) => i.urn)).not.toContain('urn:d:4')
+  })
+
+  it('ignores malformed bounds instead of dropping everything', () => {
+    const state = { ...EMPTY_STATE, dateFrom: 'not-a-date' }
+    expect(filterItems(dated, state).length).toBe(4)
+  })
+})
+
 describe('countFacets', () => {
   it('counts distinct bodies, kinds, years', () => {
     const facets = countFacets(items)
@@ -132,6 +177,8 @@ describe('encodeState / decodeState', () => {
       actions: new Set(['approves']),
       decades: new Set([2020]),
       countries: new Set(['DE', 'CH']),
+      dateFrom: '2023',
+      dateTo: '2024-12-31',
     }
     const hash = encodeState(state)
     const restored = decodeState(hash)
@@ -142,6 +189,8 @@ describe('encodeState / decodeState', () => {
     expect([...restored.actions]).toEqual(['approves'])
     expect([...restored.decades]).toEqual([2020])
     expect([...restored.countries].sort()).toEqual(['CH', 'DE'])
+    expect(restored.dateFrom).toBe('2023')
+    expect(restored.dateTo).toBe('2024-12-31')
   })
 
   it('returns empty state for empty hash', () => {

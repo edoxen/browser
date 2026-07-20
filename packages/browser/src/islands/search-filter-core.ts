@@ -10,6 +10,8 @@ export interface SearchableItem {
   readonly actionTypes?: readonly string[]
   /** Adoption (or first dated) ISO date. */
   readonly date?: string
+  /** Every typed date on the record — the date-range filter checks them all. */
+  readonly dates?: readonly { readonly type?: string; readonly date: string }[]
   /** URN of the meeting page this item links to. */
   readonly meetingUrn?: string
   /** First action message, flattened for the island's result cards. */
@@ -33,6 +35,10 @@ export interface FilterState {
   readonly actions: ReadonlySet<string>
   readonly decades: ReadonlySet<number>
   readonly countries: ReadonlySet<string>
+  /** Inclusive range bounds: an ISO date ('2024-06-15') or a bare year
+      ('2024'). Either side may be omitted. */
+  readonly dateFrom?: string
+  readonly dateTo?: string
 }
 
 export const EMPTY_STATE: FilterState = {
@@ -49,6 +55,41 @@ export function decadeOfYear(year: number): number {
   return Math.floor(year / 10) * 10
 }
 
+// 'YYYY' or 'YYYY-MM-DD' — anything else is ignored as a range bound.
+const DATE_INPUT_RE = /^\d{4}(-\d{2}-\d{2})?$/
+
+/** Expand a date string to a comparable [lo, hi] pair (bare year → full year). */
+function dateBounds(iso: string): { lo: string; hi: string } | null {
+  if (!iso) return null
+  if (iso.length === 4) return { lo: `${iso}-01-01`, hi: `${iso}-12-31` }
+  return { lo: iso, hi: iso }
+}
+
+function rangeBounds(state: FilterState): { lo?: string; hi?: string } {
+  const from = state.dateFrom?.trim() ?? ''
+  const to = state.dateTo?.trim() ?? ''
+  return {
+    lo: DATE_INPUT_RE.test(from) ? dateBounds(from)?.lo : undefined,
+    hi: DATE_INPUT_RE.test(to) ? dateBounds(to)?.hi : undefined,
+  }
+}
+
+/** An item matches when any of its dates overlaps the (inclusive) range. */
+function inDateRange(item: SearchableItem, state: FilterState): boolean {
+  const { lo, hi } = rangeBounds(state)
+  if (!lo && !hi) return true
+  const candidates = [item.date, ...(item.dates ?? []).map((d) => d.date)]
+  for (const candidate of candidates) {
+    if (!candidate) continue
+    const bounds = dateBounds(candidate)
+    if (!bounds) continue
+    if (lo && bounds.hi < lo) continue
+    if (hi && bounds.lo > hi) continue
+    return true
+  }
+  return false
+}
+
 export function filterItems<T extends SearchableItem>(
   items: readonly T[],
   state: FilterState,
@@ -61,6 +102,7 @@ export function filterItems<T extends SearchableItem>(
     if (state.actions.size > 0 && !(item.actionTypes ?? []).some((a) => state.actions.has(a))) return false
     if (state.decades.size > 0 && !state.decades.has(typeof item.year === 'number' ? decadeOfYear(item.year) : -1)) return false
     if (state.countries.size > 0 && !state.countries.has(item.countryCode ?? '')) return false
+    if (!inDateRange(item, state)) return false
     if (q) {
       const hay = `${item.title} ${item.urn} ${item.identifier ?? ''} ${item.snippet ?? ''} ${item.committeeCode ?? ''} ${item.city ?? ''}`.toLowerCase()
       if (!hay.includes(q)) return false
@@ -115,6 +157,8 @@ export function encodeState(state: FilterState): string {
   if (state.actions.size > 0) params.set('actions', [...state.actions].sort().join(','))
   if (state.decades.size > 0) params.set('decades', [...state.decades].sort().map(String).join(','))
   if (state.countries.size > 0) params.set('countries', [...state.countries].sort().join(','))
+  if (state.dateFrom) params.set('from', state.dateFrom)
+  if (state.dateTo) params.set('to', state.dateTo)
   const s = params.toString()
   return s ? `#${s}` : ''
 }
@@ -137,6 +181,8 @@ export function decodeState(hash: string): FilterState {
     actions: new Set(actions),
     decades: new Set(decades),
     countries: new Set(countries),
+    dateFrom: params.get('from') ?? undefined,
+    dateTo: params.get('to') ?? undefined,
   }
 }
 

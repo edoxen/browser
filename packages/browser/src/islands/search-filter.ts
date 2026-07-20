@@ -166,6 +166,8 @@ class SearchFilter extends HTMLElement {
   private emptyLabel = 'No matches found.'
   private meetingLabel = 'Meeting'
   private decisionsLabel = 'Resolutions'
+  private dateFromLabel = 'From'
+  private dateToLabel = 'To'
 
   async connectedCallback(): Promise<void> {
     this.mode = this.dataset.mode === 'meetings' ? 'meetings' : 'decisions'
@@ -177,6 +179,8 @@ class SearchFilter extends HTMLElement {
     this.emptyLabel = this.dataset.emptyLabel ?? this.emptyLabel
     this.meetingLabel = this.dataset.meetingLabel ?? this.meetingLabel
     this.decisionsLabel = this.dataset.decisionsLabel ?? this.decisionsLabel
+    this.dateFromLabel = this.dataset.dateFromLabel ?? this.dateFromLabel
+    this.dateToLabel = this.dataset.dateToLabel ?? this.dateToLabel
     this.state = decodeState(window.location.hash)
 
     this.renderShell()
@@ -216,6 +220,25 @@ class SearchFilter extends HTMLElement {
     })
     form.appendChild(input)
 
+    if (this.mode === 'decisions') {
+      // Finer control next to the year facet state: an inclusive
+      // date-range, each side an ISO date or a bare year.
+      const range = document.createElement('div')
+      range.className = 'edoxen-search-filter__date-range'
+      range.setAttribute('data-role', 'date-range')
+      range.appendChild(this.makeDateInput(this.dateFromLabel, this.state.dateFrom ?? '', (value) => {
+        this.state = { ...this.state, dateFrom: value || undefined }
+        this.syncHash()
+        this.render()
+      }))
+      range.appendChild(this.makeDateInput(this.dateToLabel, this.state.dateTo ?? '', (value) => {
+        this.state = { ...this.state, dateTo: value || undefined }
+        this.syncHash()
+        this.render()
+      }))
+      form.appendChild(range)
+    }
+
     const facets = document.createElement('div')
     facets.className = 'edoxen-search-filter__facets'
     facets.setAttribute('data-role', 'facets')
@@ -227,6 +250,24 @@ class SearchFilter extends HTMLElement {
     form.appendChild(results)
 
     this.replaceChildren(form)
+  }
+
+  private makeDateInput(label: string, value: string, onInput: (value: string) => void): HTMLLabelElement {
+    const wrapper = document.createElement('label')
+    wrapper.className = 'edoxen-search-filter__date-field'
+    const caption = document.createElement('span')
+    caption.textContent = label
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.inputMode = 'numeric'
+    input.pattern = '\\d{4}(-\\d{2}-\\d{2})?'
+    input.placeholder = 'YYYY-MM-DD'
+    input.value = value
+    input.setAttribute('aria-label', label)
+    input.addEventListener('input', () => onInput(input.value.trim()))
+    wrapper.appendChild(caption)
+    wrapper.appendChild(input)
+    return wrapper
   }
 
   private renderFacets(facetsEl: Element): void {
