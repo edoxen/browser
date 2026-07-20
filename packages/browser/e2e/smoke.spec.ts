@@ -23,8 +23,9 @@ test.describe('fixture site — navigation and rendering', () => {
     const html = await page.content()
     const m = html.match(/<script[^>]*>([\s\S]*?edoxen-theme[\s\S]*?)<\/script>/)
     expect(m).toBeTruthy()
-    expect(m![1]).not.toContain('`')
-    expect(m![1].trimStart().startsWith('(function')).toBe(true)
+    const src = m?.[1] ?? ''
+    expect(src).not.toContain('`')
+    expect(src.trimStart().startsWith('(function')).toBe(true)
   })
 
   test('decisions list navigates to a decision detail page', async ({ page }) => {
