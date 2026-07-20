@@ -15,12 +15,21 @@ SEO, and JSON data endpoints.
 - **Register datasets** — contacts, venues, and bodies registers with
   three-tier reference resolution (inline → meeting-scoped `local_ref`
   → register `ref`) on meeting pages.
-- **Search & facets** — client-side search island over a build-time
-  JSON payload, with body/kind/year facet chips. Works without JS via a
-  server-rendered list fallback.
+- **Search & facets** — client-side search islands over build-time
+  JSON payloads. The decisions index offers text search, body/kind/
+  action facet chips and an inclusive date-range filter (ISO date or
+  bare year); the meetings index offers text search over title,
+  committee code and city, with decade/body/country facet chips.
+  Filter state round-trips through the URL hash. Works without JS via
+  server-rendered list fallbacks.
 - **Interface i18n** — 6 built-in UI languages (English, Français, 中文,
   Español, العربية, Русский), overridable and extensible via `uiStrings`.
   Localized routes (`/[lang]/...`) for every non-default locale.
+- **Terminology & routing** — call your records what they are
+  (`terminology`: "Resolutions", "Acts", …) and serve them from a
+  matching route segment (`decisionsSlug`: `/resolutions`). Nav, page
+  titles, headings, breadcrumbs, empty states and every decision link
+  follow.
 - **Warm professional theme** — complete default look (serif display
   headings, warm paper palette, dark mode) driven by `--edoxen-*`
   tokens; re-theme via config or a consumer override stylesheet.
@@ -241,6 +250,40 @@ uiStrings: {
 }
 ```
 
+### Terminology — renaming "decisions" and "meetings"
+
+Committees call their records different things (TC 184/SC 4 adopts
+"Resolutions"). Set `terminology` once and every user-facing English
+string follows — nav, page titles, section headings, the home stat
+strip, breadcrumbs, empty states, the search placeholder and the
+default nav labels:
+
+```ts
+terminology: {
+  decision: 'resolution',   // singular
+  decisions: 'Resolutions', // plural
+  meeting: 'meeting',       // defaults shown
+  meetings: 'meetings',
+},
+decisionsSlug: 'resolutions',
+```
+
+Resolution order for each UI string: `uiStrings[locale][key]` →
+`terminology` override → built-in locale table. Terminology shapes the
+**English** rendering only — other locales keep their built-in
+translations unless you override them per-locale via `uiStrings`.
+
+`decisionsSlug` (default `'decisions'`) moves the decisions index and
+detail routes — the example above serves `/resolutions` and
+`/resolutions/<urn>`. Every generated decision link (cards, detail
+pages, breadcrumbs, prev/next, agenda rows, the search island's
+results, home "view all", JSON-LD urls) follows the slug, as do the
+default nav hrefs. The `/data/*.json` endpoint names stay fixed.
+
+When `nav` is not configured, the default nav (Meetings / Decisions /
+About) is derived from `terminology` + `decisionsSlug` — the example
+above yields Meetings / Resolutions / About with a `/resolutions` link.
+
 ## Theming
 
 The default look is **elegant professional warm**: a warm paper canvas
@@ -334,7 +377,7 @@ commented reference implementation.
 | Example | Demonstrates |
 | --- | --- |
 | `examples/minimal` | The default theme, untouched — one config, no CSS. |
-| `examples/standalone` | Full showcase: explicit light+dark palette, radius, logos, nav, social, feature flags, and the `src/styles/override.css` convention (webfont + token overrides + custom rule). Standalone mode: no `astro.config`. |
+| `examples/standalone` | Full showcase: explicit light+dark palette, radius, logos, social, `terminology` ("Resolutions") + `decisionsSlug` (`/resolutions`), pagination, and the `src/styles/override.css` convention (webfont + token overrides + custom rule). Standalone mode: no `astro.config`. |
 | `examples/bilingual` | Localized routes (`/fr/...`) with the default theme. |
 | `examples/multibody` | Multiple bodies with per-body badge colors. |
 
@@ -356,9 +399,18 @@ commented reference implementation.
 | `bodies` | array | `[{ code: 'committee', name: 'Committee' }]` | body badge labels/colors |
 | `locales` | array | `[{ code: 'en', label: 'English', routePrefix: '' }]` | UI locales; non-empty `routePrefix` adds `/[lang]/` routes |
 | `theme` | object | defaults | color/font/radius tokens, `customProperties`, `customCss` override — see Theming |
-| `nav` | array | `[]` | header nav items (`label`, `href`, optional `locale`) |
+| `nav` | array | derived | header nav items (`label`, `href`, optional `locale`); default is Meetings + Decisions + About, labelled/linked from `terminology` + `decisionsSlug` |
 | `social` | array | `[]` | footer social links |
-| `features` | object | defaults | feature flags; only `darkMode` is currently wired — the rest (`search`, `timeline`, `urnCopy`, `doi`, `printStyles`, `pagination`) are accepted but not yet honored |
+| `terminology` | object | `decision(s)` / `meeting(s)` | what your records are called — renames every user-facing English string (see Terminology) |
+| `decisionsSlug` | string | `'decisions'` | route segment for the decisions index + detail pages; every decision link follows (see Terminology) |
+| `features.search` | boolean | `true` | `false` hides the search-filter island on the decisions + meetings indexes (server-rendered lists remain) |
+| `features.timeline` | boolean | `true` | `false` hides the decade scroller on the meetings index |
+| `features.urnCopy` | boolean | `true` | `false` hides the URN copy island on detail pages |
+| `features.doi` | boolean | `false` | accepted; DOIs render when present in data regardless |
+| `features.darkMode` | boolean | `true` | `false` hides the theme toggle and pins the light theme |
+| `features.printStyles` | boolean | `true` | `false` omits the print stylesheet from the output |
+| `features.pagination` | object | `{ enabled: false, pageSize: 50 }` | when enabled, the search island caps rendered results at `pageSize` behind a **'Show more'** control — full numbered pagination is not implemented; the noscript fallback always lists everything |
+| `features.home` | object | `{ stats: true, recentDecisions: 5, recentMeetings: 3, browseByDecade: true }` | home page: stat strip on/off, recent-item counts (`0` hides the section), browse-by-decade section on/off |
 | `uiStrings` | record | `{}` | per-locale UI string overrides |
 
 ## Known limitations
