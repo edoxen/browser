@@ -16,6 +16,12 @@ const items: SearchableItem[] = [
   { urn: 'urn:b:1', title: 'Other body decision', bodyType: 'conference', kind: 'resolution', year: 2024, actionTypes: ['approves', 'welcomes'] },
 ]
 
+const meetings: SearchableItem[] = [
+  { urn: 'urn:m:1', title: '58th CIML Meeting', bodyType: 'committee', year: 2023, committeeCode: 'ciml', city: 'Berlin', countryCode: 'DE', startDate: '2023-10-16' },
+  { urn: 'urn:m:2', title: '59th CIML Meeting', bodyType: 'committee', year: 2024, committeeCode: 'ciml', city: 'Geneva', countryCode: 'CH', startDate: '2024-10-14' },
+  { urn: 'urn:m:3', title: '15th Conference', bodyType: 'conference', year: 2031, committeeCode: 'conf', city: 'Paris', countryCode: 'FR', startDate: '2031-11-06' },
+]
+
 describe('filterItems', () => {
   it('returns everything with an empty state', () => {
     expect(filterItems(items, EMPTY_STATE).length).toBe(3)
@@ -55,6 +61,35 @@ describe('filterItems', () => {
   })
 })
 
+describe('filterItems — meetings mode', () => {
+  it('filters by decade facet', () => {
+    const state = { ...EMPTY_STATE, decades: new Set([2020]) }
+    expect(filterItems(meetings, state).map((i) => i.urn)).toEqual(['urn:m:1', 'urn:m:2'])
+  })
+
+  it('filters by country facet', () => {
+    const state = { ...EMPTY_STATE, countries: new Set(['CH']) }
+    expect(filterItems(meetings, state).map((i) => i.urn)).toEqual(['urn:m:2'])
+  })
+
+  it('text search hits the committee code and the city', () => {
+    expect(filterItems(meetings, { ...EMPTY_STATE, query: 'ciml' }).map((i) => i.urn))
+      .toEqual(['urn:m:1', 'urn:m:2'])
+    expect(filterItems(meetings, { ...EMPTY_STATE, query: 'geneva' }).map((i) => i.urn))
+      .toEqual(['urn:m:2'])
+  })
+
+  it('combines decade + country + query', () => {
+    const state = { ...EMPTY_STATE, decades: new Set([2020]), countries: new Set(['DE']), query: 'ciml' }
+    expect(filterItems(meetings, state).map((i) => i.urn)).toEqual(['urn:m:1'])
+  })
+
+  it('excludes undated items when a decade facet is active', () => {
+    const undated: SearchableItem[] = [{ urn: 'urn:m:x', title: 'TBD meeting' }]
+    expect(filterItems(undated, { ...EMPTY_STATE, decades: new Set([2020]) }).length).toBe(0)
+  })
+})
+
 describe('countFacets', () => {
   it('counts distinct bodies, kinds, years', () => {
     const facets = countFacets(items)
@@ -68,6 +103,13 @@ describe('countFacets', () => {
     const facets = countFacets(items)
     expect(facets.actions.get('approves')).toBe(2)
     expect(facets.actions.get('recommends')).toBe(1)
+  })
+
+  it('counts decades and countries for meetings', () => {
+    const facets = countFacets(meetings)
+    expect(facets.decades.get(2020)).toBe(2)
+    expect(facets.countries.get('DE')).toBe(1)
+    expect(facets.countries.get('FR')).toBe(1)
   })
 })
 
@@ -88,6 +130,8 @@ describe('encodeState / decodeState', () => {
       kinds: new Set(['resolution']),
       years: new Set([2023, 2024]),
       actions: new Set(['approves']),
+      decades: new Set([2020]),
+      countries: new Set(['DE', 'CH']),
     }
     const hash = encodeState(state)
     const restored = decodeState(hash)
@@ -96,11 +140,15 @@ describe('encodeState / decodeState', () => {
     expect([...restored.kinds]).toEqual(['resolution'])
     expect([...restored.years].sort()).toEqual([2023, 2024])
     expect([...restored.actions]).toEqual(['approves'])
+    expect([...restored.decades]).toEqual([2020])
+    expect([...restored.countries].sort()).toEqual(['CH', 'DE'])
   })
 
   it('returns empty state for empty hash', () => {
     const restored = decodeState('')
     expect(restored.query).toBe('')
     expect(restored.bodies.size).toBe(0)
+    expect(restored.decades.size).toBe(0)
+    expect(restored.countries.size).toBe(0)
   })
 })
