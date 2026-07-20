@@ -2,7 +2,15 @@ import { defineConfig } from '@edoxen/browser/config'
 
 // Showcase standalone site — exercises the full theming surface of
 // @edoxen/browser: explicit theme colors (light + dark), radius, logos,
-// nav, social, bodies with brand colors, and feature flags.
+// social, bodies with brand colors, and feature flags.
+//
+// It also demonstrates the terminology + routing surface: this
+// committee calls its records "Resolutions" and serves them from
+// /resolutions — the default nav, page titles, section headings, stat
+// strip, breadcrumbs, empty states and the search islands all follow,
+// including the meetings search island and the date-range filter on
+// the resolutions index. Pagination caps the island results at a tiny
+// pageSize so the 'Show more' control is visible with sample data.
 //
 // The companion piece is src/styles/override.css, picked up by
 // convention: a webfont, token overrides, and a custom rule loaded
@@ -22,6 +30,11 @@ export default defineConfig({
     venues: './data/registers/venues.yaml',
     bodies: './data/registers/bodies.yaml',
   },
+  terminology: {
+    decision: 'resolution',
+    decisions: 'Resolutions',
+  },
+  decisionsSlug: 'resolutions',
   theme: {
     // Warm sienna re-theme over the package defaults (deep warm teal).
     primary: '#1c1917',
@@ -46,11 +59,8 @@ export default defineConfig({
       favicon: '/logo.svg',
     },
   },
-  nav: [
-    { label: 'Decisions', href: '/decisions' },
-    { label: 'Meetings', href: '/meetings' },
-    { label: 'About', href: '/about' },
-  ],
+  // No `nav` override on purpose: the default nav is derived from the
+  // terminology + decisionsSlug above (Meetings / Resolutions / About).
   social: [
     { label: 'GitHub', href: 'https://github.com/edoxen', icon: 'github' },
     { label: 'Website', href: 'https://example.org', icon: 'website' },
@@ -66,5 +76,9 @@ export default defineConfig({
     doi: false,
     darkMode: true,
     printStyles: true,
+    pagination: {
+      enabled: true,
+      pageSize: 1,
+    },
   },
 })
