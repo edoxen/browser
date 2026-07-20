@@ -14,10 +14,10 @@ test.describe('minimal example — smoke', () => {
 
   test('decision list links to a decision detail page', async ({ page }) => {
     await page.goto('/')
-    const firstDecisionLink = page.locator('main a[href^="/decisions/urn%3Aexample%3Aresolution%3A"]').first()
+    const firstDecisionLink = page.locator('main a[href^="/decisions/urn:example:resolution:"]').first()
     await expect(firstDecisionLink).toBeVisible()
     await firstDecisionLink.click()
-    await expect(page).toHaveURL(/\/decisions\/urn%3Aexample%3Aresolution%3A\d+/)
+    await expect(page).toHaveURL(/\/decisions\/urn:example:resolution:\d+/)
     await expect(page.locator('h1')).toBeVisible()
   })
 
