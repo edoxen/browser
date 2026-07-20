@@ -10,6 +10,7 @@ export {
   SocialItemSchema,
   FooterSchema,
   FeaturesSchema,
+  TerminologySchema,
   defineConfig,
   resolveFooter,
   type EdoxenConfig,
@@ -24,6 +25,7 @@ export {
   type SocialItem,
   type FooterConfig,
   type FeaturesConfig,
+  type Terminology,
 } from './schema.js'
 
 export {

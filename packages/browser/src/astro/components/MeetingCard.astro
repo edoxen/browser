@@ -31,7 +31,7 @@ const flag = m.countryCode ? countryFlag(m.countryCode) : ''
     )}
     {m.decisionCount != null && m.decisionCount > 0 && (
       <span class="edoxen-meeting-card__count">
-        {m.decisionCount} {t('section.adoptedDecisions', lang, cfg.uiStrings)}
+        {m.decisionCount} {t('section.adoptedDecisions', lang, cfg.uiStrings, cfg.terminology)}
       </span>
     )}
   </div>

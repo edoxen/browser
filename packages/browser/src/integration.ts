@@ -25,24 +25,31 @@ export interface IntegrationOptions {
   injectRoutes?: boolean
 }
 
-const DEFAULT_ROUTE_PATTERNS: ReadonlyArray<readonly [string, string]> = [
-  ['/', 'index.astro'],
-  ['/decisions', 'decisions/index.astro'],
-  ['/decisions/[urn]', 'decisions/[urn].astro'],
-  ['/meetings', 'meetings/index.astro'],
-  ['/meetings/[urn]', 'meetings/[urn].astro'],
-  ['/about', 'about.astro'],
-  ['/404', '404.astro'],
-]
+// Route patterns derive from decisionsSlug: renaming the segment moves
+// the decisions index + detail routes (and their /[lang] variants) while
+// the page entrypoints stay put.
+function defaultRoutePatterns(decisionsSlug: string): ReadonlyArray<readonly [string, string]> {
+  return [
+    ['/', 'index.astro'],
+    [`/${decisionsSlug}`, 'decisions/index.astro'],
+    [`/${decisionsSlug}/[urn]`, 'decisions/[urn].astro'],
+    ['/meetings', 'meetings/index.astro'],
+    ['/meetings/[urn]', 'meetings/[urn].astro'],
+    ['/about', 'about.astro'],
+    ['/404', '404.astro'],
+  ]
+}
 
-const LOCALIZED_ROUTE_PATTERNS: ReadonlyArray<readonly [string, string]> = [
-  ['/[lang]', '[lang]/index.astro'],
-  ['/[lang]/decisions', '[lang]/decisions/index.astro'],
-  ['/[lang]/decisions/[urn]', '[lang]/decisions/[urn].astro'],
-  ['/[lang]/meetings', '[lang]/meetings/index.astro'],
-  ['/[lang]/meetings/[urn]', '[lang]/meetings/[urn].astro'],
-  ['/[lang]/about', '[lang]/about.astro'],
-]
+function localizedRoutePatterns(decisionsSlug: string): ReadonlyArray<readonly [string, string]> {
+  return [
+    ['/[lang]', '[lang]/index.astro'],
+    [`/[lang]/${decisionsSlug}`, '[lang]/decisions/index.astro'],
+    [`/[lang]/${decisionsSlug}/[urn]`, '[lang]/decisions/[urn].astro'],
+    ['/[lang]/meetings', '[lang]/meetings/index.astro'],
+    ['/[lang]/meetings/[urn]', '[lang]/meetings/[urn].astro'],
+    ['/[lang]/about', '[lang]/about.astro'],
+  ]
+}
 
 interface IntegrationCache {
   readonly config: EdoxenConfig
@@ -241,12 +248,12 @@ export default function edoxenBrowser(opts: IntegrationOptions): AstroIntegratio
         cache = await buildCache(opts, logger)
 
         if (injectRoutes && injectRoute) {
-          for (const [pattern, file] of DEFAULT_ROUTE_PATTERNS) {
+          for (const [pattern, file] of defaultRoutePatterns(cache.config.decisionsSlug)) {
             injectRoute({ pattern, entrypoint: new URL(file, pagesRoot) })
           }
           const nonDefaultLocales = cache.config.locales.filter((l) => (l.routePrefix ?? '') !== '')
           if (nonDefaultLocales.length > 0) {
-            for (const [pattern, file] of LOCALIZED_ROUTE_PATTERNS) {
+            for (const [pattern, file] of localizedRoutePatterns(cache.config.decisionsSlug)) {
               injectRoute({ pattern, entrypoint: new URL(file, pagesRoot) })
             }
           }

@@ -14,8 +14,8 @@ const lang = Astro.params.lang ?? cfg.site.locale
 const prefix = urlPrefix(cfg, lang)
 ---
 
-<BaseLayout config={cfg} lang={lang} title={`${t('nav.meetings', lang, cfg.uiStrings)} — ${cfg.site.title}`}>
-  <h1>{t('nav.meetings', lang, cfg.uiStrings)}</h1>
+<BaseLayout config={cfg} lang={lang} title={`${t('nav.meetings', lang, cfg.uiStrings, cfg.terminology)} — ${cfg.site.title}`}>
+  <h1>{t('nav.meetings', lang, cfg.uiStrings, cfg.terminology)}</h1>
 
   <MeetingsIndex locale={lang} urlPrefix={prefix} />
 </BaseLayout>

@@ -55,6 +55,11 @@ describe('decisionJsonLd', () => {
     const noDoi = { ...decision, doi: undefined } as Decision
     expect(decisionJsonLd(noDoi, ctx).sameAs).toBeUndefined()
   })
+
+  it('honors a custom decisionsSlug in the canonical URL', () => {
+    const jsonld = decisionJsonLd(decision, { ...ctx, decisionsSlug: 'resolutions' })
+    expect(jsonld.url).toBe('https://example.org/resolutions/urn:test:resolution:1')
+  })
 })
 
 describe('meetingJsonLd', () => {

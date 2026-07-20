@@ -9,6 +9,7 @@ import LocaleTabs from './LocaleTabs.astro'
 import LocalizedValues from './LocalizedValues.astro'
 import PrevNextNav from './PrevNextNav.astro'
 import { agendaAnchor } from '../../data/index.js'
+import { decisionHref, decisionsBase } from '../../links.js'
 import {
   pickLocalizedValue,
   pickLocalizedString,
@@ -78,20 +79,20 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 <Breadcrumb
   items={[
-    { label: t('nav.home', locale, cfg.uiStrings), href: prefix },
-    { label: t('nav.decisions', locale, cfg.uiStrings), href: `${prefix}decisions` },
+    { label: t('nav.home', locale, cfg.uiStrings, cfg.terminology), href: prefix },
+    { label: t('nav.decisions', locale, cfg.uiStrings, cfg.terminology), href: decisionsBase(cfg, prefix) },
     { label: identifier || pickLocalizedValue(decision.title, locale, decision.urn ?? '') },
   ]}
 />
 
-<a href={`${prefix}decisions`} class="edoxen-back-link edoxen-enter" style="--nth: 1">
-  ← {t('nav.decisions', locale, cfg.uiStrings)}
+<a href={decisionsBase(cfg, prefix)} class="edoxen-back-link edoxen-enter" style="--nth: 1">
+  ← {t('nav.decisions', locale, cfg.uiStrings, cfg.terminology)}
 </a>
 
 <header class="edoxen-decision__header edoxen-enter" style="--nth: 2">
   <div class="edoxen-meta-row">
     {isAcclamation && (
-      <span class="edoxen-badge edoxen-badge--acclamation">{t('label.acclamation', locale, cfg.uiStrings)}</span>
+      <span class="edoxen-badge edoxen-badge--acclamation">{t('label.acclamation', locale, cfg.uiStrings, cfg.terminology)}</span>
     )}
     {decision.kind && <span class="edoxen-badge">{decision.kind}</span>}
     {decision.status && (
@@ -102,13 +103,13 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
     ))}
     {adoptionEntry?.date && (
       <span class="edoxen-badge edoxen-decision__adopted">
-        {t(adoptionKey, locale, cfg.uiStrings)} <time datetime={adoptionEntry.date}>{formatDate(adoptionEntry.date, locale)}</time>
+        {t(adoptionKey, locale, cfg.uiStrings, cfg.terminology)} <time datetime={adoptionEntry.date}>{formatDate(adoptionEntry.date, locale)}</time>
       </span>
     )}
     {decision.body_type && <BodyBadge code={decision.body_type} />}
     {agendaItem && meetingLink && (
       <a class="edoxen-meeting-link" href={`${prefix}meetings/${urnToPath(meetingLink.meetingUrn)}#${agendaAnchor(agendaItem)}`}>
-        {t('section.agenda', locale, cfg.uiStrings)} {agendaItem}
+        {t('section.agenda', locale, cfg.uiStrings, cfg.terminology)} {agendaItem}
       </a>
     )}
     {meetingLink && (
@@ -149,7 +150,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {(decision.considering ?? []).length > 0 && (
   <section class="edoxen-enter" style="--nth: 4">
-    <h2>{t('section.considering', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.considering', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <p>
       <LocalizedValues values={decision.considering} locale={locale} field="decision-considering" />
     </p>
@@ -161,7 +162,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {actions.length > 0 && (
   <section class="edoxen-enter" style="--nth: 5">
-    <h2>{t('section.actions', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.actions', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-decision__cards">
       {actions.map((a, i) => {
         const messageSpellings = availableSpellings(a.message)
@@ -172,7 +173,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
               {a.type && <span class="edoxen-badge edoxen-badge--action">{humanizeVerb(a.type)}</span>}
               {a.date_effective?.date && (
                 <span class="edoxen-action-card__date">
-                  {t('label.effective', locale, cfg.uiStrings)} <time datetime={a.date_effective.date}>{formatDate(a.date_effective.date, locale)}</time>
+                  {t('label.effective', locale, cfg.uiStrings, cfg.terminology)} <time datetime={a.date_effective.date}>{formatDate(a.date_effective.date, locale)}</time>
                 </span>
               )}
             </div>
@@ -191,7 +192,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {considerations.length > 0 && (
   <section class="edoxen-enter" style="--nth: 6">
-    <h2>{t('section.considerations', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.considerations', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-decision__cards">
       {considerations.map((c, i) => {
         const messageSpellings = availableSpellings(c.message)
@@ -221,7 +222,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {approvals.length > 0 && (
   <section class="edoxen-enter" style="--nth: 7">
-    <h2>{t('section.approvals', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.approvals', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-decision__cards">
       {approvals.map((a, i) => (
         <div class="edoxen-approval-card">
@@ -247,7 +248,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {relations.length > 0 && (
   <section class="edoxen-enter" style="--nth: 8">
-    <h2>{t('section.related', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.related', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ul class="edoxen-decision__relations">
       {relations.map((r) => {
         const destId = `${r.destination?.prefix ?? ''}-${r.destination?.number ?? ''}`
@@ -256,7 +257,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
           <li>
             <span class="edoxen-badge">{humanizeVerb(r.type)}</span>{' '}
             {destUrn
-              ? <a href={`${prefix}decisions/${urnToPath(destUrn)}`}>{destId}</a>
+              ? <a href={decisionHref(cfg, prefix, destUrn)}>{destId}</a>
               : <code>{destId}</code>}
           </li>
         )
@@ -267,7 +268,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {categories.length > 0 && (
   <section class="edoxen-enter" style="--nth: 9">
-    <h2>{t('section.categories', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.categories', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-meta-row">
       {categories.map((c) => <span class="edoxen-badge">{c}</span>)}
     </div>
@@ -276,7 +277,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {dates.length > 1 && (
   <section class="edoxen-enter" style="--nth: 10">
-    <h2>{t('section.dates', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.dates', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <dl class="edoxen-deflist">
       {dates.map((d) => (
         <>
@@ -290,7 +291,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 
 {urls.length > 0 && (
   <section class="edoxen-enter" style="--nth: 11">
-    <h2>{t('section.referenceDocs', locale, cfg.uiStrings)}</h2>
+    <h2>{t('section.referenceDocs', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ul>
       {urls.map((u) => (
         <li><a href={u.ref} rel="external">{humanizeVerb(u.kind) || u.ref}</a>{u.format ? ` (${u.format})` : ''}</li>
@@ -302,7 +303,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
 <PrevNextNav
   prev={navEntry(prevItem)}
   next={navEntry(nextItem)}
-  basePath={`${prefix}decisions`}
+  basePath={decisionsBase(cfg, prefix)}
 />
 
 <style>

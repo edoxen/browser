@@ -4,6 +4,7 @@ import payloads from 'virtual:edoxen-payloads'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import DecisionList from '../../components/DecisionList.astro'
 import { urlPrefix, t } from '../../../i18n/index.js'
+import { decisionsBase } from '../../../links.js'
 
 const items = payloads.decisionsList.items
 const lang = cfg.site.locale
@@ -11,12 +12,12 @@ const prefix = urlPrefix(cfg, lang)
 const endpoint = `${prefix}data/decisions.json`
 ---
 
-<BaseLayout config={cfg} lang={lang} title={`${t('nav.decisions', lang, cfg.uiStrings)} — ${cfg.site.title}`}>
-  <h1>{t('nav.decisions', lang, cfg.uiStrings)}</h1>
+<BaseLayout config={cfg} lang={lang} title={`${t('nav.decisions', lang, cfg.uiStrings, cfg.terminology)} — ${cfg.site.title}`}>
+  <h1>{t('nav.decisions', lang, cfg.uiStrings, cfg.terminology)}</h1>
 
   <search-filter
     data-endpoint={endpoint}
-    data-base-path={`${prefix}decisions`}
+    data-base-path={decisionsBase(cfg, prefix)}
     data-meetings-base-path={`${prefix}meetings`}
   ></search-filter>
   <noscript>

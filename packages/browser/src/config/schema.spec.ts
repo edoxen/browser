@@ -240,6 +240,89 @@ describe('EdoxenConfigSchema', () => {
         FeaturesSchema.parse({ pagination: { enabled: true, pageSize: 0 } }),
       ).toThrow()
     })
+
+    it('applies home section defaults', () => {
+      const f = FeaturesSchema.parse({})
+      expect(f.home).toEqual({ stats: true, recentDecisions: 5, recentMeetings: 3, browseByDecade: true })
+    })
+
+    it('accepts home section overrides, including zero recent counts', () => {
+      const f = FeaturesSchema.parse({ home: { stats: false, recentDecisions: 0, recentMeetings: 10, browseByDecade: false } })
+      expect(f.home.stats).toBe(false)
+      expect(f.home.recentDecisions).toBe(0)
+      expect(f.home.recentMeetings).toBe(10)
+      expect(f.home.browseByDecade).toBe(false)
+    })
+
+    it('rejects a negative recent count', () => {
+      expect(() => FeaturesSchema.parse({ home: { recentDecisions: -1 } })).toThrow()
+    })
+  })
+
+  describe('terminology', () => {
+    it('defaults to decision/decisions/meeting/meetings', () => {
+      const cfg = EdoxenConfigSchema.parse({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+      })
+      expect(cfg.terminology).toEqual({
+        decision: 'decision',
+        decisions: 'decisions',
+        meeting: 'meeting',
+        meetings: 'meetings',
+      })
+    })
+
+    it('accepts a partial override and fills the rest', () => {
+      const cfg = EdoxenConfigSchema.parse({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+        terminology: { decisions: 'Resolutions' },
+      })
+      expect(cfg.terminology.decisions).toBe('Resolutions')
+      expect(cfg.terminology.decision).toBe('decision')
+    })
+
+    it('rejects empty terminology words', () => {
+      expect(() =>
+        EdoxenConfigSchema.parse({
+          site: { title: 'X', url: 'https://x.org' },
+          data: { decisions: './data/decisions' },
+          terminology: { decisions: '' },
+        }),
+      ).toThrow()
+    })
+  })
+
+  describe('decisionsSlug', () => {
+    it("defaults to 'decisions'", () => {
+      const cfg = EdoxenConfigSchema.parse({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+      })
+      expect(cfg.decisionsSlug).toBe('decisions')
+    })
+
+    it('accepts a custom slug', () => {
+      const cfg = EdoxenConfigSchema.parse({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+        decisionsSlug: 'resolutions',
+      })
+      expect(cfg.decisionsSlug).toBe('resolutions')
+    })
+
+    it('rejects slashes, leading dashes and uppercase', () => {
+      for (const slug of ['/decisions', 'decisions/x', '-x', 'Decisions']) {
+        expect(() =>
+          EdoxenConfigSchema.parse({
+            site: { title: 'X', url: 'https://x.org' },
+            data: { decisions: './data/decisions' },
+            decisionsSlug: slug,
+          }),
+        ).toThrow()
+      }
+    })
   })
 
   describe('defineConfig', () => {
@@ -271,6 +354,25 @@ describe('EdoxenConfigSchema', () => {
         'Meetings',
         'Decisions',
         'About',
+      ])
+      expect(cfg.nav.map((n) => n.href)).toEqual([
+        '/meetings',
+        '/decisions',
+        '/about',
+      ])
+    })
+
+    it('derives the default nav labels + href from terminology and decisionsSlug', () => {
+      const cfg = defineConfig({
+        site: { title: 'X', url: 'https://x.org' },
+        data: { decisions: './data/decisions' },
+        terminology: { decision: 'resolution', decisions: 'Resolutions' },
+        decisionsSlug: 'resolutions',
+      })
+      expect(cfg.nav).toEqual([
+        { label: 'Meetings', href: '/meetings' },
+        { label: 'Resolutions', href: '/resolutions' },
+        { label: 'About', href: '/about' },
       ])
     })
 

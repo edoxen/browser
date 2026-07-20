@@ -104,14 +104,31 @@ export const NavItemSchema = z.object({
 })
 export type NavItem = z.infer<typeof NavItemSchema>
 
-// Default nav: Meetings + Decisions + About. A zero-config consumer
+// What a site calls its records. A committee that adopts "resolutions"
+// rather than "decisions" sets `terminology` once and every user-facing
+// English string (nav, page titles, section headings, stat strip,
+// breadcrumbs, empty states, search placeholder) follows — see t() in
+// src/i18n/ui.ts for the resolution order.
+export const TerminologySchema = z.object({
+  decision: z.string().min(1).default('decision'),
+  decisions: z.string().min(1).default('decisions'),
+  meeting: z.string().min(1).default('meeting'),
+  meetings: z.string().min(1).default('meetings'),
+})
+export type Terminology = z.infer<typeof TerminologySchema>
+
+// Default nav: Meetings + Decisions + About, labelled and linked from
+// the configured terminology + decisionsSlug. A zero-config consumer
 // sees these three top-level entries; overriding `nav` in the config
 // replaces them wholesale.
-const DEFAULT_NAV: NavItem[] = [
-  { label: 'Meetings', href: '/meetings' },
-  { label: 'Decisions', href: '/decisions' },
-  { label: 'About', href: '/about' },
-]
+function defaultNav(terminology: Terminology, decisionsSlug: string): NavItem[] {
+  const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+  return [
+    { label: cap(terminology.meetings), href: '/meetings' },
+    { label: cap(terminology.decisions), href: `/${decisionsSlug}` },
+    { label: 'About', href: '/about' },
+  ]
+}
 
 export const SocialItemSchema = z.object({
   label: z.string().min(1),
@@ -157,8 +174,19 @@ export const FeaturesSchema = z.object({
     enabled: z.boolean().default(false),
     pageSize: z.number().int().positive().default(50),
   }).default({}),
+  home: z.object({
+    stats: z.boolean().default(true),
+    recentDecisions: z.number().int().nonnegative().default(5),
+    recentMeetings: z.number().int().nonnegative().default(3),
+    browseByDecade: z.boolean().default(true),
+  }).default({}),
 })
 export type FeaturesConfig = z.infer<typeof FeaturesSchema>
+
+// Route segment of the decisions index + detail pages. Renaming it
+// (e.g. 'resolutions') moves every decision route and every generated
+// decision link; the /data/*.json endpoint names stay fixed.
+const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/
 
 export const EdoxenConfigSchema = z.object({
   site: SiteSchema,
@@ -167,12 +195,17 @@ export const EdoxenConfigSchema = z.object({
   bodies: z.array(BodySchema).default([{ code: 'committee', name: 'Committee' }]),
   locales: z.array(LocaleEntrySchema).default([{ code: 'en', label: 'English', routePrefix: '' }]),
   theme: ThemeSchema.default({}),
-  nav: z.array(NavItemSchema).default(DEFAULT_NAV),
+  nav: z.array(NavItemSchema).optional(),
   social: z.array(SocialItemSchema).default([]),
   footer: FooterSchema.default({}),
   features: FeaturesSchema.default({}),
   uiStrings: z.record(z.string(), z.record(z.string(), z.string())).default({}),
-})
+  terminology: TerminologySchema.default({}),
+  decisionsSlug: z.string().regex(SLUG_RE, 'lowercase letters, digits or -').default('decisions'),
+}).transform((cfg) => ({
+  ...cfg,
+  nav: cfg.nav ?? defaultNav(cfg.terminology, cfg.decisionsSlug),
+}))
 
 export type EdoxenConfig = z.infer<typeof EdoxenConfigSchema>
 export type EdoxenConfigInput = z.input<typeof EdoxenConfigSchema>
