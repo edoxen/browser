@@ -29,6 +29,8 @@ const endpoint = `${prefix}data/decisions.json`
     data-aria-label={t('search.ariaLabel', lang, cfg.uiStrings, cfg.terminology)}
     data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
     data-meeting-label={t('label.meeting', lang, cfg.uiStrings, cfg.terminology)}
+    data-date-from-label={t('search.dateFrom', lang, cfg.uiStrings, cfg.terminology)}
+    data-date-to-label={t('search.dateTo', lang, cfg.uiStrings, cfg.terminology)}
   ></search-filter>
   <noscript>
     <DecisionList items={items} lang={lang} urlPrefix={prefix} />

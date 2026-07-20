@@ -758,6 +758,36 @@ search-filter {
   gap: 0.375rem;
 }
 
+/* Inclusive date-range bound inputs (decisions mode) */
+.edoxen-search-filter__date-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.edoxen-search-filter__date-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-search-filter__date-field input {
+  width: 8.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  background: var(--edoxen-color-surface);
+  color: var(--edoxen-color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.edoxen-search-filter__date-field input:focus {
+  border-color: var(--edoxen-color-accent);
+}
+
 .edoxen-search-filter__facet {
   border: 1px solid var(--edoxen-color-border);
   background: var(--edoxen-color-surface);
@@ -1067,6 +1097,7 @@ search-filter {
   }
 
   .edoxen-search-filter__form > input,
+  .edoxen-search-filter__date-range,
   .edoxen-search-filter__facets {
     display: none !important;
   }
