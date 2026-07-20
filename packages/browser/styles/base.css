@@ -363,6 +363,13 @@ blockquote {
   text-decoration: none;
 }
 
+/* ── Small utilities ─────────────────────────────────────────────── */
+
+.edoxen-muted {
+  color: var(--edoxen-color-muted);
+  font-size: 0.9375em;
+}
+
 /* ── Badges: soft-tinted pills ───────────────────────────────────
    BodyBadge/ActionTypeBadge set an inline background+color when the
    body/action carries a brand color; the tint below is the neutral

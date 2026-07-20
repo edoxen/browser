@@ -190,17 +190,36 @@ function extractExternalImports(css: string): { urls: string[]; stripped: string
 
 type DataEndpointName = 'decisions' | 'meetings' | 'registers'
 
+// Clamp island snippets server-side: first-action messages can run to
+// kilobytes (AsciiDoc tables), and shipping 1,456 of them made
+// /data/decisions.json ~1.1MB. The island's result cards show ~2 lines.
+function clampSnippet(text: string, max = 180): string {
+  const flat = text.replace(/\s+/g, ' ').trim()
+  if (flat.length <= max) return flat
+  const cut = flat.slice(0, max)
+  return `${cut.slice(0, cut.lastIndexOf(' ') > 0 ? cut.lastIndexOf(' ') : max)}…`
+}
+
 function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): string {
   const locale = cache.config.site.locale
   if (name === 'decisions') {
     return JSON.stringify({
-      // The search-filter island consumes SearchableItem.title as a plain
-      // string — flatten the LocalizedString[] titles for the default locale.
+      // Lean items — only what the search-filter island renders and
+      // filters on. `subject` is NOT sent (the island's result card uses
+      // title+snippet; the subject is on the server-rendered card and
+      // the detail page). Snippets are clamped server-side.
       items: cache.payloads.decisionsList.items.map((d) => ({
-        ...d,
+        urn: d.urn,
+        identifier: d.identifier,
         title: pickLocalizedValue(d.title, locale),
-        subject: pickLocalizedValue(d.subject, locale),
-        snippet: pickLocalizedValue(d.snippet, locale),
+        snippet: clampSnippet(pickLocalizedValue(d.snippet, locale)),
+        date: d.date,
+        dates: d.dates,
+        year: d.year,
+        kind: d.kind,
+        status: d.status,
+        actionTypes: d.actionTypes,
+        bodyType: d.bodyType,
         // Card/meeting-chip deep links use the meeting *page* URN only;
         // without one there is no meeting page to link to.
         meetingUrn: d.meetingPageUrn ?? undefined,
