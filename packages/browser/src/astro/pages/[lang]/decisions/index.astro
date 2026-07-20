@@ -21,18 +21,26 @@ const endpoint = `${prefix}data/decisions.json`
 <BaseLayout config={cfg} lang={lang} title={`${t('nav.decisions', lang, cfg.uiStrings, cfg.terminology)} — ${cfg.site.title}`}>
   <h1>{t('nav.decisions', lang, cfg.uiStrings, cfg.terminology)}</h1>
 
-  <search-filter
-    data-endpoint={endpoint}
-    data-base-path={decisionsBase(cfg, prefix)}
-    data-meetings-base-path={`${prefix}meetings`}
-    data-placeholder={t('search.placeholder', lang, cfg.uiStrings, cfg.terminology)}
-    data-aria-label={t('search.ariaLabel', lang, cfg.uiStrings, cfg.terminology)}
-    data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
-    data-meeting-label={t('label.meeting', lang, cfg.uiStrings, cfg.terminology)}
-    data-date-from-label={t('search.dateFrom', lang, cfg.uiStrings, cfg.terminology)}
-    data-date-to-label={t('search.dateTo', lang, cfg.uiStrings, cfg.terminology)}
-  ></search-filter>
-  <noscript>
+  {cfg.features.search ? (
+    <>
+      <search-filter
+        data-endpoint={endpoint}
+        data-base-path={decisionsBase(cfg, prefix)}
+        data-meetings-base-path={`${prefix}meetings`}
+        data-placeholder={t('search.placeholder', lang, cfg.uiStrings, cfg.terminology)}
+        data-aria-label={t('search.ariaLabel', lang, cfg.uiStrings, cfg.terminology)}
+        data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
+        data-meeting-label={t('label.meeting', lang, cfg.uiStrings, cfg.terminology)}
+        data-date-from-label={t('search.dateFrom', lang, cfg.uiStrings, cfg.terminology)}
+        data-date-to-label={t('search.dateTo', lang, cfg.uiStrings, cfg.terminology)}
+        data-show-more-label={t('search.showMore', lang, cfg.uiStrings, cfg.terminology)}
+        data-page-size={cfg.features.pagination.enabled ? String(cfg.features.pagination.pageSize) : undefined}
+      ></search-filter>
+      <noscript>
+        <DecisionList items={items} lang={lang} urlPrefix={prefix} />
+      </noscript>
+    </>
+  ) : (
     <DecisionList items={items} lang={lang} urlPrefix={prefix} />
-  </noscript>
+  )}
 </BaseLayout>

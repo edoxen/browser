@@ -1,0 +1,93 @@
+/* ── Print ───────────────────────────────────────────────────────
+   Chrome and interactive islands drop out; tokens are re-pointed at
+   ink-safe values so dark-mode visitors still get black-on-white.
+   The selectors must match the generated dark-token rules' specificity
+   (`:root[data-theme="dark"]`), hence the explicit theme variants.
+
+   This file is NOT bundled into base.css: BaseLayout inlines it via a
+   `?raw` import only when `features.printStyles` is on — `false` omits
+   the print CSS from the output entirely. */
+@media print {
+  :root,
+  :root[data-theme="light"],
+  :root[data-theme="dark"] {
+    --edoxen-color-primary: #000000;
+    --edoxen-color-text: #1c1917;
+    --edoxen-color-muted: #44403c;
+    --edoxen-color-background: #ffffff;
+    --edoxen-color-surface: #ffffff;
+    --edoxen-color-border: #d6d3d1;
+    --edoxen-color-accent: #115e59;
+  }
+
+  .edoxen-header,
+  .edoxen-footer,
+  .edoxen-skip-link,
+  .edoxen-reading-progress,
+  theme-toggle,
+  urn-copy,
+  print-button,
+  decade-scroller {
+    display: none !important;
+  }
+
+  body {
+    background-image: none;
+  }
+
+  .edoxen-search-filter__form > input,
+  .edoxen-search-filter__date-range,
+  .edoxen-search-filter__facets {
+    display: none !important;
+  }
+
+  /* The dark-mode contrast repair above would print white-ish chip
+     text on near-white tints; return those to ink on paper. */
+  :root[data-theme="dark"] .edoxen-statement-list__kind,
+  :root[data-theme="dark"] .edoxen-declaration-list__kind,
+  :root[data-theme="dark"] .edoxen-search-filter__error {
+    color: var(--edoxen-color-text);
+  }
+
+  .edoxen-main {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  html {
+    font-size: 11pt;
+    background: #ffffff;
+  }
+
+  a {
+    color: var(--edoxen-color-primary);
+    text-decoration: underline;
+  }
+
+  /* Spell out where external references point; internal links stay clean. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--edoxen-color-muted);
+    word-break: break-all;
+  }
+
+  .edoxen-card,
+  .edoxen-decision-list__item,
+  .edoxen-meeting-list__item,
+  .edoxen-search-filter__result,
+  .edoxen-committee-card,
+  .edoxen-meeting-times__cell,
+  .edoxen-schedule__entry,
+  .edoxen-minutes,
+  .edoxen-urn-bar {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+}

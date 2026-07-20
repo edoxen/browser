@@ -29,9 +29,11 @@ const decades = [...byDecade.keys()].sort((a, b) => b - a)
 const undated = byDecade.get(0) ?? []
 ---
 
-<decade-scroller>
-  <DecadeTimeline decades={facetsDecades} />
-</decade-scroller>
+{cfg.features.timeline && (
+  <decade-scroller>
+    <DecadeTimeline decades={facetsDecades} />
+  </decade-scroller>
+)}
 
 {decades.filter((d) => d > 0).map((d) => (
   <section id={`decade-${d}`} class="edoxen-decade-section">

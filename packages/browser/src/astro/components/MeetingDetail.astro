@@ -143,7 +143,7 @@ function hostLabel(h: HostRef): string {
 </header>
 
 <div class="edoxen-enter" style="--nth: 3">
-  <UrnBar urn={meeting.urn ?? ''} />
+  <UrnBar urn={meeting.urn ?? ''} copyable={cfg.features.urnCopy} />
 </div>
 
 {(meeting.scheduled_date_range || meeting.occurred_date_range) && (
