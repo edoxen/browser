@@ -29,6 +29,11 @@ const CONFIG = `export default {
     venues: './data/venues.yaml',
     bodies: './data/bodies.yaml',
   },
+  terminology: {
+    decision: 'resolution',
+    decisions: 'Resolutions',
+  },
+  decisionsSlug: 'resolutions',
 }
 `
 
@@ -92,7 +97,7 @@ test.describe('standalone mode — CLI build with no consumer astro.config', () 
 
   test('build emitted a real site with decision detail pages', () => {
     expect(existsSync(join(workdir, 'dist/index.html'))).toBe(true)
-    expect(existsSync(join(workdir, 'dist/decisions/urn:test:resolution:1/index.html'))).toBe(true)
+    expect(existsSync(join(workdir, 'dist/resolutions/urn:test:resolution:1/index.html'))).toBe(true)
     expect(existsSync(join(workdir, 'dist/meetings/urn:test:meeting:2026/index.html'))).toBe(true)
     expect(existsSync(join(workdir, 'dist/data/registers.json'))).toBe(true)
   })
@@ -100,8 +105,11 @@ test.describe('standalone mode — CLI build with no consumer astro.config', () 
   test('home and decision detail render over preview', async ({ page }) => {
     await page.goto(origin)
     await expect(page.locator('h1')).toContainText('Standalone E2E Site')
+    // The default nav derives from terminology + decisionsSlug.
+    const nav = page.locator('nav[aria-label="Primary"]')
+    await expect(nav.locator('a', { hasText: 'Resolutions' })).toHaveAttribute('href', '/resolutions')
 
-    await page.goto(`${origin}/decisions/urn:test:resolution:1`)
+    await page.goto(`${origin}/resolutions/urn:test:resolution:1`)
     await expect(page.locator('h1')).toContainText('First test decision')
   })
 
