@@ -16,6 +16,9 @@ const lang = Astro.params.lang ?? cfg.site.locale
 const prefix = urlPrefix(cfg, lang)
 const items = payloads.decisionsList.items
 const endpoint = `${prefix}data/decisions.json`
+const NOSCRIPT_LIMIT = 200
+const noscriptItems = items.slice(0, NOSCRIPT_LIMIT)
+const recordWord = t('nav.decisions', lang, cfg.uiStrings, cfg.terminology).toLowerCase()
 ---
 
 <BaseLayout config={cfg} lang={lang} title={`${t('nav.decisions', lang, cfg.uiStrings, cfg.terminology)} — ${cfg.site.title}`}>
@@ -37,7 +40,12 @@ const endpoint = `${prefix}data/decisions.json`
         data-page-size={cfg.features.pagination.enabled ? String(cfg.features.pagination.pageSize) : undefined}
       ></search-filter>
       <noscript>
-        <DecisionList items={items} lang={lang} urlPrefix={prefix} />
+        {items.length > NOSCRIPT_LIMIT && (
+          <p class="edoxen-muted">
+            Showing the first {noscriptItems.length} of {items.length} {recordWord} — enable JavaScript for full search and filtering.
+          </p>
+        )}
+        <DecisionList items={noscriptItems} lang={lang} urlPrefix={prefix} />
       </noscript>
     </>
   ) : (

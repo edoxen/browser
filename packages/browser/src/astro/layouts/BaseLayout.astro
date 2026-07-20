@@ -71,6 +71,14 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
     {customCssImports.map((href) => (
       <link rel="stylesheet" href={href} />
     ))}
+    {customCssImports.some((href) => href.includes('fonts.googleapis.com')) && (
+      // Warm the woff2 host connection — this is the difference between
+      // a visible font swap (FOUT) and text arriving already styled.
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      </>
+    )}
 
     <style is:global set:html={tokens} />
     {config.features.printStyles && (
