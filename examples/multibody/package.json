@@ -1,6 +1,6 @@
 {
   "name": "@edoxen/browser-example-multibody",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "type": "module",
   "description": "Multi-body @edoxen/browser example — CIML + Conference + DC badges.",

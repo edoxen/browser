@@ -1,5 +1,32 @@
 # @edoxen/browser
 
+## 0.3.0
+
+### Minor Changes
+
+- 95478a2: Site chrome defaults: ship Meetings + Decisions + About as the
+  default top-nav, add a `footer` config block with auto-generated
+  message + copyright, and make the "Powered by Edoxen" attribution
+  toggleable.
+
+  - `nav` default is now `[{ Meetings }, { Decisions }, { About }]`
+    instead of empty. Zero-config consumers see the three primary
+    concepts in the header immediately.
+  - `footer: { message, copyright, showEdoxenAttribution }` is a new
+    config block. When `message` / `copyright` are unset, the package
+    auto-generates them from the site title + current year.
+  - `showEdoxenAttribution` defaults to true. Set to false only when
+    the consumer's licence / brand terms require it.
+  - `resolveFooter()` helper exported from `@edoxen/browser/config`
+    for downstream consumers that want to mirror the auto-generation.
+
+### Patch Changes
+
+- 3e0d756: Render action/consideration/approval messages as AsciiDoc: tables
+  (|===) and lists now render as real HTML instead of raw pipe-fence
+  artifacts. New .edoxen-adoc styles (booktabs tables, lists, code,
+  blockquotes) in both themes.
+
 ## 0.2.0
 
 ### Minor Changes
