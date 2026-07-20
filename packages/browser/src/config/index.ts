@@ -8,8 +8,10 @@ export {
   ThemeSchema,
   NavItemSchema,
   SocialItemSchema,
+  FooterSchema,
   FeaturesSchema,
   defineConfig,
+  resolveFooter,
   type EdoxenConfig,
   type EdoxenConfigInput,
   type SiteConfig,
@@ -20,6 +22,7 @@ export {
   type ThemeConfig,
   type NavItem,
   type SocialItem,
+  type FooterConfig,
   type FeaturesConfig,
 } from './schema.js'
 
