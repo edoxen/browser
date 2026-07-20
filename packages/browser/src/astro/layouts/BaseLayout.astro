@@ -35,6 +35,22 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {config.features.darkMode && (
+      // Set data-theme BEFORE first paint. Without this, the page paints
+      // with light tokens and the theme-toggle island flips to dark only
+      // after its JS hydrates — the dark-mode FOUC.
+      <script is:inline>
+        {`(function () {
+          try {
+            var stored = localStorage.getItem('edoxen-theme');
+            var theme = (stored === 'light' || stored === 'dark')
+              ? stored
+              : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+          } catch (e) {}
+        })()`}
+      </script>
+    )}
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="canonical" href={canonical} />
