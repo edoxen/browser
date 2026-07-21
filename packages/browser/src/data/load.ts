@@ -15,6 +15,8 @@ export interface LoadedData {
   decisions?: LoadedDecisions
   meetings?: LoadedMeetings
   registers?: LoadedRegisters
+  /** Committee MeetingSeries from data.committee (merged into project.committee). */
+  committee?: LoadedMeetings
 }
 
 export type DataSource = 'decisions' | 'meetings' | 'contacts' | 'venues' | 'bodies'
@@ -54,6 +56,16 @@ export async function loadAll(data: DataConfig): Promise<LoadResult> {
       out.meetings = await loadMeetings(data.meetings)
     } catch (e) {
       errors.push(wrapError('meetings', data.meetings, e))
+    }
+  }
+
+  // data.committee: a MeetingSeries document for the owning body
+  // (About-page committee facts). loadMeetings detects series docs.
+  if (data.committee) {
+    try {
+      out.committee = await loadMeetings(data.committee)
+    } catch (e) {
+      errors.push(wrapError('meetings', data.committee, e))
     }
   }
 

@@ -393,7 +393,8 @@ commented reference implementation.
 | `data.decisions` | path | — | required |
 | `data.meetings` | path | — | optional |
 | `data.contacts` / `data.venues` / `data.bodies` | path | — | optional register datasets |
-| `data.agendas` / `data.minutes` / `data.committee` | path | — | reserved; not loaded |
+| `data.committee` | path | — | optional MeetingSeries document for the owning body; renders the committee-facts section on `/about` (name, description, term, hosts, contact, and any `extensions[]` attributes as stats/links) |
+| `data.agendas` / `data.minutes` | path | — | reserved; not loaded |
 | `output.dir` | string | `'./dist'` | build output directory (used by the CLI in standalone mode; mode A uses Astro's own `outDir`) |
 | `output.sitemap` / `output.robots` | boolean | `true` | reserved; sitemap is wired in the Astro configs, not via this flag |
 | `bodies` | array | `[{ code: 'committee', name: 'Committee' }]` | body badge labels/colors |

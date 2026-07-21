@@ -14,6 +14,7 @@ export default defineConfig({
   data: {
     decisions: fixture('decisions/sample.yaml'),
     meetings: fixture('meetings/with-refs-meeting.yaml'),
+    committee: fixture('meetings/committee-series.yaml'),
     contacts: fixture('registers/contacts.yaml'),
     venues: fixture('registers/venues.yaml'),
     bodies: fixture('registers/bodies.yaml'),

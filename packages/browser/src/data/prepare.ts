@@ -9,6 +9,7 @@ import type {
   LoadedRegisters,
   LocalizedString,
   Meeting,
+  MeetingSeries,
   StructuredIdentifier,
   Venue,
 } from '@edoxen/edoxen'
@@ -106,6 +107,8 @@ export interface PagePayloads {
   readonly contactByUrn: Readonly<Record<string, Contact>>
   readonly venueByUrn: Readonly<Record<string, Venue>>
   readonly bodyByCode: Readonly<Record<string, Body>>
+  /** Committee MeetingSeries (data.committee doc, or series found in the meetings collection). */
+  readonly committee?: MeetingSeries | null
 }
 
 const AGENDA_SEGMENT = 'agenda'
@@ -455,6 +458,7 @@ export function preparePayloads(project: EdoxenProject, registers?: LoadedRegist
     contactByUrn: buildContactByUrn(registers?.contacts?.contacts ?? []),
     venueByUrn: buildVenueByUrn(registers?.venues?.venues ?? []),
     bodyByCode,
+    committee: project.committee ?? null,
   }
 }
 
