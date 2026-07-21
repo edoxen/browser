@@ -9,7 +9,10 @@ interface Props {
   urlPrefix?: string
 }
 const { items, compact = false, lang = 'en', urlPrefix: prefix = '/' } = Astro.props
-const listClass = compact ? 'edoxen-meeting-list edoxen-meeting-list--compact' : 'edoxen-meeting-list'
+// Default: responsive card grid (meetings index). Compact: dense column.
+const listClass = compact
+  ? 'edoxen-meeting-list edoxen-meeting-list--compact'
+  : 'edoxen-meeting-list edoxen-card-grid'
 ---
 
 {items.length === 0 ? (
@@ -27,6 +30,8 @@ const listClass = compact ? 'edoxen-meeting-list edoxen-meeting-list--compact' :
   list-style: none;
   padding: 0;
   margin: 0;
+}
+.edoxen-meeting-list--compact {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
