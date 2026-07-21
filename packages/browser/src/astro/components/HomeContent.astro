@@ -65,7 +65,7 @@ const decades = payloads.meetingsList.facets.decades
       <h2>{t('page.home.latestDecisions', locale, cfg.uiStrings, cfg.terminology)}</h2>
       <a class="edoxen-home-view-all" href={decisionsBase(cfg, prefix)}>{t('page.home.viewAll', locale, cfg.uiStrings, cfg.terminology)} →</a>
     </div>
-    <ul class="edoxen-home-cards">
+    <ul class="edoxen-home-cards edoxen-card-grid">
       {recentDecisions.map((d) => (
         <DecisionCard item={d} lang={locale} urlPrefix={prefix} />
       ))}
@@ -79,7 +79,7 @@ const decades = payloads.meetingsList.facets.decades
       <h2>{t('page.home.recentMeetings', locale, cfg.uiStrings, cfg.terminology)}</h2>
       <a class="edoxen-home-view-all" href={`${prefix}meetings`}>{t('page.home.viewAll', locale, cfg.uiStrings, cfg.terminology)} →</a>
     </div>
-    <ul class="edoxen-home-cards">
+    <ul class="edoxen-home-cards edoxen-card-grid">
       {recentMeetings.map((m) => (
         <MeetingCard item={m} lang={locale} urlPrefix={prefix} />
       ))}
@@ -126,9 +126,6 @@ const decades = payloads.meetingsList.facets.decades
   list-style: none;
   padding: 0;
   margin: 1rem 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
 }
 .edoxen-home-about {
   font-size: 0.9375rem;
