@@ -365,7 +365,8 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(block.locator('.edoxen-code-key').first()).toHaveText('metadata')
   })
 
-  test('about page renders committee facts from data.committee', async ({ page }) => {    await page.goto('/about')
+  test('about page renders committee facts from data.committee', async ({ page }) => {
+    await page.goto('/about')
     const committee = page.locator('section', { has: page.locator('h2', { hasText: 'TEST/TC 1' }) })
     await expect(committee).toBeVisible()
     await expect(committee).toContainText('Test committee for the About-page committee facts section.')
@@ -374,9 +375,51 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(committee.locator('dt', { hasText: 'Established year' })).toBeVisible()
     await expect(committee.locator('dd', { hasText: '2001' })).toBeVisible()
     await expect(committee.locator('dd', { hasText: '42' })).toBeVisible()
-    await expect(committee).toContainText('Jane Doe')
-    await expect(committee).toContainText('Test Organization')
-    await expect(committee).toContainText('testansi')
-    await expect(committee.locator('a', { hasText: 'Committee home' })).toHaveAttribute('href', 'https://example.org/committee')
+    // People and external links live in the footer, not the About body.
+    await expect(committee).not.toContainText('Jane Doe')
+    await expect(committee).not.toContainText('testansi')
+  })
+
+  test('about page renders URN identifiers section with real examples', async ({ page }) => {
+    await page.goto('/about')
+    const urn = page.locator('section', { has: page.locator('h2', { hasText: 'URN Identifiers' }) })
+    await expect(urn).toBeVisible()
+    await expect(urn.locator('.edoxen-urn-list')).toContainText('urn:test:resolution:{id}')
+    await expect(urn.locator('.edoxen-urn-list')).toContainText('urn:test:resolution:1')
+    await expect(urn.locator('.edoxen-urn-list')).toContainText('urn:test:meeting:{id}')
+    await expect(urn.locator('a', { hasText: 'RFC 5141' })).toHaveAttribute('href', 'https://datatracker.ietf.org/doc/html/rfc5141')
+  })
+
+  test('about page renders resolution lifecycle section', async ({ page }) => {
+    await page.goto('/about')
+    const lifecycle = page.locator('section', { has: page.locator('h2', { hasText: 'Resolution Lifecycle' }) })
+    await expect(lifecycle).toBeVisible()
+    await expect(lifecycle.locator('.edoxen-lifecycle__item')).toHaveCount(3)
+    await expect(lifecycle.locator('.edoxen-lifecycle__title').nth(0)).toHaveText('Considerations')
+    await expect(lifecycle.locator('.edoxen-lifecycle__title').nth(1)).toHaveText('Actions')
+    await expect(lifecycle.locator('.edoxen-lifecycle__title').nth(2)).toHaveText('Approvals')
+  })
+
+  test('footer renders committee grid from data.committee', async ({ page }) => {
+    await page.goto('/about')
+    const footer = page.locator('footer.edoxen-footer')
+    await expect(footer.locator('.edoxen-footer__grid')).toBeVisible()
+    // Brand column
+    await expect(footer.locator('.edoxen-footer__logo-text')).toHaveText('TEST/TC 1')
+    await expect(footer.locator('.edoxen-footer__tagline')).toHaveText('Standards for testing')
+    await expect(footer.locator('.edoxen-footer__scope')).toContainText('Test committee')
+    // Committee facts column — bare host refs are humanized (testansi → Testansi)
+    const facts = footer.locator('.edoxen-footer__facts')
+    await expect(facts).toContainText('Secretariat: Testansi')
+    await expect(facts).toContainText('Chair: Jane Doe')
+    await expect(facts).toContainText('Established: 2001')
+    await expect(facts).toContainText('Standards: 42 published')
+    // Explore column mirrors the nav
+    await expect(footer.locator('.edoxen-footer__links a[href="/meetings"]')).toBeVisible()
+    await expect(footer.locator('.edoxen-footer__links a[href="/about"]')).toBeVisible()
+    // Links column from http-valued extension attributes
+    await expect(footer.locator('.edoxen-footer__links a', { hasText: 'Committee home' })).toHaveAttribute('href', 'https://example.org/committee')
+    // Bottom bar
+    await expect(footer.locator('.edoxen-footer__copy')).toContainText(`© ${new Date().getFullYear()} TEST/TC 1`)
   })
 })
