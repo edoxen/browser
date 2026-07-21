@@ -26,8 +26,15 @@ const committee = payloads.committee ?? null
 const committeeName = committee ? pickLocalizedValue(committee.name, lang, committee.urn ?? '') : ''
 const attrValue = (a: ExtensionAttribute): string | number | boolean | undefined =>
   a.value ?? a.intValue ?? a.floatValue ?? a.booleanValue ?? a.dateValue ?? a.dateTimeValue
+const SPECIAL_CASINGS: Record<string, string> = {
+  iso: 'ISO', urn: 'URN', url: 'URL', doi: 'DOI', linkedin: 'LinkedIn',
+  github: 'GitHub', tc: 'TC', sc: 'SC', jwg: 'JWG', wg: 'WG', pdf: 'PDF',
+}
 const humanize = (key: string): string =>
-  key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  key
+    .split('_')
+    .map((w) => SPECIAL_CASINGS[w.toLowerCase()] ?? w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
 const allAttrs = (committee?.extensions ?? []).flatMap((e) => e.attributes ?? [])
 const prose = allAttrs.filter((a) => a.type === 'string' && !String(a.value ?? '').startsWith('http') && ['tagline', 'title', 'description'].includes(a.key ?? ''))
 const facts = allAttrs
@@ -40,6 +47,37 @@ const contact = committee?.contact
 const contactName = contact ? pickLocalizedValue(contact.name?.map((n) => ({ spelling: n.spelling, value: n.value?.formatted ?? '' })), lang) : ''
 const contactAffiliation = contact ? pickLocalizedValue(contact.affiliation, lang) : ''
 const hosts = committee?.hosts ?? []
+
+// YAML sample for the format section. It MUST be built as a string:
+// the Astro compiler collapses whitespace between inline elements in
+// markup, which is what flattened this sample into a single line.
+const rawSample = `metadata:
+  title: Resolutions of the plenary meeting
+  date: '2024-10-18'
+  city: NOSVG
+  country_code: NO
+
+decisions:
+  - identifier:
+      - prefix: ISO/TC 184/SC 4
+        number: '1142'
+    kind: resolution
+    status: decided
+    dates:
+      - date: '2024-10-25'
+        type: adoption
+    title:
+      - spelling: eng
+        value: Set 8-week ballot duration for new work item proposals
+    actions:
+      - type: requests
+        message:
+          - spelling: eng
+            value: SC 4 requests its Committee Manager to…`
+const escHtml = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const sampleHtml = escHtml(rawSample)
+  .replace(/(^|\s)([a-z_]+)(?=:)/g, '$1<span class="edoxen-code-key">$2</span>')
+  .replace(/'([^'\n]*)'/g, '<span class="edoxen-code-string">\'$1\'</span>')
 ---
 
 <BaseLayout config={cfg} lang={lang} title={`${tt('about.title')} — ${cfg.site.title}`}>
@@ -57,6 +95,10 @@ const hosts = committee?.hosts ?? []
   <section>
     <h2>{tt('about.format')}</h2>
     <p>{tt('about.formatBody')}</p>
+    <pre class="edoxen-code-block"><code set:html={sampleHtml} /></pre>
+    <p>
+      <a href="https://edoxen.github.io/" target="_blank" rel="noopener noreferrer">Learn more about Edoxen &rarr;</a>
+    </p>
   </section>
 
   {committee && (
