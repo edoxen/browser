@@ -679,6 +679,69 @@ reading-progress {
   margin: 0;
 }
 
+/* ── Code blocks: syntax-highlighted YAML examples on About, etc. ── */
+
+.edoxen-code-block {
+  background: var(--edoxen-color-surface);
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: var(--edoxen-font-mono, ui-monospace, "Cascadia Code", monospace);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  margin: 1rem 0;
+}
+.edoxen-code-block code {
+  font-family: inherit;
+  white-space: pre;
+}
+.edoxen-code-key { color: var(--edoxen-color-accent); font-weight: 600; }
+.edoxen-code-string { color: var(--edoxen-color-success); }
+.edoxen-code-comment { color: var(--edoxen-color-muted); font-style: italic; }
+
+/* ── Skeleton loaders: shimmer for async content ────────────────── */
+
+@keyframes edoxen-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.edoxen-skeleton {
+  background: var(--edoxen-color-border);
+  border-radius: var(--edoxen-radius-sm);
+  animation: edoxen-skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edoxen-skeleton { animation: none; opacity: 0.5; }
+}
+
+/* ── Action chips: tag-like badges on grids (About action types) ── */
+
+.edoxen-action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.edoxen-action-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: var(--edoxen-color-accent-soft, rgba(0, 0, 0, 0.04));
+  color: var(--edoxen-color-accent);
+  border: 1px solid transparent;
+  transition: transform 0.15s ease;
+}
+.edoxen-action-chip:hover {
+  transform: translateY(-1px);
+}
+
 /* ── Islands (custom elements build their DOM at runtime, so their
    styles must be global) ───────────────────────────────────────── */
 

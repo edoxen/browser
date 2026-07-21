@@ -57,7 +57,45 @@ const hosts = committee?.hosts ?? []
   <section>
     <h2>{tt('about.format')}</h2>
     <p>{tt('about.formatBody')}</p>
+    <div class="edoxen-code-block"><code><span class="edoxen-code-key">metadata</span>:
+  <span class="edoxen-code-key">title</span>: <span class="edoxen-code-string">Resolutions of the plenary meeting</span>
+  <span class="edoxen-code-key">date</span>: <span class="edoxen-code-string">'2024-10-18'</span>
+  <span class="edoxen-code-key">city</span>: <span class="edoxen-code-string">NOSVG</span>
+  <span class="edoxen-code-key">country_code</span>: <span class="edoxen-code-string">NO</span>
+
+<span class="edoxen-code-key">decisions</span>:
+  - <span class="edoxen-code-key">identifier</span>:
+      - <span class="edoxen-code-key">prefix</span>: <span class="edoxen-code-string">ISO/TC 184/SC 4</span>
+        <span class="edoxen-code-key">number</span>: <span class="edoxen-code-string">'1142'</span>
+    <span class="edoxen-code-key">kind</span>: <span class="edoxen-code-string">resolution</span>
+    <span class="edoxen-code-key">status</span>: <span class="edoxen-code-string">decided</span>
+    <span class="edoxen-code-key">dates</span>:
+      - <span class="edoxen-code-key">date</span>: <span class="edoxen-code-string">'2024-10-25'</span>
+        <span class="edoxen-code-key">type</span>: <span class="edoxen-code-string">adoption</span>
+    <span class="edoxen-code-key">title</span>:
+      - <span class="edoxen-code-key">spelling</span>: <span class="edoxen-code-string">eng</span>
+        <span class="edoxen-code-key">value</span>: <span class="edoxen-code-string">Set 8-week ballot duration for new work item proposals</span>
+    <span class="edoxen-code-key">actions</span>:
+      - <span class="edoxen-code-key">type</span>: <span class="edoxen-code-string">requests</span>
+        <span class="edoxen-code-key">message</span>:
+          - <span class="edoxen-code-key">spelling</span>: <span class="edoxen-code-string">eng</span>
+            <span class="edoxen-code-key">value</span>: <span class="edoxen-code-string">SC 4 requests its Committee Manager to...</span></code></div>
+    <p>
+      <a href="https://edoxen.github.io/" target="_blank" rel="noopener noreferrer">Learn more about Edoxen &rarr;</a>
+    </p>
   </section>
+
+  {payloads.decisionsList.facets.actionTypes.length > 0 && (
+    <section>
+      <h2>{tt('about.actionTypes')}</h2>
+      <p>{tt('about.actionTypesBody')}</p>
+      <div class="edoxen-action-grid">
+        {payloads.decisionsList.facets.actionTypes.map((type) => (
+          <span class="edoxen-action-chip">{type}</span>
+        ))}
+      </div>
+    </section>
+  )}
 
   {committee && (
     <section>
