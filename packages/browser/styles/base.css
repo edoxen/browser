@@ -341,6 +341,110 @@ blockquote {
   margin-left: auto;
 }
 
+/* Footer: rich 4-column grid when a committee series is configured. */
+.edoxen-footer__inner {
+  width: 100%;
+}
+
+.edoxen-footer__grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 1.5rem 2rem;
+}
+
+@media (max-width: 64rem) {
+  .edoxen-footer__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 40rem) {
+  .edoxen-footer__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.edoxen-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--edoxen-color-text);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.edoxen-footer__logo img {
+  height: 2rem;
+  width: auto;
+}
+
+.edoxen-footer__logo-text {
+  font-family: var(--edoxen-font-display, var(--edoxen-font-sans));
+}
+
+.edoxen-footer__tagline {
+  margin: 0.4rem 0 0;
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-footer__scope {
+  margin: 0.4rem 0 0;
+  color: var(--edoxen-color-muted);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  max-width: 42ch;
+}
+
+.edoxen-footer__heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-footer__facts,
+.edoxen-footer__links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.edoxen-footer__facts strong {
+  font-weight: 600;
+  color: var(--edoxen-color-text);
+}
+
+.edoxen-footer__links a {
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-footer__links a:hover,
+.edoxen-footer__links a:focus-visible {
+  color: var(--edoxen-color-accent);
+}
+
+.edoxen-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edoxen-color-border);
+  font-size: 0.8125rem;
+}
+
+.edoxen-footer__copy {
+  margin: 0;
+}
+
+.edoxen-footer__attribution {
+  margin: 0 0 0 auto;
+}
+
 /* ── Skip link (visible on focus only) ─────────────────────────── */
 
 .edoxen-skip-link {

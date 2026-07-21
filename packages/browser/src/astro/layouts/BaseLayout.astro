@@ -1,7 +1,8 @@
 ---
 import type { EdoxenConfig } from '../../config/index.js'
 import { generateCssTokens, resolveFooter } from '../../config/index.js'
-import { urlPrefix } from '../../i18n/index.js'
+import { urlPrefix, pickLocalizedValue } from '../../i18n/index.js'
+import payloads from 'virtual:edoxen-payloads'
 import '../../../styles/base.css'
 // Print styles are gated on features.printStyles: imported as a raw
 // string and inlined only when the flag is on, so `false` omits the
@@ -27,6 +28,51 @@ const canonical = new URL(Astro.url.pathname, config.site.url).toString()
 const prefix = urlPrefix(config, lang)
 const navHref = (href: string): string => `${prefix}${href}`.replace(/\/{2,}/g, '/')
 const footer = resolveFooter(config.site.title, config.footer)
+// Root-absolute asset paths (logos, images) must carry the deployment
+// basePath or they 404 on subpath hosts (GitHub Pages project sites).
+function assetSrc(src: string): string {
+  if (!src.startsWith('/')) return src
+  const base = config.site.basePath === '/' ? '' : config.site.basePath.replace(/\/$/, '')
+  return `${base}${src}`
+}
+
+// Original-style footer: brand + committee facts + explore + links,
+// driven by the committee MeetingSeries when one is configured.
+const SPECIAL_LABELS: Record<string, string> = {
+  iso: 'ISO', urn: 'URN', url: 'URL', doi: 'DOI', linkedin: 'LinkedIn',
+  github: 'GitHub', tc: 'TC', sc: 'SC', jwg: 'JWG', wg: 'WG', pdf: 'PDF',
+  ansi: 'ANSI', cencenelec: 'CEN-CENELEC', iec: 'IEC', itu: 'ITU',
+  din: 'DIN', afnor: 'AFNOR', bsi: 'BSI', jisc: 'JISC', sac: 'SAC',
+}
+const humanizeKey = (key: string): string =>
+  key
+    .split(/[-_]/)
+    .map((w) => SPECIAL_LABELS[w.toLowerCase()] ?? w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+const committee = payloads.committee ?? null
+const committeeName = committee ? pickLocalizedValue(committee.name, lang, committee.urn ?? '') : ''
+const committeeScope = committee ? pickLocalizedValue(committee.description, lang) : ''
+const attrs = (committee?.extensions ?? []).flatMap((e) => e.attributes ?? [])
+const attrString = (key: string): string | undefined =>
+  attrs.find((a) => a.key === key && a.type === 'string')?.value
+const attrInt = (key: string): number | undefined =>
+  attrs.find((a) => a.key === key && a.type === 'integer')?.intValue
+const tagline = attrString('tagline') ?? attrString('title')
+const committeeLinks = attrs
+  .filter((a) => a.type === 'string' && String(a.value ?? '').startsWith('http'))
+  .map((a) => ({
+    label: humanizeKey(a.key ?? ''),
+    href: String(a.value),
+  }))
+// Host refs are machine codes (e.g. `ansi`) — present them humanized.
+const secretariatRef = committee?.hosts?.find((h) => h.role === 'secretariat')?.ref
+const secretariat = secretariatRef ? humanizeKey(secretariatRef) : undefined
+const chair = committee?.contact ? pickLocalizedValue(committee.contact.name?.map((n) => ({ spelling: n.spelling, value: n.value?.formatted ?? '' })), lang) : ''
+const established = attrInt('established_year')
+const publishedStandards = attrInt('published_standards')
+const participatingMembers = attrInt('participating_members')
+const observingMembers = attrInt('observing_members')
+const year = new Date().getFullYear()
 // External stylesheet imports extracted from the consumer override
 // (e.g. webfonts) — loaded as parallel head links so they never block
 // the bundled CSS from applying (FOUC fix). Their URLs carry
@@ -91,7 +137,7 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
     <header class="edoxen-header">
       <a href={prefix} class="edoxen-header__brand">
         {config.theme.logos.primary && (
-          <img src={config.theme.logos.primary} alt={config.site.title} />
+          <img src={assetSrc(config.theme.logos.primary)} alt={config.site.title} />
         )}
         <span>{config.site.title}</span>
       </a>
@@ -108,20 +154,82 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
       <slot />
     </main>
     <footer class="edoxen-footer">
-      {config.theme.logos.footer && (
-        <img src={config.theme.logos.footer} alt="" />
-      )}
-      <ul class="edoxen-footer__social">
-        {config.social.map((s) => (
-          <li><a href={s.href}>{s.label}</a></li>
-        ))}
-      </ul>
-      <p class="edoxen-footer__message" set:html={footer.message} />
-      <p class="edoxen-footer__copyright">{footer.copyright}</p>
-      {footer.showEdoxenAttribution && (
-        <p class="edoxen-footer__attribution">
-          Powered by <a href="https://edoxen.github.io">Edoxen</a>.
-        </p>
+      {committee ? (
+        <div class="edoxen-footer__inner">
+          <div class="edoxen-footer__grid">
+            <div class="edoxen-footer__brand">
+              <a href={prefix} class="edoxen-footer__logo">
+                {config.theme.logos.footer && (
+                  <img src={assetSrc(config.theme.logos.footer)} alt="" />
+                )}
+                <span class="edoxen-footer__logo-text">{committeeName}</span>
+              </a>
+              {tagline && <p class="edoxen-footer__tagline">{tagline}</p>}
+              {committeeScope && <p class="edoxen-footer__scope">{committeeScope}</p>}
+            </div>
+
+            <div>
+              <h4 class="edoxen-footer__heading">Committee</h4>
+              <ul class="edoxen-footer__facts">
+                {secretariat && <li><strong>Secretariat:</strong> {secretariat}</li>}
+                {chair && <li><strong>Chair:</strong> {chair}</li>}
+                {established && <li><strong>Established:</strong> {established}</li>}
+                {publishedStandards && <li><strong>Standards:</strong> {publishedStandards} published</li>}
+                {participatingMembers && (
+                  <li><strong>Members:</strong> {participatingMembers} (P){observingMembers ? `, ${observingMembers} (O)` : ''}</li>
+                )}
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="edoxen-footer__heading">Explore</h4>
+              <ul class="edoxen-footer__links">
+                {config.nav.map((item) => (
+                  !item.locale || item.locale === lang
+                    ? <li><a href={navHref(item.href)}>{item.label}</a></li>
+                    : null
+                ))}
+              </ul>
+            </div>
+
+            {committeeLinks.length > 0 && (
+              <div>
+                <h4 class="edoxen-footer__heading">Links</h4>
+                <ul class="edoxen-footer__links">
+                  {committeeLinks.map((l) => (
+                    <li><a href={l.href} rel="noopener noreferrer" target="_blank">{l.label}</a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <div class="edoxen-footer__bottom">
+            <p class="edoxen-footer__copy">© {year} {committeeName}</p>
+            {footer.showEdoxenAttribution && (
+              <p class="edoxen-footer__attribution">
+                Powered by <a href="https://edoxen.github.io">Edoxen</a>.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          {config.theme.logos.footer && (
+            <img src={assetSrc(config.theme.logos.footer)} alt="" />
+          )}
+          <ul class="edoxen-footer__social">
+            {config.social.map((s) => (
+              <li><a href={s.href}>{s.label}</a></li>
+            ))}
+          </ul>
+          <p class="edoxen-footer__message" set:html={footer.message} />
+          <p class="edoxen-footer__copyright">{footer.copyright}</p>
+          {footer.showEdoxenAttribution && (
+            <p class="edoxen-footer__attribution">
+              Powered by <a href="https://edoxen.github.io">Edoxen</a>.
+            </p>
+          )}
+        </>
       )}
     </footer>
     <script>
