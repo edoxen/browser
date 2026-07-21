@@ -351,8 +351,21 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(page.locator('h1')).toContainText('404')
   })
 
-  test('about page renders committee facts from data.committee', async ({ page }) => {
+  test('about YAML sample keeps its line breaks', async ({ page }) => {
     await page.goto('/about')
+    const block = page.locator('pre.edoxen-code-block code')
+    await expect(block).toBeVisible()
+    const text = await block.textContent()
+    expect(text).toContain('metadata:')
+    expect(text).toContain('decisions:')
+    // The Astro compiler collapses inline markup whitespace — the sample
+    // is built as a string so its newlines survive. Guard the regression.
+    expect(text).toMatch(/metadata:\n/)
+    expect(text).toMatch(/\n\s+title:/)
+    await expect(block.locator('.edoxen-code-key').first()).toHaveText('metadata')
+  })
+
+  test('about page renders committee facts from data.committee', async ({ page }) => {    await page.goto('/about')
     const committee = page.locator('section', { has: page.locator('h2', { hasText: 'TEST/TC 1' }) })
     await expect(committee).toBeVisible()
     await expect(committee).toContainText('Test committee for the About-page committee facts section.')
