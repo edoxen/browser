@@ -1,9 +1,9 @@
 import { urnToPath } from '../urn.js'
 import {
+  VIRTUAL_COUNTRY,
   type FilterState,
   type SearchableItem,
   decodeState,
-  decadeOfYear,
   encodeState,
   filterItems,
   toggle,
@@ -25,6 +25,42 @@ type SearchMode = 'decisions' | 'meetings'
 function humanize(type: string): string {
   const words = type.replace(/[-_]+/g, ' ')
   return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+/** ISO 3166-1 alpha-2 → regional-indicator flag emoji ('NO' → '🇳🇴'). */
+function flagEmoji(countryCode: string): string {
+  const cc = countryCode.trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(cc)) return ''
+  return String.fromCodePoint(...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
+}
+
+// Locale-aware country names straight from ICU — no data file needed.
+const displayNamesCache = new Map<string, Intl.DisplayNames>()
+function regionName(countryCode: string, lang: string): string {
+  const cc = countryCode.trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(cc)) return countryCode
+  let dn = displayNamesCache.get(lang)
+  if (!dn) {
+    try {
+      dn = new Intl.DisplayNames([lang], { type: 'region' })
+    } catch {
+      dn = new Intl.DisplayNames(['en'], { type: 'region' })
+    }
+    displayNamesCache.set(lang, dn)
+  }
+  try {
+    return dn.of(cc) ?? countryCode
+  } catch {
+    return countryCode
+  }
+}
+
+/** Best display name for a meeting's place in `lang`. */
+function cityName(item: SearchableItem, lang: string): string {
+  const city = item.city ?? ''
+  if (!city) return ''
+  const names = item.cityNames
+  return names?.[lang] ?? names?.[lang.slice(0, 2)] ?? names?.en ?? (names ? Object.values(names)[0] : undefined) ?? city
 }
 
 function formatDate(iso: string, lang: string): string {
@@ -112,6 +148,7 @@ function buildMeetingListItem(
   basePath: string,
   lang: string,
   decisionsLabel: string,
+  virtualLabel: string,
 ): HTMLLIElement {
   const { li, main, meta } = buildResultShell()
 
@@ -119,8 +156,17 @@ function buildMeetingListItem(
   const dates = formatRange(item.startDate, item.endDate, lang)
   if (dates) meta.appendChild(makeBadge(dates, 'edoxen-search-filter__result-date'))
   if (item.committeeCode) meta.appendChild(makeBadge(item.committeeCode, 'edoxen-badge'))
-  const place = [item.city, item.countryCode].filter(Boolean).join(', ')
-  if (place) meta.appendChild(makeBadge(place, 'edoxen-search-filter__result-date'))
+  // Online meeting (no city/country): globe + localized "Virtual";
+  // otherwise flag + "City, Country" with UN/LOCODE resolved to a name.
+  if (!item.city && !item.countryCode) {
+    meta.appendChild(makeBadge(`\u{1F310} ${virtualLabel}`, 'edoxen-search-filter__result-date'))
+  } else {
+    const place = [cityName(item, lang), item.countryCode ? regionName(item.countryCode, lang) : '']
+      .filter(Boolean)
+      .join(', ')
+    const flag = item.countryCode ? flagEmoji(item.countryCode) : ''
+    if (place) meta.appendChild(makeBadge(`${flag ? `${flag} ` : ''}${place}`, 'edoxen-search-filter__result-date'))
+  }
   if (item.decisionCount != null && item.decisionCount > 0) {
     meta.appendChild(makeBadge(`${item.decisionCount} ${decisionsLabel}`, 'edoxen-badge'))
   }
@@ -166,6 +212,12 @@ class SearchFilter extends HTMLElement {
   private emptyLabel = 'No matches found.'
   private meetingLabel = 'Meeting'
   private decisionsLabel = 'Resolutions'
+  private virtualLabel = 'Virtual'
+  private groupYearLabel = 'Year'
+  private groupLocationLabel = 'Location'
+  private groupTypeLabel = 'Type'
+  private groupActionsLabel = 'Actions'
+  private groupBodyLabel = 'Body'
   private dateFromLabel = 'From'
   private dateToLabel = 'To'
   private showMoreLabel = 'Show more'
@@ -185,6 +237,12 @@ class SearchFilter extends HTMLElement {
     this.emptyLabel = this.dataset.emptyLabel ?? this.emptyLabel
     this.meetingLabel = this.dataset.meetingLabel ?? this.meetingLabel
     this.decisionsLabel = this.dataset.decisionsLabel ?? this.decisionsLabel
+    this.virtualLabel = this.dataset.virtualLabel ?? this.virtualLabel
+    this.groupYearLabel = this.dataset.groupYearLabel ?? this.groupYearLabel
+    this.groupLocationLabel = this.dataset.groupLocationLabel ?? this.groupLocationLabel
+    this.groupTypeLabel = this.dataset.groupTypeLabel ?? this.groupTypeLabel
+    this.groupActionsLabel = this.dataset.groupActionsLabel ?? this.groupActionsLabel
+    this.groupBodyLabel = this.dataset.groupBodyLabel ?? this.groupBodyLabel
     this.dateFromLabel = this.dataset.dateFromLabel ?? this.dateFromLabel
     this.dateToLabel = this.dataset.dateToLabel ?? this.dateToLabel
     this.showMoreLabel = this.dataset.showMoreLabel ?? this.showMoreLabel
@@ -293,76 +351,107 @@ class SearchFilter extends HTMLElement {
     return wrapper
   }
 
+  /** A labeled facet family ("Year", "Location", …) — chips never mix. */
+  private makeFacetGroup(label: string, chips: HTMLElement[]): HTMLElement | null {
+    if (chips.length === 0) return null
+    const group = document.createElement('div')
+    group.className = 'edoxen-search-filter__facet-group'
+    const caption = document.createElement('span')
+    caption.className = 'edoxen-search-filter__facet-label'
+    caption.textContent = label
+    const row = document.createElement('div')
+    row.className = 'edoxen-search-filter__facet-chips'
+    row.append(...chips)
+    group.append(caption, row)
+    return group
+  }
+
   private renderFacets(facetsEl: Element): void {
     const bodies = new Map<string, number>()
     const kinds = new Map<string, number>()
     const actions = new Map<string, number>()
-    const decades = new Map<number, number>()
+    const years = new Map<number, number>()
     const countries = new Map<string, number>()
     for (const item of this.items) {
       if (item.bodyType) bodies.set(item.bodyType, (bodies.get(item.bodyType) ?? 0) + 1)
       if (item.kind) kinds.set(item.kind, (kinds.get(item.kind) ?? 0) + 1)
       for (const a of item.actionTypes ?? []) actions.set(a, (actions.get(a) ?? 0) + 1)
-      if (typeof item.year === 'number') {
-        const decade = decadeOfYear(item.year)
-        decades.set(decade, (decades.get(decade) ?? 0) + 1)
-      }
-      if (item.countryCode) countries.set(item.countryCode, (countries.get(item.countryCode) ?? 0) + 1)
+      if (typeof item.year === 'number') years.set(item.year, (years.get(item.year) ?? 0) + 1)
+      // Meetings without a country code are online — the Virtual chip.
+      const country = item.countryCode ?? (this.mode === 'meetings' ? VIRTUAL_COUNTRY : undefined)
+      if (country) countries.set(country, (countries.get(country) ?? 0) + 1)
     }
+    const lang = document.documentElement.lang || 'en'
+    const groups: HTMLElement[] = []
 
     if (this.mode === 'meetings') {
-      // Decades newest-first, mirroring the decade timeline below.
-      for (const decade of [...decades.keys()].sort((a, b) => b - a)) {
-        const chip = makeFacetChip(`${decade}s`, decades.get(decade) ?? 0, this.state.decades.has(decade), () => {
-          this.state = { ...this.state, decades: toggle(this.state.decades, decade) }
+      // Year chips, newest first.
+      const yearChips = [...years.keys()].sort((a, b) => b - a).map((year) => {
+        const chip = makeFacetChip(String(year), years.get(year) ?? 0, this.state.years.has(year), () => {
+          this.state = { ...this.state, years: toggle(this.state.years, year) }
           this.syncHash()
           this.render()
         })
-        chip.classList.add('edoxen-search-filter__facet--decade')
-        facetsEl.appendChild(chip)
-      }
-      for (const country of [...countries.keys()].sort()) {
-        const chip = makeFacetChip(country, countries.get(country) ?? 0, this.state.countries.has(country), () => {
-          this.state = { ...this.state, countries: toggle(this.state.countries, country) }
-          this.syncHash()
-          this.render()
+        chip.classList.add('edoxen-search-filter__facet--year')
+        return chip
+      })
+      // Location chips: flag + country name, "🌐 Virtual" sorted last.
+      const countryChips = [...countries.keys()]
+        .sort((a, b) => (a === VIRTUAL_COUNTRY ? 1 : b === VIRTUAL_COUNTRY ? -1 : regionName(a, lang).localeCompare(regionName(b, lang))))
+        .map((country) => {
+          const label = country === VIRTUAL_COUNTRY
+            ? `\u{1F310} ${this.virtualLabel}`
+            : `${flagEmoji(country)} ${regionName(country, lang)}`
+          const chip = makeFacetChip(label.trim(), countries.get(country) ?? 0, this.state.countries.has(country), () => {
+            this.state = { ...this.state, countries: toggle(this.state.countries, country) }
+            this.syncHash()
+            this.render()
+          })
+          chip.classList.add('edoxen-search-filter__facet--country')
+          if (country === VIRTUAL_COUNTRY) chip.classList.add('edoxen-search-filter__facet--virtual')
+          return chip
         })
-        chip.classList.add('edoxen-search-filter__facet--country')
-        facetsEl.appendChild(chip)
-      }
+      const yearGroup = this.makeFacetGroup(this.groupYearLabel, yearChips)
+      const locationGroup = this.makeFacetGroup(this.groupLocationLabel, countryChips)
+      if (yearGroup) groups.push(yearGroup)
+      if (locationGroup) groups.push(locationGroup)
     }
 
-    for (const body of [...bodies.keys()].sort()) {
-      const chip = makeFacetChip(body, bodies.get(body) ?? 0, this.state.bodies.has(body), () => {
+    const bodyChips = [...bodies.keys()].sort().map((body) =>
+      makeFacetChip(body, bodies.get(body) ?? 0, this.state.bodies.has(body), () => {
         this.state = { ...this.state, bodies: toggle(this.state.bodies, body) }
         this.syncHash()
         this.render()
-      })
-      facetsEl.appendChild(chip)
-    }
+      }))
+    const bodyGroup = this.makeFacetGroup(this.groupBodyLabel, bodyChips)
+    if (bodyGroup) groups.push(bodyGroup)
 
     if (this.mode === 'decisions') {
-      for (const kind of [...kinds.keys()].sort()) {
-        const chip = makeFacetChip(kind, kinds.get(kind) ?? 0, this.state.kinds.has(kind), () => {
+      const kindChips = [...kinds.keys()].sort().map((kind) =>
+        makeFacetChip(kind, kinds.get(kind) ?? 0, this.state.kinds.has(kind), () => {
           this.state = { ...this.state, kinds: toggle(this.state.kinds, kind) }
           this.syncHash()
           this.render()
-        })
-        facetsEl.appendChild(chip)
-      }
+        }))
       const topActions = [...actions.entries()]
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
         .slice(0, MAX_ACTION_FACETS)
-      for (const [action, count] of topActions) {
+      const actionChips = topActions.map(([action, count]) => {
         const chip = makeFacetChip(humanize(action), count, this.state.actions.has(action), () => {
           this.state = { ...this.state, actions: toggle(this.state.actions, action) }
           this.syncHash()
           this.render()
         })
         chip.classList.add('edoxen-search-filter__facet--action')
-        facetsEl.appendChild(chip)
-      }
+        return chip
+      })
+      const typeGroup = this.makeFacetGroup(this.groupTypeLabel, kindChips)
+      const actionsGroup = this.makeFacetGroup(this.groupActionsLabel, actionChips)
+      if (typeGroup) groups.push(typeGroup)
+      if (actionsGroup) groups.push(actionsGroup)
     }
+
+    facetsEl.append(...groups)
   }
 
   private render(): void {
@@ -375,6 +464,21 @@ class SearchFilter extends HTMLElement {
 
     resultsEl.replaceChildren()
     const matches = filterItems(this.items, this.state)
+
+    // Meetings mode: the server-rendered decade sections below ARE the
+    // browse view. While no filter is active the island renders no
+    // duplicate list; once filtering, it flags itself so CSS can hide
+    // the static sections in favor of the matches.
+    const pristine = encodeState(this.state) === ''
+    if (this.mode === 'meetings') {
+      if (pristine) delete this.dataset.filtering
+      else this.dataset.filtering = 'true'
+      if (pristine) {
+        this.updateMoreButton(0, 0)
+        return
+      }
+    }
+
     if (matches.length === 0) {
       const empty = document.createElement('li')
       empty.className = 'edoxen-empty'
@@ -393,7 +497,7 @@ class SearchFilter extends HTMLElement {
     const lang = document.documentElement.lang || 'en'
     resultsEl.replaceChildren(...shown.map((item) => (
       this.mode === 'meetings'
-        ? buildMeetingListItem(item, this.basePath, lang, this.decisionsLabel)
+        ? buildMeetingListItem(item, this.basePath, lang, this.decisionsLabel, this.virtualLabel)
         : buildDecisionListItem(item, this.basePath, this.meetingsBasePath, lang, this.meetingLabel)
     )))
     this.updateMoreButton(matches.length, shown.length)

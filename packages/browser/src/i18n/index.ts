@@ -167,3 +167,27 @@ export function humanizeVerb(type: string | undefined): string {
   const words = type.replace(/[-_]+/g, ' ')
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
+
+// Locale-aware country names from ICU (full-ICU Node + every modern
+// browser) — no bundled data file. 'NO' + 'fr' → 'Norvège'.
+const displayNamesCache = new Map<string, Intl.DisplayNames>()
+export function regionName(countryCode: string | undefined, locale: string): string {
+  if (!countryCode) return ''
+  const cc = countryCode.trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(cc)) return countryCode
+  const bcp47 = threeToTwo(locale.toLowerCase())
+  let dn = displayNamesCache.get(bcp47)
+  if (!dn) {
+    try {
+      dn = new Intl.DisplayNames([bcp47], { type: 'region' })
+    } catch {
+      dn = new Intl.DisplayNames(['en'], { type: 'region' })
+    }
+    displayNamesCache.set(bcp47, dn)
+  }
+  try {
+    return dn.of(cc) ?? countryCode
+  } catch {
+    return countryCode
+  }
+}

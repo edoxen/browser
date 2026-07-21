@@ -2,7 +2,8 @@
 import cfg from 'virtual:edoxen-config'
 import payloads from 'virtual:edoxen-payloads'
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { t } from '../../../i18n/index.js'
+import { t, pickLocalizedValue } from '../../../i18n/index.js'
+import type { ExtensionAttribute } from '@edoxen/edoxen'
 
 export function getStaticPaths() {
   return cfg.locales
@@ -23,10 +24,120 @@ const usingItem = (key: string): { label: string; body: string } => {
   return { label: label ?? '', body: rest.join(' — ') }
 }
 const using = [usingItem('about.usingDecisions'), usingItem('about.usingMeetings'), usingItem('about.usingUrns')]
+
+// Committee (MeetingSeries from data.committee or the meetings
+// collection): render identity + extension facts generically.
+const committee = payloads.committee ?? null
+const committeeName = committee ? pickLocalizedValue(committee.name, lang, committee.urn ?? '') : ''
+const attrValue = (a: ExtensionAttribute): string | number | boolean | undefined =>
+  a.value ?? a.intValue ?? a.floatValue ?? a.booleanValue ?? a.dateValue ?? a.dateTimeValue
+const SPECIAL_CASINGS: Record<string, string> = {
+  iso: 'ISO', urn: 'URN', url: 'URL', doi: 'DOI', linkedin: 'LinkedIn',
+  github: 'GitHub', tc: 'TC', sc: 'SC', jwg: 'JWG', wg: 'WG', pdf: 'PDF',
+}
+const humanize = (key: string): string =>
+  key
+    .split('_')
+    .map((w) => SPECIAL_CASINGS[w.toLowerCase()] ?? w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+const allAttrs = (committee?.extensions ?? []).flatMap((e) => e.attributes ?? [])
+const stringAttrs = allAttrs.filter((a) => a.type === 'string')
+const attrByKey = (key: string): string => stringAttrs.find((a) => a.key === key)?.value ?? ''
+// 'title' is the committee's working-field name (used as the section
+// heading when present); 'tagline' is its slogan.
+const titleAttr = attrByKey('title')
+const tagline = attrByKey('tagline')
+// 'http'-valued string attrs are outbound links; the remaining prose
+// attrs (minus tagline/title/description, rendered bespoke) are dl rows.
+const links = stringAttrs
+  .filter((a) => String(a.value ?? '').startsWith('http'))
+  .map((a) => ({ label: humanize(a.key ?? ''), href: String(a.value) }))
+const proseRows = stringAttrs
+  .filter((a) => !String(a.value ?? '').startsWith('http') && !['tagline', 'title', 'description'].includes(a.key ?? ''))
+  .map((a) => ({ label: humanize(a.key ?? ''), value: String(a.value ?? '') }))
+const facts = allAttrs
+  .filter((a) => a.type === 'integer' || a.type === 'float' || a.type === 'date')
+  .map((a) => ({ label: humanize(a.key ?? ''), value: attrValue(a) }))
+const committeeScope = committee ? pickLocalizedValue(committee.description, lang) : ''
+const committeeHeading = titleAttr || committeeName
+const secretariat = (committee?.hosts ?? []).filter((h) => h.role === 'secretariat').map((h) => humanize(h.ref))
+const contact = committee?.contact
+const contactNames = contact?.name ?? []
+const contactNameEntry = contactNames.find((n) => {
+  const sp = (n.spelling ?? '').toLowerCase()
+  const norm = lang.toLowerCase()
+  return sp === norm || sp.startsWith(norm.slice(0, 3))
+}) ?? contactNames[0]
+const contactName = contactNameEntry?.value?.formatted ?? ''
+const contactAffiliation = contact ? pickLocalizedValue(contact.affiliation, lang) : ''
+const chair = [contactName, contactAffiliation].filter(Boolean).join(', ')
+const chairLabel = contact?.role ? humanize(contact.role) : ''
+
+// Hero subtitle: counts, record terminology, committee identity and the
+// archive's earliest decision year, filled into the locale template.
+const decisionYears = payloads.decisionsList.items.map((d) => d.year).filter((y): y is number => typeof y === 'number')
+const earliestYear = decisionYears.length > 0 ? Math.min(...decisionYears) : null
+const subtitle = tt('about.subtitle')
+  .replace('{count}', () => decisionCount.toLocaleString(lang))
+  .replace('{records}', () => tt('nav.decisions').toLowerCase())
+  .replace('{committee}', () => committeeName || cfg.site.title)
+  .replace('{year}', () => (earliestYear !== null ? String(earliestYear) : ''))
+
+// Distinct action types present in the data, humanized for display
+// ('calls-upon' → 'Calls upon').
+const humanizeAction = (type: string): string => {
+  const words = type.replace(/[-_]/g, ' ')
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+const actionTypes = payloads.decisionsList.facets.actionTypes.map((type) => ({ type, label: humanizeAction(type) }))
+
+// URN examples drawn from the real data (pattern + one concrete URN).
+function urnPattern(urn: string, placeholder: string): string {
+  const idx = urn.lastIndexOf(':')
+  return idx === -1 ? urn : `${urn.slice(0, idx)}:${placeholder}`
+}
+const firstDecisionUrn = payloads.decisionsList.items.find((d) => d.urn)?.urn ?? ''
+const firstMeetingUrn = payloads.meetingsList.items.find((m) => m.urn)?.urn ?? ''
+const decisionUrnExample = firstDecisionUrn
+const decisionUrnPattern = firstDecisionUrn ? urnPattern(firstDecisionUrn, '{id}') : ''
+const meetingUrnExample = firstMeetingUrn
+const meetingUrnPattern = firstMeetingUrn ? urnPattern(firstMeetingUrn, '{id}') : ''
+
+// YAML sample for the format section. It MUST be built as a string:
+// the Astro compiler collapses whitespace between inline elements in
+// markup, which is what flattened this sample into a single line.
+const rawSample = `metadata:
+  title: Resolutions of the plenary meeting
+  date: '2024-10-18'
+  city: NOSVG
+  country_code: NO
+
+decisions:
+  - identifier:
+      - prefix: ISO/TC 184/SC 4
+        number: '1142'
+    kind: resolution
+    status: decided
+    dates:
+      - date: '2024-10-25'
+        type: adoption
+    title:
+      - spelling: eng
+        value: Set 8-week ballot duration for new work item proposals
+    actions:
+      - type: requests
+        message:
+          - spelling: eng
+            value: SC 4 requests its Committee Manager to…`
+const escHtml = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const sampleHtml = escHtml(rawSample)
+  .replace(/(^|\s)([a-z_]+)(?=:)/g, '$1<span class="edoxen-code-key">$2</span>')
+  .replace(/'([^'\n]*)'/g, '<span class="edoxen-code-string">\'$1\'</span>')
 ---
 
 <BaseLayout config={cfg} lang={lang} title={`${tt('about.title')} — ${cfg.site.title}`}>
   <h1>{tt('about.title')}</h1>
+  <p class="edoxen-about-subtitle">{subtitle}</p>
 
   <section>
     <h2>{cfg.site.title}</h2>
@@ -37,22 +148,144 @@ const using = [usingItem('about.usingDecisions'), usingItem('about.usingMeetings
     </dl>
   </section>
 
-  <section>
-    <h2>{tt('about.format')}</h2>
-    <p>{tt('about.formatBody')}</p>
-  </section>
+  <div class="edoxen-about-card">
+    <section>
+      <h2>{tt('about.format')}</h2>
+      <p>{tt('about.formatBody')}</p>
+      <pre class="edoxen-code-block"><code set:html={sampleHtml} /></pre>
+      <p>{tt('about.formatBody2')}</p>
+      <p>
+        <a href="https://edoxen.github.io/" target="_blank" rel="noopener noreferrer">Learn more about Edoxen &rarr;</a>
+      </p>
+    </section>
 
-  <section>
-    <h2>{tt('about.using')}</h2>
-    <ul>
-      {using.map((item) => (
-        <li><strong>{item.label}</strong>{item.body ? ` — ${item.body}` : ''}</li>
-      ))}
-    </ul>
-  </section>
+    {actionTypes.length > 0 && (
+      <section>
+        <h2>{tt('about.actionTypesTitle')}</h2>
+        <p>{tt('about.actionTypesBody')}</p>
+        <div class="edoxen-action-pills">
+          {actionTypes.map((a) => (
+            <span class="edoxen-action-pill" data-action={a.type}>{a.label}</span>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section>
+      <h2>{tt('about.urnTitle')}</h2>
+      <p>{tt('about.urnBody')}</p>
+      <ul class="edoxen-urn-list">
+        {decisionUrnExample && (
+          <li>
+            <strong>{tt('about.urnDecisionUrns')}:</strong>{' '}
+            <code class="edoxen-inline-code">{decisionUrnPattern}</code>
+            <br />
+            <span class="edoxen-muted">{tt('about.urnExample')}: <code class="edoxen-inline-code">{decisionUrnExample}</code></span>
+          </li>
+        )}
+        {meetingUrnExample && (
+          <li>
+            <strong>{tt('about.urnMeetingUrns')}:</strong>{' '}
+            <code class="edoxen-inline-code">{meetingUrnPattern}</code>
+            <br />
+            <span class="edoxen-muted">{tt('about.urnExample')}: <code class="edoxen-inline-code">{meetingUrnExample}</code></span>
+          </li>
+        )}
+      </ul>
+      <p class="edoxen-muted edoxen-urn-note" set:html={tt('about.urnNote').replace(/RFC 5141/, '<a href="https://datatracker.ietf.org/doc/html/rfc5141" target="_blank" rel="noopener">RFC 5141</a>')} />
+    </section>
+
+    <section>
+      <h2>{tt('about.lifecycleTitle')}</h2>
+      <p>{tt('about.lifecycleIntro')}</p>
+      <div class="edoxen-lifecycle">
+        {([
+            ['about.lifecycleConsiderations', 'about.lifecycleConsiderationsDesc'],
+            ['about.lifecycleActions', 'about.lifecycleActionsDesc'],
+            ['about.lifecycleApprovals', 'about.lifecycleApprovalsDesc'],
+          ] as const).map(([titleKey, descKey], i) => (
+          <div class="edoxen-lifecycle__item">
+            <div class="edoxen-lifecycle__number">{i + 1}</div>
+            <div>
+              <h3 class="edoxen-lifecycle__title">{tt(titleKey)}</h3>
+              <p class="edoxen-lifecycle__desc">{tt(descKey)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p>{tt('about.lifecycleOutro')}</p>
+    </section>
+
+    {committee && (
+      <section>
+        <h2>{committeeHeading}</h2>
+        {titleAttr && committeeName && <p class="edoxen-committee-name">{committeeName}</p>}
+        {committeeScope && <p class="edoxen-committee-scope">{committeeScope}</p>}
+        {committee.term && <p class="edoxen-committee-term">{committee.term}</p>}
+        {tagline && <p class="edoxen-committee-tagline">{tagline}</p>}
+        {(secretariat.length > 0 || chair || proseRows.length > 0) && (
+          <dl class="edoxen-committee-facts">
+            {secretariat.length > 0 && (
+              <div><dt>{humanize('secretariat')}</dt><dd>{secretariat.join(', ')}</dd></div>
+            )}
+            {chair && (
+              <div><dt>{chairLabel}</dt><dd>{chair}</dd></div>
+            )}
+            {proseRows.map((row) => (
+              <div><dt>{row.label}</dt><dd>{row.value}</dd></div>
+            ))}
+          </dl>
+        )}
+        {facts.length > 0 && (
+          <dl class="edoxen-facts-grid">
+            {facts.map((f) => (
+              <div><dt>{f.label}</dt><dd>{f.value}</dd></div>
+            ))}
+          </dl>
+        )}
+        {links.length > 0 && (
+          <p class="edoxen-committee-links">
+            {links.map((link) => (
+              <a class="edoxen-committee-link" href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+            ))}
+          </p>
+        )}
+      </section>
+    )}
+
+    <section>
+      <h2>{tt('about.using')}</h2>
+      <ul>
+        {using.map((item) => (
+          <li><strong>{item.label}</strong>{item.body ? ` — ${item.body}` : ''}</li>
+        ))}
+      </ul>
+    </section>
+  </div>
 </BaseLayout>
 
 <style>
+.edoxen-about-subtitle {
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--edoxen-color-muted);
+  border-left: 2px solid var(--edoxen-color-accent);
+  padding-left: 0.75rem;
+  margin: 0.5rem 0 2rem;
+}
+
+.edoxen-about-card {
+  background: var(--edoxen-color-surface);
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06);
+  margin: 2.5rem 0;
+}
+.edoxen-about-card > section + section {
+  margin-top: 4rem;
+}
+
 .edoxen-stats {
   display: flex;
   flex-wrap: wrap;
@@ -69,5 +302,183 @@ const using = [usingItem('about.usingDecisions'), usingItem('about.usingMeetings
   color: var(--edoxen-color-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.edoxen-action-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.edoxen-action-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  color: #fff;
+  background: #64748b;
+}
+.edoxen-action-pill[data-action='resolves'],
+.edoxen-action-pill[data-action='decides'] { background: #0061ad; }
+.edoxen-action-pill[data-action='instructs'],
+.edoxen-action-pill[data-action='directs'] { background: #1e40af; }
+.edoxen-action-pill[data-action='establishes'] { background: #0e7490; }
+.edoxen-action-pill[data-action='approves'],
+.edoxen-action-pill[data-action='adopts'],
+.edoxen-action-pill[data-action='supports'] { background: #15803d; }
+.edoxen-action-pill[data-action='endorses'],
+.edoxen-action-pill[data-action='confirms'] { background: #166534; }
+.edoxen-action-pill[data-action='accepts'],
+.edoxen-action-pill[data-action='agrees'] { background: #16a34a; }
+.edoxen-action-pill[data-action='recommends'],
+.edoxen-action-pill[data-action='encourages'] { background: #7c3aed; }
+.edoxen-action-pill[data-action='asks'],
+.edoxen-action-pill[data-action='requests'] { background: #6d28d9; }
+.edoxen-action-pill[data-action='appoints'],
+.edoxen-action-pill[data-action='nominates'] { background: #b45309; }
+.edoxen-action-pill[data-action='assigns'] { background: #d97706; }
+.edoxen-action-pill[data-action='thanks'] { background: #be185d; }
+.edoxen-action-pill[data-action='welcomes'] { background: #db2777; }
+.edoxen-action-pill[data-action='appreciates'],
+.edoxen-action-pill[data-action='appreciation'] { background: #9d174d; }
+.edoxen-action-pill[data-action='notes'],
+.edoxen-action-pill[data-action='considers'] { background: #475569; }
+.edoxen-action-pill[data-action='acknowledges'],
+.edoxen-action-pill[data-action='recognises'],
+.edoxen-action-pill[data-action='recognizes'] { background: #64748b; }
+.edoxen-action-pill[data-action='disbands'] { background: #991b1b; }
+.edoxen-action-pill[data-action='withdraws'],
+.edoxen-action-pill[data-action='replaces'] { background: #dc2626; }
+
+.edoxen-urn-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.edoxen-urn-list li {
+  background: var(--edoxen-color-surface);
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+.edoxen-urn-note {
+  border-left: 3px solid var(--edoxen-color-accent);
+  background: color-mix(in srgb, var(--edoxen-color-accent) 8%, transparent);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+.edoxen-inline-code {
+  font-family: var(--edoxen-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 0.85em;
+  background: var(--edoxen-color-surface);
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.edoxen-lifecycle {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.edoxen-lifecycle__item {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+}
+.edoxen-lifecycle__number {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--edoxen-color-accent);
+  color: #fff;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.edoxen-lifecycle__title {
+  margin: 0;
+  font-size: 1rem;
+}
+.edoxen-lifecycle__desc {
+  margin: 0.25rem 0 0;
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-committee-name {
+  color: var(--edoxen-color-muted);
+  margin: -0.25rem 0 0.75rem;
+}
+.edoxen-committee-scope {
+  font-style: italic;
+  color: var(--edoxen-color-muted);
+}
+.edoxen-committee-term {
+  color: var(--edoxen-color-muted);
+  margin: 0.25rem 0;
+}
+.edoxen-committee-tagline {
+  font-style: italic;
+  margin: 0.25rem 0;
+}
+.edoxen-committee-facts {
+  display: grid;
+  gap: 0.75rem 2rem;
+  margin: 1.25rem 0;
+}
+@media (min-width: 40rem) {
+  .edoxen-committee-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.edoxen-committee-facts dt {
+  font-size: 0.85rem;
+  color: var(--edoxen-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.edoxen-committee-facts dd {
+  margin: 0;
+}
+.edoxen-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.edoxen-facts-grid dd {
+  margin: 0;
+  font-size: 1.75rem;
+  font-family: var(--edoxen-font-display, var(--edoxen-font-sans, serif));
+  color: var(--edoxen-color-accent);
+}
+.edoxen-facts-grid dt {
+  font-size: 0.8rem;
+  color: var(--edoxen-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.edoxen-committee-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+}
+.edoxen-committee-link {
+  border: 1px solid var(--edoxen-color-border);
+  border-radius: 999px;
+  padding: 0.375rem 1rem;
+  text-decoration: none;
+  color: var(--edoxen-color-text);
+}
+.edoxen-committee-link:hover {
+  border-color: var(--edoxen-color-accent);
+  color: var(--edoxen-color-accent);
 }
 </style>

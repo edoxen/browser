@@ -1,0 +1,8 @@
+---
+# UN/LOCODE → localized place names (data.unlocodes fixture).
+DEBER:
+  en: Berlin
+  fr: Berlin
+CHGVA:
+  en: Geneva
+  fr: Genève

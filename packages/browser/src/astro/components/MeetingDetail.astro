@@ -12,12 +12,13 @@ import MeetingTimes from './MeetingTimes.astro'
 import DeclarationList from './DeclarationList.astro'
 import OfficerList from './OfficerList.astro'
 import DecisionList from './DecisionList.astro'
-import { resolveBody, resolveVenue } from '../../data/prepare.js'
+import { resolveBody, resolveCityName, resolveVenue } from '../../data/prepare.js'
 import {
   pickLocalizedValue,
   formatDate,
   formatDateRange,
   humanizeVerb,
+  regionName,
   t,
   urlPrefix,
 } from '../../i18n/index.js'
@@ -56,7 +57,14 @@ const venues = (meeting.venues ?? [])
   })
 const placeCity = meeting.city ?? venues[0]?.city
 const placeCountry = meeting.country_code ?? venues[0]?.country_code
-const flag = placeCountry ? countryFlag(placeCountry) : ''
+// No city and no country: an online meeting — globe + localized
+// "Virtual" instead of a flag. UN/LOCODE city codes resolve to names.
+const virtual = !placeCity && !placeCountry
+const flag = !virtual && placeCountry ? countryFlag(placeCountry) : ''
+const placeCityName = meeting.city
+  ? resolveCityName(meeting.city, locale, payloads.unlocodes)
+  : (placeCity ?? '')
+const placeCountryName = !virtual && placeCountry ? regionName(placeCountry, locale) : ''
 const committee = meeting.committee
   ? resolveBody(meeting.committee, meeting.bodies, payloads.bodyByCode)
   : undefined
@@ -127,11 +135,15 @@ function hostLabel(h: HostRef): string {
         <time datetime={meeting.scheduled_date_range?.start}>{dateRange}</time>
       </span>
     )}
-    {(placeCity || placeCountry) && (
+    {virtual ? (
+      <span class="edoxen-meeting__place">
+        <span aria-hidden="true">🌐</span>
+        {t('meeting.virtual', locale, cfg.uiStrings, cfg.terminology)}
+      </span>
+    ) : (placeCityName || placeCountryName) && (
       <span class="edoxen-meeting__place">
         {flag && <span aria-hidden="true">{flag}</span>}
-        {placeCity}
-        {placeCountry && <span class="edoxen-meeting__country">{placeCountry}</span>}
+        {[placeCityName, placeCountryName].filter(Boolean).join(', ')}
       </span>
     )}
     {meeting.body_type && <BodyBadge code={meeting.body_type} />}
@@ -200,7 +212,7 @@ function hostLabel(h: HostRef): string {
       })}
     </div>
     {venues.length === 0 && (meeting.city || meeting.country_code) && (
-      <p>{meeting.city}{meeting.country_code ? `, ${meeting.country_code}` : ''}</p>
+      <p>{[placeCityName, placeCountryName].filter(Boolean).join(', ')}</p>
     )}
   </section>
 )}

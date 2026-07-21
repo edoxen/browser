@@ -271,42 +271,66 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(results).toHaveCount(2)
   })
 
-  test('meetings search island renders, filters by text, country and decade', async ({ page }) => {
+  test('meetings search island: labeled facet groups, flag+name chips, virtual, no duplicate list', async ({ page }) => {
     await page.goto('/meetings')
     const island = page.locator('search-filter[data-mode="meetings"]')
     await expect(island).toBeAttached()
     const results = island.locator('.edoxen-search-filter__result')
 
-    // Text search hits the flattened title and the committee code.
+    // Facets are grouped under labels — years never mix with locations.
+    await expect(island.locator('.edoxen-search-filter__facet-label', { hasText: 'Year' })).toBeVisible()
+    await expect(island.locator('.edoxen-search-filter__facet-label', { hasText: 'Location' })).toBeVisible()
+    // Country chips carry flag + localized country name; Virtual is last.
+    await expect(island.locator('.edoxen-search-filter__facet--country', { hasText: '🇩🇪 Germany' })).toContainText('(1)')
+    await expect(island.locator('.edoxen-search-filter__facet--country', { hasText: '🇨🇭 Switzerland' })).toContainText('(1)')
+    const virtualChip = island.locator('.edoxen-search-filter__facet--virtual')
+    await expect(virtualChip).toContainText('🌐 Virtual (1)')
+
+    // Pristine: no island list — the server-rendered decade sections
+    // are the browse view (a duplicate flat list used to sit above them).
+    await expect(results).toHaveCount(0)
+    await expect(page.locator('section#decade-2020')).toBeVisible()
+
+    // Filtering swaps the static sections for the island's matches.
     const input = island.locator('input[type="search"]')
-    await expect(input).toBeVisible()
     await input.fill('sc-1')
     await expect(results).toHaveCount(1)
     await expect(results.first()).toContainText('2025 Refs Plenary')
     await expect(results.first().locator('a.edoxen-search-filter__result-title'))
       .toHaveAttribute('href', '/meetings/urn:test:meeting:2025')
+    // UN/LOCODE resolved to a place name on the result card.
+    await expect(results.first()).toContainText('Berlin, Germany')
+    await expect(island).toHaveAttribute('data-filtering', 'true')
+    await expect(page.locator('section#decade-2020')).toBeHidden()
     await input.fill('')
-    await expect(results).toHaveCount(2)
+    await expect(results).toHaveCount(0)
+    await expect(page.locator('section#decade-2020')).toBeVisible()
 
     // Country facet narrows to the Geneva meeting; the hash follows.
-    const chChip = island.locator('.edoxen-search-filter__facet--country', { hasText: 'CH' })
-    await expect(chChip).toContainText('(1)')
+    const chChip = island.locator('.edoxen-search-filter__facet--country', { hasText: 'Switzerland' })
     await chChip.click()
     await expect(results).toHaveCount(1)
     await expect(results.first()).toContainText('2026 Register Refs Plenary')
+    await expect(results.first()).toContainText('Geneva, Switzerland')
     await expect(page).toHaveURL(/#.*countries=CH/)
     await chChip.click()
-    await expect(results).toHaveCount(2)
+    await expect(results).toHaveCount(0)
 
-    // Both meetings sit in the 2020s — a single decade chip.
-    const decadeChip = island.locator('.edoxen-search-filter__facet--decade', { hasText: '2020s' })
-    await expect(decadeChip).toContainText('(2)')
-    await decadeChip.click()
-    await expect(results).toHaveCount(2)
+    // The Virtual chip matches the online meeting (no city/country).
+    await virtualChip.click()
+    await expect(results).toHaveCount(1)
+    await expect(results.first()).toContainText('2027 Virtual Plenary')
+    await expect(results.first()).toContainText('🌐 Virtual')
+    await expect(page).toHaveURL(/#.*countries=virtual/)
+    await virtualChip.click()
 
-    // The decade scroller and the server-rendered list stay put.
-    await expect(page.locator('decade-scroller')).toBeAttached()
-    await expect(page.locator('section#decade-2020')).toBeVisible()
+    // Year chips filter individually.
+    const y2026 = island.locator('.edoxen-search-filter__facet--year', { hasText: '2026' })
+    await expect(y2026).toContainText('(1)')
+    await y2026.click()
+    await expect(results).toHaveCount(1)
+    await expect(results.first()).toContainText('2026 Register Refs Plenary')
+    await y2026.click()
   })
 
   test('JSON data endpoints are served from the built site', async ({ request }) => {
@@ -372,12 +396,34 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(committee).toContainText('Test committee for the About-page committee facts section.')
     await expect(committee).toContainText('Standards for testing')
     await expect(committee).toContainText('2001–present')
-    await expect(committee.locator('dt', { hasText: 'Established year' })).toBeVisible()
-    await expect(committee.locator('dd', { hasText: '2001' })).toBeVisible()
-    await expect(committee.locator('dd', { hasText: '42' })).toBeVisible()
-    // People and external links live in the footer, not the About body.
-    await expect(committee).not.toContainText('Jane Doe')
-    await expect(committee).not.toContainText('testansi')
+    // Original layout: Secretariat + Chair in the facts dl…
+    const facts = committee.locator('.edoxen-committee-facts')
+    await expect(facts.locator('dt', { hasText: 'Secretariat' })).toBeVisible()
+    await expect(facts.locator('dd', { hasText: 'Testansi' })).toBeVisible()
+    await expect(facts.locator('dt', { hasText: 'Chair' })).toBeVisible()
+    await expect(facts.locator('dd', { hasText: 'Jane Doe' })).toBeVisible()
+    // …numeric facts as a stats grid…
+    const grid = committee.locator('.edoxen-facts-grid')
+    await expect(grid.locator('dt', { hasText: 'Established year' })).toBeVisible()
+    await expect(grid.locator('dd', { hasText: '2001' })).toBeVisible()
+    await expect(grid.locator('dd', { hasText: '42' })).toBeVisible()
+    // …and external links as pills.
+    await expect(committee.locator('.edoxen-committee-link', { hasText: 'Committee home' }))
+      .toHaveAttribute('href', 'https://example.org/committee')
+  })
+
+  test('about page renders hero subtitle, action types and the card shell', async ({ page }) => {
+    await page.goto('/about')
+    await expect(page.locator('.edoxen-about-card')).toBeVisible()
+    // Data-driven hero subtitle: count + terminology + committee + first year.
+    const subtitle = page.locator('.edoxen-about-subtitle')
+    await expect(subtitle).toContainText('2 resolutions')
+    await expect(subtitle).toContainText('TEST/TC 1')
+    await expect(subtitle).toContainText('2023')
+    // Action types come from the real data, colored via data-action.
+    const pills = page.locator('.edoxen-action-pill')
+    await expect(pills).toHaveCount(3)
+    await expect(page.locator('.edoxen-action-pill[data-action="publishes"]')).toHaveText('Publishes')
   })
 
   test('about page renders URN identifiers section with real examples', async ({ page }) => {
