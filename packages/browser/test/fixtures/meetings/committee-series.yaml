@@ -1,0 +1,50 @@
+---
+# MeetingSeries fixture — exercises data.committee (About committee facts).
+identifier:
+  - prefix: TEST/TC 1
+    number: series
+urn: urn:test:series
+name:
+  - spelling: eng
+    value: TEST/TC 1
+description:
+  - spelling: eng
+    value: Test committee for the About-page committee facts section.
+kind: committee
+term: 2001–present
+
+hosts:
+  - ref: testansi
+    type: national_body
+    role: secretariat
+
+contact:
+  name:
+    - spelling: eng
+      value:
+        formatted: Jane Doe
+  affiliation:
+    - spelling: eng
+      value: Test Organization
+  kind: person
+  role: chair
+
+extensions:
+  - profile: test
+    kind: committee_facts
+    attributes:
+      - key: tagline
+        type: string
+        value: Standards for testing
+      - key: established_year
+        type: integer
+        intValue: 2001
+      - key: published_standards
+        type: integer
+        intValue: 42
+  - profile: test
+    kind: external_links
+    attributes:
+      - key: committee_home
+        type: string
+        value: https://example.org/committee

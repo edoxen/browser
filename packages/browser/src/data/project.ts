@@ -6,6 +6,8 @@ export function buildProjectFromLoaded(data: LoadedData): EdoxenProject {
   return buildProject({
     decisions: data.decisions?.decisions,
     meetings: data.meetings?.meetings,
-    committee: data.meetings?.series?.[0] ?? null,
+    // data.committee (explicit MeetingSeries doc) wins over any series
+    // found inside the meetings collection.
+    committee: data.committee?.series?.[0] ?? data.meetings?.series?.[0] ?? null,
   })
 }
