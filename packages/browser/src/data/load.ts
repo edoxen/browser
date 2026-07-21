@@ -8,8 +8,13 @@ import {
   type LoadedMeetings,
   type LoadedRegisters,
 } from '@edoxen/edoxen'
+import { readFile } from 'node:fs/promises'
+import { parse as parseYaml } from 'yaml'
 
 import type { DataConfig } from '../config/schema.js'
+
+/** UN/LOCODE → per-locale place name (`NOSVG → { en: 'Stavanger' }`). */
+export type UnlocodeNames = Readonly<Record<string, Readonly<Record<string, string>>>>
 
 export interface LoadedData {
   decisions?: LoadedDecisions
@@ -17,9 +22,10 @@ export interface LoadedData {
   registers?: LoadedRegisters
   /** Committee MeetingSeries from data.committee (merged into project.committee). */
   committee?: LoadedMeetings
+  unlocodes?: UnlocodeNames
 }
 
-export type DataSource = 'decisions' | 'meetings' | 'contacts' | 'venues' | 'bodies'
+export type DataSource = 'decisions' | 'meetings' | 'contacts' | 'venues' | 'bodies' | 'unlocodes'
 
 export interface LoadError {
   readonly source: DataSource
@@ -33,6 +39,26 @@ export type LoadResult =
 
 function wrapError(source: DataSource, path: string, e: unknown): LoadError {
   return { source, path, cause: e instanceof Error ? e : new Error(String(e)) }
+}
+
+// YAML or JSON by extension; entries are `CODE: { locale: name }` maps.
+// Non-conforming values are dropped rather than failing the build — a
+// bad entry degrades to the raw code at render time.
+async function loadUnlocodes(path: string): Promise<UnlocodeNames> {
+  const raw = await readFile(path, 'utf8')
+  const doc: unknown = path.endsWith('.json') ? JSON.parse(raw) : parseYaml(raw)
+  const out: Record<string, Record<string, string>> = {}
+  if (doc && typeof doc === 'object' && !Array.isArray(doc)) {
+    for (const [code, names] of Object.entries(doc as Record<string, unknown>)) {
+      if (!names || typeof names !== 'object' || Array.isArray(names)) continue
+      const localized: Record<string, string> = {}
+      for (const [locale, name] of Object.entries(names as Record<string, unknown>)) {
+        if (typeof name === 'string' && name) localized[locale] = name
+      }
+      if (Object.keys(localized).length > 0) out[code.toUpperCase()] = localized
+    }
+  }
+  return out
 }
 
 const REGISTER_LOADERS = {
@@ -66,6 +92,14 @@ export async function loadAll(data: DataConfig): Promise<LoadResult> {
       out.committee = await loadMeetings(data.committee)
     } catch (e) {
       errors.push(wrapError('meetings', data.committee, e))
+    }
+  }
+
+  if (data.unlocodes) {
+    try {
+      out.unlocodes = await loadUnlocodes(data.unlocodes)
+    } catch (e) {
+      errors.push(wrapError('unlocodes', data.unlocodes, e))
     }
   }
 

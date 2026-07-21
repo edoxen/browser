@@ -14,6 +14,28 @@ import type {
   Venue,
 } from '@edoxen/edoxen'
 
+import type { UnlocodeNames } from './load.js'
+
+// A meeting with no city and no country code is an online meeting;
+// cards/filters show the localized "Virtual" label + globe instead of
+// a flag. Kept as a pure derivation (no schema field exists for it).
+export function isVirtualMeeting(m: { city?: string; countryCode?: string }): boolean {
+  return !m.city && !m.countryCode
+}
+
+/** Localized place name for a raw `city` value (UN/LOCODE), falling
+    back through locale variants and finally to the raw code. */
+export function resolveCityName(
+  city: string | undefined,
+  lang: string,
+  unlocodes?: UnlocodeNames,
+): string {
+  if (!city) return ''
+  const names = unlocodes?.[city.toUpperCase()]
+  if (!names) return city
+  return names[lang] ?? names[lang.slice(0, 2)] ?? names.en ?? Object.values(names)[0] ?? city
+}
+
 export interface DecisionListItem {
   readonly urn: string
   readonly identifier: string
@@ -65,6 +87,8 @@ export interface MeetingListItem {
   readonly committeeCode?: string
   /** Number of decisions cross-linked to this meeting. */
   readonly decisionCount?: number
+  /** Localized names for the UN/LOCODE in `city` (from data.unlocodes). */
+  readonly cityNames?: Readonly<Record<string, string>>
 }
 
 export interface MeetingListFacets {
@@ -109,6 +133,8 @@ export interface PagePayloads {
   readonly bodyByCode: Readonly<Record<string, Body>>
   /** Committee MeetingSeries (data.committee doc, or series found in the meetings collection). */
   readonly committee?: MeetingSeries | null
+  /** UN/LOCODE → localized place names from data.unlocodes. */
+  readonly unlocodes?: UnlocodeNames
 }
 
 const AGENDA_SEGMENT = 'agenda'
@@ -201,8 +227,9 @@ function toDecisionListItem(d: Decision): DecisionListItem {
   }
 }
 
-function toMeetingListItem(m: Meeting): MeetingListItem {
+function toMeetingListItem(m: Meeting, unlocodes?: UnlocodeNames): MeetingListItem {
   const year = yearOfMeeting(m)
+  const cityNames = m.city ? unlocodes?.[m.city.toUpperCase()] : undefined
   return {
     urn: m.urn ?? '',
     identifier: formatIdentifier(m.identifier),
@@ -214,6 +241,7 @@ function toMeetingListItem(m: Meeting): MeetingListItem {
     city: m.city,
     countryCode: m.country_code,
     status: m.status,
+    ...(cityNames ? { cityNames } : {}),
   }
 }
 
@@ -235,9 +263,9 @@ export function prepareDecisionsList(project: EdoxenProject): DecisionListPayloa
   }
 }
 
-export function prepareMeetingsList(project: EdoxenProject): MeetingListPayload {
+export function prepareMeetingsList(project: EdoxenProject, unlocodes?: UnlocodeNames): MeetingListPayload {
   const items = [...project.meetings]
-    .map(toMeetingListItem)
+    .map((m) => toMeetingListItem(m, unlocodes))
     .sort((a, b) => (b.startDate ?? '').localeCompare(a.startDate ?? ''))
 
   const decadesSet = new Set<number>()
@@ -379,7 +407,7 @@ export function resolveBody(
   return resolveEntity(body, (b) => b.code, scoped, register)
 }
 
-export function preparePayloads(project: EdoxenProject, registers?: LoadedRegisters): PagePayloads {
+export function preparePayloads(project: EdoxenProject, registers?: LoadedRegisters, unlocodes?: UnlocodeNames): PagePayloads {
   const decisionByUrn: Record<string, Decision> = {}
   for (const d of project.decisions) {
     if (d.urn) decisionByUrn[d.urn] = d
@@ -429,7 +457,7 @@ export function preparePayloads(project: EdoxenProject, registers?: LoadedRegist
   }
 
   const bodyByCode = buildBodyByCode(registers?.bodies?.bodies ?? [])
-  const meetingsListRaw = prepareMeetingsList(project)
+  const meetingsListRaw = prepareMeetingsList(project, unlocodes)
   const meetingsList: MeetingListPayload = {
     ...meetingsListRaw,
     items: meetingsListRaw.items.map((item) => {
@@ -459,6 +487,7 @@ export function preparePayloads(project: EdoxenProject, registers?: LoadedRegist
     venueByUrn: buildVenueByUrn(registers?.venues?.venues ?? []),
     bodyByCode,
     committee: project.committee ?? null,
+    ...(unlocodes ? { unlocodes } : {}),
   }
 }
 

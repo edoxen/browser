@@ -22,6 +22,8 @@ export interface SearchableItem {
   readonly endDate?: string
   readonly city?: string
   readonly countryCode?: string
+  /** Localized names for the UN/LOCODE in `city` (from data.unlocodes). */
+  readonly cityNames?: Readonly<Record<string, string>>
   /** Resolved committee code — searched and shown as a chip. */
   readonly committeeCode?: string
   readonly decisionCount?: number
@@ -54,6 +56,10 @@ export const EMPTY_STATE: FilterState = {
 export function decadeOfYear(year: number): number {
   return Math.floor(year / 10) * 10
 }
+
+// Meetings without a country code are online meetings; the Location
+// facet groups them under this sentinel (rendered as "🌐 Virtual").
+export const VIRTUAL_COUNTRY = 'virtual'
 
 // 'YYYY' or 'YYYY-MM-DD' — anything else is ignored as a range bound.
 const DATE_INPUT_RE = /^\d{4}(-\d{2}-\d{2})?$/
@@ -101,7 +107,8 @@ export function filterItems<T extends SearchableItem>(
     if (state.years.size > 0 && !state.years.has(item.year ?? -1)) return false
     if (state.actions.size > 0 && !(item.actionTypes ?? []).some((a) => state.actions.has(a))) return false
     if (state.decades.size > 0 && !state.decades.has(typeof item.year === 'number' ? decadeOfYear(item.year) : -1)) return false
-    if (state.countries.size > 0 && !state.countries.has(item.countryCode ?? '')) return false
+    // Items with no country code (online meetings) match the Virtual chip.
+    if (state.countries.size > 0 && !state.countries.has(item.countryCode ?? VIRTUAL_COUNTRY)) return false
     if (!inDateRange(item, state)) return false
     if (q) {
       const hay = `${item.title} ${item.urn} ${item.identifier ?? ''} ${item.snippet ?? ''} ${item.committeeCode ?? ''} ${item.city ?? ''}`.toLowerCase()
@@ -135,7 +142,8 @@ export function countFacets<T extends SearchableItem>(items: readonly T[]): Face
       const decade = decadeOfYear(item.year)
       decades.set(decade, (decades.get(decade) ?? 0) + 1)
     }
-    if (item.countryCode) countries.set(item.countryCode, (countries.get(item.countryCode) ?? 0) + 1)
+    const country = item.countryCode ?? (item.startDate ? VIRTUAL_COUNTRY : undefined)
+    if (country) countries.set(country, (countries.get(country) ?? 0) + 1)
     for (const a of item.actionTypes ?? []) actions.set(a, (actions.get(a) ?? 0) + 1)
   }
   return { bodies, kinds, years, actions, decades, countries }

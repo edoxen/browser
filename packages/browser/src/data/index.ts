@@ -4,6 +4,7 @@ export {
   type LoadError,
   type LoadResult,
   type DataSource,
+  type UnlocodeNames,
 } from './load.js'
 
 export {
@@ -20,7 +21,9 @@ export {
   prepareDecisionsList,
   prepareMeetingsList,
   agendaAnchor,
+  isVirtualMeeting,
   resolveBody,
+  resolveCityName,
   resolveContact,
   resolveVenue,
   type DecisionListItem,

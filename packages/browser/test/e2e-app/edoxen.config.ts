@@ -18,5 +18,6 @@ export default defineConfig({
     contacts: fixture('registers/contacts.yaml'),
     venues: fixture('registers/venues.yaml'),
     bodies: fixture('registers/bodies.yaml'),
+    unlocodes: fixture('unlocodes.yaml'),
   },
 })

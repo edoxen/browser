@@ -126,7 +126,7 @@ async function buildCache(opts: IntegrationOptions, logger: AstroIntegrationLogg
   }
 
   const project = buildProjectFromLoaded(loaded.value)
-  const payloads = preparePayloads(project, loaded.value.registers)
+  const payloads = preparePayloads(project, loaded.value.registers, loaded.value.unlocodes)
   const redirects = await readRedirects(cfg.data.decisions.replace(/\/[^/]+$/, ''))
   const registerCount =
     (loaded.value.registers?.contacts?.contacts?.length ?? 0) +

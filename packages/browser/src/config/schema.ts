@@ -12,6 +12,9 @@ const PATH_RE = /.+/
 
 export const SiteSchema = z.object({
   title: z.string().min(1),
+  // Small uppercase line under the brand title (e.g. the committee's
+  // working field, "Industrial data"). Omit to keep the single-line brand.
+  subtitle: z.string().optional(),
   description: z.string().default(''),
   url: z.string().url(),
   basePath: z.string().regex(/^\/.*\/$|^\/$/, 'must be a root "/" or "/path/"').default('/'),
@@ -28,6 +31,10 @@ export const DataSchema = z.object({
   agendas: z.string().regex(PATH_RE).optional(),
   minutes: z.string().regex(PATH_RE).optional(),
   committee: z.string().regex(PATH_RE).optional(),
+  // UN/LOCODE → localized place names (YAML or JSON):
+  //   NOSVG: { en: Stavanger, fr: Stavanger }
+  // Meeting `city` codes resolve against it; unknown codes render raw.
+  unlocodes: z.string().regex(PATH_RE).optional(),
 })
 export type DataConfig = z.infer<typeof DataSchema>
 

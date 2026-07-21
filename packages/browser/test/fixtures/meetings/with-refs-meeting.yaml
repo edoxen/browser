@@ -132,3 +132,19 @@ meetings:
       - ref: urn:edoxen:venue:test:geneva-cicg
     committee:
       ref: ciml
+  - identifier:
+      - prefix: TEST
+        number: "2027"
+    type: plenary
+    status: upcoming
+    visibility: public
+    body_type: committee
+    urn: urn:test:meeting:2027
+    scheduled_date_range:
+      start: '2027-05-10'
+      end: '2027-05-14'
+    title:
+      - spelling: eng
+        value: 2027 Virtual Plenary
+    committee:
+      ref: ciml

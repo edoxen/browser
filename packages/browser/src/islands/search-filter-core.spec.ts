@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   EMPTY_STATE,
+  VIRTUAL_COUNTRY,
   countFacets,
   decodeState,
   encodeState,
@@ -69,6 +70,23 @@ describe('filterItems — meetings mode', () => {
 
   it('filters by country facet', () => {
     const state = { ...EMPTY_STATE, countries: new Set(['CH']) }
+    expect(filterItems(meetings, state).map((i) => i.urn)).toEqual(['urn:m:2'])
+  })
+
+  it('matches online meetings under the Virtual country sentinel', () => {
+    const online: SearchableItem[] = [
+      ...meetings,
+      { urn: 'urn:m:v', title: 'Virtual Plenary', bodyType: 'committee', year: 2025, startDate: '2025-05-12' },
+    ]
+    const state = { ...EMPTY_STATE, countries: new Set([VIRTUAL_COUNTRY]) }
+    expect(filterItems(online, state).map((i) => i.urn)).toEqual(['urn:m:v'])
+    // A real country facet excludes the online meeting.
+    expect(filterItems(online, { ...EMPTY_STATE, countries: new Set(['DE']) }).map((i) => i.urn))
+      .toEqual(['urn:m:1'])
+  })
+
+  it('filters by year facet', () => {
+    const state = { ...EMPTY_STATE, years: new Set([2024]) }
     expect(filterItems(meetings, state).map((i) => i.urn)).toEqual(['urn:m:2'])
   })
 
@@ -155,6 +173,17 @@ describe('countFacets', () => {
     expect(facets.decades.get(2020)).toBe(2)
     expect(facets.countries.get('DE')).toBe(1)
     expect(facets.countries.get('FR')).toBe(1)
+  })
+
+  it('counts online meetings under the Virtual country sentinel', () => {
+    const online: SearchableItem[] = [
+      ...meetings,
+      { urn: 'urn:m:v', title: 'Virtual Plenary', year: 2025, startDate: '2025-05-12' },
+    ]
+    const facets = countFacets(online)
+    expect(facets.countries.get(VIRTUAL_COUNTRY)).toBe(1)
+    // Decisions (no startDate) never leak into the Virtual bucket.
+    expect(countFacets(items).countries.size).toBe(0)
   })
 })
 

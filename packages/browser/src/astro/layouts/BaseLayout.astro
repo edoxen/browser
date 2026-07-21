@@ -139,7 +139,12 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
         {config.theme.logos.primary && (
           <img src={assetSrc(config.theme.logos.primary)} alt={config.site.title} />
         )}
-        <span>{config.site.title}</span>
+        <span class="edoxen-header__brand-text">
+          <span>{config.site.title}</span>
+          {config.site.subtitle && (
+            <span class="edoxen-header__brand-subtitle">{config.site.subtitle}</span>
+          )}
+        </span>
       </a>
       <nav class="edoxen-header__nav" aria-label="Primary">
         {config.nav.map((item) => (

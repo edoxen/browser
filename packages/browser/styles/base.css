@@ -261,6 +261,22 @@ blockquote {
   width: auto;
 }
 
+.edoxen-header__brand-text {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.edoxen-header__brand-subtitle {
+  font-family: var(--edoxen-font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
+}
+
 /* Nav entries are quiet pills with a warm hover wash. */
 .edoxen-header__nav {
   display: flex;
@@ -865,8 +881,46 @@ search-filter {
 /* Facet chips */
 .edoxen-search-filter__facets {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Labeled facet families — year filters never mix with location filters. */
+.edoxen-search-filter__facet-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.edoxen-search-filter__facet-label {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
+}
+
+.edoxen-search-filter__facet-chips {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
+}
+
+@media (max-width: 40rem) {
+  .edoxen-search-filter__facet-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+}
+
+/* Meetings mode: while the island filters, the static decade sections
+   below yield to the result list (no duplicated listings). */
+search-filter[data-filtering="true"] ~ decade-scroller,
+search-filter[data-filtering="true"] ~ .edoxen-decade-section {
+  display: none;
 }
 
 /* Inclusive date-range bound inputs (decisions mode) */

@@ -20,6 +20,10 @@ const prefix = urlPrefix(cfg, lang)
       data-aria-label={t('search.ariaLabelMeetings', lang, cfg.uiStrings, cfg.terminology)}
       data-empty-label={t('search.empty', lang, cfg.uiStrings, cfg.terminology)}
       data-decisions-label={t('section.adoptedDecisions', lang, cfg.uiStrings, cfg.terminology)}
+      data-virtual-label={t('meeting.virtual', lang, cfg.uiStrings, cfg.terminology)}
+      data-group-year-label={t('search.groupYear', lang, cfg.uiStrings, cfg.terminology)}
+      data-group-location-label={t('search.groupLocation', lang, cfg.uiStrings, cfg.terminology)}
+      data-group-body-label={t('search.groupBody', lang, cfg.uiStrings, cfg.terminology)}
       data-show-more-label={t('search.showMore', lang, cfg.uiStrings, cfg.terminology)}
       data-page-size={cfg.features.pagination.enabled ? String(cfg.features.pagination.pageSize) : undefined}
     ></search-filter>
