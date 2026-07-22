@@ -9,7 +9,7 @@ test.describe('minimal example — smoke', () => {
   test('header carries the edoxen attribution link', async ({ page }) => {
     await page.goto('/')
     const footer = page.locator('footer.edoxen-footer')
-    await expect(footer.locator('a[href="https://edoxen.github.io"]')).toBeVisible()
+    await expect(footer.locator('a[href="https://www.edoxen.org"]')).toBeVisible()
   })
 
   test('decision list links to a decision detail page', async ({ page }) => {

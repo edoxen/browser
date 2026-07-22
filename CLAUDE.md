@@ -93,7 +93,7 @@ See `TODO.browser/00-overview.md` § Architecture for the full file tree.
 |---|---|---|
 | `edoxen/edoxen` | `~/src/edoxen/edoxen/` | Ruby gem — canonical YAML schemas (`schema/edoxen.yaml`, `schema/meeting.yaml`), CLI, fixtures in `spec/fixtures/`. **The browser's bundled schemas must be byte-equal to the gem's.** |
 | `edoxen/edoxen-js` | `~/src/edoxen/edoxen-js/` | TS monorepo — `@edoxen/edoxen` (loaders, transforms, validation, URN, i18n core, body registry), `@edoxen/astro` (integration primitives), `@edoxen/vue` (Vue adapter for existing consumers). |
-| `edoxen/edoxen.github.io` | `~/src/edoxen/edoxen.github.io/` | Docs site. The browser's About page links to `https://edoxen.github.io`. |
+| `edoxen/edoxen.github.io` | `~/src/edoxen/edoxen.github.io/` | Docs site, served at `https://www.edoxen.org/` (custom domain; `edoxen.github.io` 301-redirects to it). The browser's About page links to `https://www.edoxen.org/`. |
 | `isotc184sc4/resolutions` | `~/src/isotc184sc4/resolutions/` | **Canary** for migration (TODO 18). 86 decision fixtures in `plenary/*.yaml`. |
 | `oimlsmart/resolutions-data` | `~/src/oimlsmart/resolutions-data/` | **Richest feature set.** First-class `resolutions/`, `meetings/`, `agendas/`, `minutes/`. Bilingual EN/FR, multi-body. Migration target in TODO 19. |
 | `isotc154/www.isotc154.org` | `~/src/isotc154/www.isotc154.org/` | **Richest existing site (~20K LOC).** Source of `createCollection`, `useFilteredCollection`, `ScheduleCalendar`, `ReferenceDocuments`, `PrevNextNav`. tc154-specific UI stays in tc154. Migration target in TODO 20. |
@@ -166,7 +166,7 @@ non-negotiable.
 
 - **Established year is plain text.** No count-up animation, no
   `Intl.NumberFormat`.
-- **Edoxen link goes to `https://edoxen.github.io`.**
+- **Edoxen link goes to `https://www.edoxen.org`** (canonical custom domain; `edoxen.github.io` redirects to it).
 
 ## Verification gates (every TODO is "done" only when)
 
