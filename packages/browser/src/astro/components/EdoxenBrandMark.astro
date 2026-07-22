@@ -1,0 +1,54 @@
+---
+// The Edoxen brand mark — small wordmark used in the footer attribution.
+// Two variants are inlined and toggled by `data-theme` on <html>: the
+// light variant (dark ink, for light backgrounds) shows in light mode;
+// the dark variant (light ink, for dark backgrounds) shows in dark mode.
+// Both inline so the mark works on subpath hosts without asset-path
+// juggling and survives consumer basePath changes.
+import lightSvg from '../assets/edoxen-logo-light.svg?raw'
+import darkSvg from '../assets/edoxen-logo-dark.svg?raw'
+
+interface Props {
+  /** Optional alt text for screen readers; defaults to "Edoxen". */
+  alt?: string
+}
+const { alt = 'Edoxen' } = Astro.props
+---
+
+<span class="edoxen-brand-mark" role="img" aria-label={alt}>
+  <span class="edoxen-brand-mark__svg edoxen-brand-mark__svg--light" set:html={lightSvg} aria-hidden="true"></span>
+  <span class="edoxen-brand-mark__svg edoxen-brand-mark__svg--dark" set:html={darkSvg} aria-hidden="true"></span>
+</span>
+
+<style>
+.edoxen-brand-mark {
+  display: inline-flex;
+  align-items: middle;
+  vertical-align: middle;
+}
+.edoxen-brand-mark__svg {
+  display: none;
+  width: 1.5em;
+  height: 1.5em;
+  line-height: 0;
+}
+.edoxen-brand-mark__svg :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* Default (no data-theme or data-theme=auto → light): show light-on-dark variant */
+.edoxen-brand-mark__svg--light {
+  display: inline-block;
+}
+.edoxen-brand-mark__svg--dark {
+  display: none;
+}
+/* Dark theme: flip the visible variant */
+:global([data-theme="dark"]) .edoxen-brand-mark__svg--light {
+  display: none;
+}
+:global([data-theme="dark"]) .edoxen-brand-mark__svg--dark {
+  display: inline-block;
+}
+</style>
