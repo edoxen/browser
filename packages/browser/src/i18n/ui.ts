@@ -31,19 +31,61 @@ const TWO_TO_THREE: Readonly<Record<string, string>> = {
   de: 'deu', ja: 'jpn', ko: 'kor', pt: 'por', it: 'ita', nl: 'nld',
 }
 
-function toThreeChar(locale: string): string {
+// BCP 47: language (2-3 char) optionally followed by script (4 char) and/or
+// region (2 char or 3 digits) subtags, separated by '-'.
+//
+// Examples this recognizes:
+//   eng                → eng               (no script subtag, no fallback)
+//   en                 → eng               (2-char folded to 3-char)
+//   zho-Hant           → zho-hant          (script preserved for lookup)
+//   zh-Hans-SG         → zho-hans-sg       (script + region preserved)
+//   eng-Latn           → eng-latn          (script adds nothing for eng but is preserved)
+const LOCALE_RE = /^([a-z]{2,3}|[a-z]{4})(?:-([a-z0-9]{2,4}))*$/i
+
+function toCanonical(locale: string): string {
   const lower = locale.toLowerCase()
-  if (lower.length === 3) return lower
-  return TWO_TO_THREE[lower] ?? lower.slice(0, 3)
+  if (lower.length === 2 && TWO_TO_THREE[lower]) return TWO_TO_THREE[lower]
+  // 3-char bare code (eng, fra, ...) — most common path.
+  if (lower.length === 3 && !lower.includes('-')) return lower
+  if (!lower.includes('-')) return lower
+  // Composite code: normalize the leading language subtag, keep the rest.
+  const parts = lower.split('-')
+  const head = parts[0] ?? lower
+  const rest = lower.slice(head.length)
+  const canonicalHead = TWO_TO_THREE[head] ?? head
+  return `${canonicalHead}${rest}`
 }
 
+/**
+ * Normalize a locale code for lookup.
+ *
+ * Bare 3-char codes pass through unchanged: `eng` → `eng`. Two-char codes
+ * fold to their 3-char form: `en` → `eng`. Composite codes preserve
+ * script/region subtags so consumers can register distinct locales for
+ * `zho-Hans` and `zho-Hant`: `zh-Hant` → `zho-hant`.
+ */
 export function normalizeUiLocale(locale: string): string {
-  return toThreeChar(locale)
+  return toCanonical(locale)
+}
+
+/**
+ * Lookup fallback chain for a normalized locale: itself, then the bare
+ * language code (drops script/region subtags). Used by `t()` so a
+ * `zho-Hant` consumer with only `zho` strings still resolves.
+ */
+function localeChain(code: string): readonly string[] {
+  if (!code.includes('-')) return [code]
+  // split() always returns at least one element when called on a string.
+  const base = code.split('-')[0] ?? code
+  return base === code ? [code] : [code, base]
 }
 
 export function isRtl(locale: string, extraRtlLocales: readonly string[] = []): boolean {
   const code = normalizeUiLocale(locale)
-  return RTL_LOCALES.includes(code) || extraRtlLocales.includes(code) || extraRtlLocales.includes(locale.toLowerCase())
+  const chain = localeChain(code)
+  return chain.some((c) => RTL_LOCALES.includes(c))
+    || extraRtlLocales.includes(code)
+    || extraRtlLocales.includes(locale.toLowerCase())
 }
 
 export const DEFAULT_TERMINOLOGY: Terminology = {
@@ -112,6 +154,9 @@ function terminologyLabel(key: string, term: Terminology): string | null {
 // built-in locale table. Terminology shapes English rendering only —
 // other locales keep their built-in translations unless the consumer
 // overrides them per-locale via uiStrings.
+//
+// For script-bearing locales (e.g. zho-Hant), the chain walks
+// `<full>` → `<base>` (e.g. zho) before falling back to English.
 export function t(
   key: string,
   locale: string,
@@ -119,11 +164,13 @@ export function t(
   terminology?: Partial<Terminology>,
 ): string {
   const code = normalizeUiLocale(locale)
-  const custom = customStrings?.[code]?.[key]
-  if (custom) return custom
-  const builtIn = STRINGS[code]?.[key]
-  if (builtIn && code !== 'eng') return builtIn
-  const english = builtIn ?? STRINGS.eng?.[key]
+  for (const candidate of localeChain(code)) {
+    const custom = customStrings?.[candidate]?.[key]
+    if (custom) return custom
+    const builtIn = STRINGS[candidate]?.[key]
+    if (builtIn && candidate !== 'eng') return builtIn
+  }
+  const english = STRINGS[code]?.[key] ?? STRINGS.eng?.[key]
   if (!english) return key
   if (!terminology) return english
   const term = { ...DEFAULT_TERMINOLOGY, ...terminology }
@@ -147,8 +194,12 @@ export function meetingTypeLabel(
 ): string {
   if (!type) return ''
   const code = normalizeUiLocale(locale)
-  const override = terminology?.meetingTypes?.[code]?.[type]
-  if (override) return override
+  // Walk the locale chain so zho-Hant falls through to zho, then to
+  // the built-in English table, before humanizing the enum value.
+  for (const candidate of localeChain(code)) {
+    const override = terminology?.meetingTypes?.[candidate]?.[type]
+    if (override) return override
+  }
   const i18n = t(`meeting.type.${type}`, locale, customStrings, terminology)
   if (i18n && i18n !== `meeting.type.${type}`) return i18n
   return humanizeEnum(type)

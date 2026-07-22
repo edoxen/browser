@@ -380,15 +380,13 @@ override just that one value and inherit the rest. The
 drift guardrail fails the build if the gem adds a `MeetingType` value
 that neither your override nor the built-in table covers.
 
-> **Script variants note (e.g. 简体中文 vs 繁體中文)**: the built-in UI
-> locale table uses ISO 639-3 codes and `normalizeUiLocale` currently
-> truncates any code longer than 3 chars to its first 3 — so `zho-Hant`
-> resolves into the same `zho` bucket as Simplified. The translation
-> blocks above illustrate the labels you'd supply; serving both
-> simultaneously as distinct routed locales needs a small change to
-> `normalizeUiLocale` (preserve the script subtag) plus a `UiLocale`
-> type widening. File a feature request if you need both served as
-> separate `/zho-Hans/…` and `/zho-Hant/…` routes.
+> **Script variants (e.g. 简体中文 vs 繁體中文)**: `normalizeUiLocale`
+> preserves the script subtag, so `zho-Hans` and `zho-Hant` resolve to
+> distinct buckets. `t()` walks a fallback chain (`zho-hant` → `zho` →
+> English), so a script-specific override wins, the base-language
+> built-in is the next fallback, then English. Register both under
+> `locales:` with distinct `routePrefix`es to serve them at separate
+> routes (`/zho-Hans/…`, `/zho-Hant/…`).
 
 The same data drives the `Type` facet in the search island (chip labels
 humanize on the client; pass localized labels to the island via
