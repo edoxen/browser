@@ -1,5 +1,12 @@
 # @edoxen/browser-example-standalone
 
+## 0.0.19
+
+### Patch Changes
+
+- Updated dependencies [2448c29]
+  - @edoxen/browser@0.11.0
+
 ## 0.0.18
 
 ### Patch Changes
