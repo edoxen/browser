@@ -17,6 +17,7 @@ interface FetchResponse {
   facetActions?: string[]
   facetDecades?: number[]
   facetCountries?: string[]
+  facetTypes?: string[]
 }
 
 type SearchMode = 'decisions' | 'meetings'

@@ -246,6 +246,7 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
     facetDecades: [...cache.payloads.meetingsList.facets.decades],
     facetBodies: [...cache.payloads.meetingsList.facets.bodies],
     facetCountries: [...cache.payloads.meetingsList.facets.countries],
+    facetTypes: [...cache.payloads.meetingsList.facets.types],
   })
 }
 
