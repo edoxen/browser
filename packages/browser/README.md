@@ -284,6 +284,58 @@ When `nav` is not configured, the default nav (Meetings / Decisions /
 About) is derived from `terminology` + `decisionsSlug` — the example
 above yields Meetings / Resolutions / About with a `/resolutions` link.
 
+#### `terminology.meetingTypes` — translating meeting type labels
+
+Every meeting carries a `type` from the
+[`MeetingType` enum](https://github.com/edoxen/edoxen-model/blob/main/models/meeting_type.lutaml)
+(`plenary`, `working_group`, `task_group`, …, 17 values total). The
+browser renders this as a small-caps badge on meeting cards + the detail
+page header, and as a `Type` facet chip in the search island.
+
+Built-in labels cover **English + French**. Other locales (中文, Español,
+العربية, Русский) fall back to English until you translate them.
+
+Translate or override per-locale via `terminology.meetingTypes`:
+
+```ts
+terminology: {
+  // …decision / decisions / meeting / meetings as above…
+  meetingTypes: {
+    eng: {
+      plenary: 'Plenary',               // override an English label
+      working_group: 'Working Group',   // committee-specific phrasing
+    },
+    fra: {
+      plenary: 'Plénière CIML',         // French committee style
+      working_group: 'Groupe de travail CIML',
+    },
+    zho: {
+      plenary: '全体会议',
+      working_group: '工作组',
+      // …translate as many of the 17 values as your committee uses
+    },
+  },
+},
+```
+
+Resolution order for each type value:
+
+1. **`terminology.meetingTypes[locale][type]`** — your per-locale override
+2. **Built-in `meeting.type.<value>` string** — English + French ship
+   out of the box; partial coverage for other locales
+3. **Humanized enum value** — `'working_group'` → `'Working Group'`,
+   never throws on data the gem hasn't categorized yet
+
+So a committee whose meetings are commonly styled "Plenary Session" can
+override just that one value and inherit the rest. The
+[`src/i18n/meeting-types.spec.ts`](packages/browser/src/i18n/meeting-types.spec.ts)
+drift guardrail fails the build if the gem adds a `MeetingType` value
+that neither your override nor the built-in table covers.
+
+The same data drives the `Type` facet in the search island (chip labels
+humanize on the client; pass localized labels to the island via
+`data-*` attributes if you need them in non-English UIs).
+
 ## Theming
 
 The default look is **elegant professional warm**: a warm paper canvas

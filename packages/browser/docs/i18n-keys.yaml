@@ -90,6 +90,32 @@
 'decisions.empty': No decisions.     # Shown when the decisions list is empty
 'meetings.empty': No meetings.       # Shown when the meetings list is empty
 
+# ── Meetings — virtual + type labels ────────────────────────────────
+# `meeting.virtual` is the "Virtual" badge shown on cards/detail for
+# meetings with no physical venue. The `meeting.type.*` keys map each
+# MeetingType enum value (plenary, working_group, …, 17 total) to a
+# display label — see README §Terminology › meetingTypes for the
+# per-locale override API. Built-in English + French values ship; the
+# humanize fallback covers anything missing.
+'meeting.virtual': Virtual           # Online / no-place meeting
+'meeting.type.plenary': Plenary
+'meeting.type.working_group': Working Group
+'meeting.type.task_group': Task Group
+'meeting.type.ad_hoc': Ad Hoc
+'meeting.type.joint': Joint
+'meeting.type.general_assembly': General Assembly
+'meeting.type.committee': Committee
+'meeting.type.subcommittee': Subcommittee
+'meeting.type.conference': Conference
+'meeting.type.workshop': Workshop
+'meeting.type.seminar': Seminar
+'meeting.type.webinar': Webinar
+'meeting.type.hearing': Hearing
+'meeting.type.markup': Markup
+'meeting.type.board_meeting': Board Meeting
+'meeting.type.annual_general_meeting': Annual General Meeting
+'meeting.type.other': Other
+
 # ── Decade timeline ─────────────────────────────────────────────────
 'decade.browseLabel': Browse by decade  # Accessible label for the decade nav
 
