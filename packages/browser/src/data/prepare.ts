@@ -58,6 +58,7 @@ export interface DecisionListItem {
   readonly meetingPageUrn?: string
 }
 
+// Model-level facets — see MeetingListFacets comment above.
 export interface DecisionListFacets {
   readonly years: readonly number[]
   readonly kinds: readonly string[]
@@ -93,6 +94,10 @@ export interface MeetingListItem {
   readonly cityNames?: Readonly<Record<string, string>>
 }
 
+// Model-level facets — used for SSR (decade sections on /meetings, the
+// About-page committee facts, JSON-LD, etc.). The /data/*.json endpoints
+// do NOT project these on the wire; the search island derives its chip
+// counts client-side from items[] (single source of truth, no drift).
 export interface MeetingListFacets {
   readonly decades: readonly number[]
   readonly bodies: readonly string[]

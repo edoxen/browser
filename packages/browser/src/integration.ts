@@ -208,6 +208,11 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
       // filters on. `subject` is NOT sent (the island's result card uses
       // title+snippet; the subject is on the server-rendered card and
       // the detail page). Snippets are clamped server-side.
+      //
+      // The island computes all facet counts client-side from items[]
+      // (single source of truth — see renderFacets in search-filter.ts).
+      // Do NOT add `facet<Foo>` projection arrays here without wiring
+      // them into the island; half-baked facets mislead callers.
       items: cache.payloads.decisionsList.items.map((d) => ({
         urn: d.urn,
         identifier: d.identifier,
@@ -224,11 +229,6 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
         // without one there is no meeting page to link to.
         meetingUrn: d.meetingPageUrn ?? undefined,
       })),
-      facetBodies: [...cache.payloads.decisionsList.facets.bodies],
-      facetKinds: [...cache.payloads.decisionsList.facets.kinds],
-      facetYears: [...cache.payloads.decisionsList.facets.years],
-      facetActions: [...cache.payloads.decisionsList.facets.actionTypes],
-      facetStatuses: [...cache.payloads.decisionsList.facets.statuses],
     })
   }
   if (name === 'registers') {
@@ -243,10 +243,6 @@ function dataEndpointPayload(cache: IntegrationCache, name: DataEndpointName): s
       ...m,
       title: pickLocalizedValue(m.title, locale),
     })),
-    facetDecades: [...cache.payloads.meetingsList.facets.decades],
-    facetBodies: [...cache.payloads.meetingsList.facets.bodies],
-    facetCountries: [...cache.payloads.meetingsList.facets.countries],
-    facetTypes: [...cache.payloads.meetingsList.facets.types],
   })
 }
 

@@ -11,13 +11,6 @@ import {
 
 interface FetchResponse {
   items: SearchableItem[]
-  facetBodies?: string[]
-  facetKinds?: string[]
-  facetYears?: number[]
-  facetActions?: string[]
-  facetDecades?: number[]
-  facetCountries?: string[]
-  facetTypes?: string[]
 }
 
 type SearchMode = 'decisions' | 'meetings'
