@@ -206,6 +206,7 @@ describe('encodeState / decodeState', () => {
       actions: new Set(['approves']),
       decades: new Set([2020]),
       countries: new Set(['DE', 'CH']),
+      types: new Set(['plenary']),
       dateFrom: '2023',
       dateTo: '2024-12-31',
     }
@@ -218,6 +219,7 @@ describe('encodeState / decodeState', () => {
     expect([...restored.actions]).toEqual(['approves'])
     expect([...restored.decades]).toEqual([2020])
     expect([...restored.countries].sort()).toEqual(['CH', 'DE'])
+    expect([...restored.types]).toEqual(['plenary'])
     expect(restored.dateFrom).toBe('2023')
     expect(restored.dateTo).toBe('2024-12-31')
   })
@@ -228,5 +230,6 @@ describe('encodeState / decodeState', () => {
     expect(restored.bodies.size).toBe(0)
     expect(restored.decades.size).toBe(0)
     expect(restored.countries.size).toBe(0)
+    expect(restored.types.size).toBe(0)
   })
 })

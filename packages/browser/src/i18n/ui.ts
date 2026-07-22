@@ -88,6 +88,24 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.groupBody': 'Body',
     'meeting.virtual': 'Virtual',
 
+    'meeting.type.plenary': 'Plenary',
+    'meeting.type.working_group': 'Working Group',
+    'meeting.type.task_group': 'Task Group',
+    'meeting.type.ad_hoc': 'Ad Hoc',
+    'meeting.type.joint': 'Joint',
+    'meeting.type.general_assembly': 'General Assembly',
+    'meeting.type.committee': 'Committee',
+    'meeting.type.subcommittee': 'Subcommittee',
+    'meeting.type.conference': 'Conference',
+    'meeting.type.workshop': 'Workshop',
+    'meeting.type.seminar': 'Seminar',
+    'meeting.type.webinar': 'Webinar',
+    'meeting.type.hearing': 'Hearing',
+    'meeting.type.markup': 'Markup',
+    'meeting.type.board_meeting': 'Board Meeting',
+    'meeting.type.annual_general_meeting': 'Annual General Meeting',
+    'meeting.type.other': 'Other',
+
     'nav.prev': '← Previous',
     'nav.next': 'Next →',
 
@@ -193,6 +211,24 @@ const STRINGS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'search.groupActions': 'Actions',
     'search.groupBody': 'Organe',
     'meeting.virtual': 'Virtuel',
+
+    'meeting.type.plenary': 'Plénière',
+    'meeting.type.working_group': 'Groupe de travail',
+    'meeting.type.task_group': 'Groupe de travail ad hoc',
+    'meeting.type.ad_hoc': 'Ad hoc',
+    'meeting.type.joint': 'Conjointe',
+    'meeting.type.general_assembly': 'Assemblée générale',
+    'meeting.type.committee': 'Comité',
+    'meeting.type.subcommittee': 'Sous-comité',
+    'meeting.type.conference': 'Conférence',
+    'meeting.type.workshop': 'Atelier',
+    'meeting.type.seminar': 'Séminaire',
+    'meeting.type.webinar': 'Webinaire',
+    'meeting.type.hearing': 'Audience',
+    'meeting.type.markup': 'Markup',
+    'meeting.type.board_meeting': 'Réunion du conseil',
+    'meeting.type.annual_general_meeting': 'Assemblée générale annuelle',
+    'meeting.type.other': 'Autre',
 
     'nav.prev': '← Précédent',
     'nav.next': 'Suivant →',
@@ -566,6 +602,7 @@ export const DEFAULT_TERMINOLOGY: Terminology = {
   decisions: 'decisions',
   meeting: 'meeting',
   meetings: 'meetings',
+  meetingTypes: {},
 }
 
 function capitalize(s: string): string {
@@ -646,4 +683,31 @@ export function t(
 
 export function availableUiLocales(configuredLocales: readonly { code: string }[]): string[] {
   return configuredLocales.map((l) => normalizeUiLocale(l.code))
+}
+
+// Display label for a MeetingType enum value (plenary, working_group, …).
+// Resolution order: terminology.meetingTypes[locale][type] → built-in
+// `meeting.type.<value>` i18n string → humanized enum value. Consumers
+// override per-locale via terminology.meetingTypes when their committee
+// uses a different word (e.g. CIML meetings styled as "Plénière CIML").
+export function meetingTypeLabel(
+  type: string | undefined,
+  locale: string,
+  terminology?: Partial<Terminology>,
+  customStrings?: CustomUiStrings,
+): string {
+  if (!type) return ''
+  const code = normalizeUiLocale(locale)
+  const override = terminology?.meetingTypes?.[code]?.[type]
+  if (override) return override
+  const i18n = t(`meeting.type.${type}`, locale, customStrings, terminology)
+  if (i18n && i18n !== `meeting.type.${type}`) return i18n
+  return humanizeEnum(type)
+}
+
+function humanizeEnum(value: string): string {
+  return value
+    .split('_')
+    .map((part) => (part.length === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
+    .join(' ')
 }

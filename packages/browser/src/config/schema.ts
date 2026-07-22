@@ -116,11 +116,18 @@ export type NavItem = z.infer<typeof NavItemSchema>
 // English string (nav, page titles, section headings, stat strip,
 // breadcrumbs, empty states, search placeholder) follows — see t() in
 // src/i18n/ui.ts for the resolution order.
+//
+// `meetingTypes` overrides the display label for a MeetingType enum value
+// (plenary, working_group, …) per locale. Keys are UI locale codes
+// (eng, fra, …); values map the enum value → display label. Unlisted
+// locales or enum values fall back to the built-in i18n table, then to a
+// humanized form of the enum value.
 export const TerminologySchema = z.object({
   decision: z.string().min(1).default('decision'),
   decisions: z.string().min(1).default('decisions'),
   meeting: z.string().min(1).default('meeting'),
   meetings: z.string().min(1).default('meetings'),
+  meetingTypes: z.record(z.string(), z.record(z.string(), z.string())).default({}),
 })
 export type Terminology = z.infer<typeof TerminologySchema>
 

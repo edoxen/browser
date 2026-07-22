@@ -270,6 +270,7 @@ describe('EdoxenConfigSchema', () => {
         decisions: 'decisions',
         meeting: 'meeting',
         meetings: 'meetings',
+        meetingTypes: {},
       })
     })
 

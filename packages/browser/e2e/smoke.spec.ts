@@ -210,6 +210,7 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await page.goto('/meetings')
     await expect(page.locator('section#decade-2020')).toBeVisible()
     const card = page.locator('.edoxen-meeting-card', { has: page.locator('a[href="/meetings/urn:test:meeting:2025"]') })
+    await expect(card.locator('.edoxen-meeting-card__type')).toHaveText('Plenary')
     await expect(card.locator('.edoxen-meeting-card__committee')).toHaveText('sc-1')
     await expect(card.locator('.edoxen-meeting-card__count')).toContainText('1 Resolutions')
     await expect(page.locator('.edoxen-decade-timeline__link').first()).toHaveAttribute('href', '#decade-2020')
@@ -280,6 +281,9 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     // Facets are grouped under labels — years never mix with locations.
     await expect(island.locator('.edoxen-search-filter__facet-label', { hasText: 'Year' })).toBeVisible()
     await expect(island.locator('.edoxen-search-filter__facet-label', { hasText: 'Location' })).toBeVisible()
+    await expect(island.locator('.edoxen-search-filter__facet-label', { hasText: 'Type' })).toBeVisible()
+    // Meeting-type facet chips carry the humanized enum value.
+    await expect(island.locator('.edoxen-search-filter__facet--meeting-type', { hasText: 'Plenary' })).toContainText('(3)')
     // Country chips carry flag + localized country name; Virtual is last.
     await expect(island.locator('.edoxen-search-filter__facet--country', { hasText: '🇩🇪 Germany' })).toContainText('(1)')
     await expect(island.locator('.edoxen-search-filter__facet--country', { hasText: '🇨🇭 Switzerland' })).toContainText('(1)')
@@ -295,10 +299,11 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     const input = island.locator('input[type="search"]')
     await input.fill('sc-1')
     await expect(results).toHaveCount(1)
-    await expect(results.first()).toContainText('2025 Refs Plenary')
+    // Headline is composed from place — full entity title rides along as a tooltip.
+    await expect(results.first().locator('a.edoxen-search-filter__result-title'))
+      .toHaveAttribute('title', '2025 Refs Plenary')
     await expect(results.first().locator('a.edoxen-search-filter__result-title'))
       .toHaveAttribute('href', '/meetings/urn:test:meeting:2025')
-    // UN/LOCODE resolved to a place name on the result card.
     await expect(results.first()).toContainText('Berlin, Germany')
     await expect(island).toHaveAttribute('data-filtering', 'true')
     await expect(page.locator('section#decade-2020')).toBeHidden()
@@ -310,7 +315,8 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     const chChip = island.locator('.edoxen-search-filter__facet--country', { hasText: 'Switzerland' })
     await chChip.click()
     await expect(results).toHaveCount(1)
-    await expect(results.first()).toContainText('2026 Register Refs Plenary')
+    await expect(results.first().locator('a.edoxen-search-filter__result-title'))
+      .toHaveAttribute('title', '2026 Register Refs Plenary')
     await expect(results.first()).toContainText('Geneva, Switzerland')
     await expect(page).toHaveURL(/#.*countries=CH/)
     await chChip.click()
@@ -319,7 +325,8 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     // The Virtual chip matches the online meeting (no city/country).
     await virtualChip.click()
     await expect(results).toHaveCount(1)
-    await expect(results.first()).toContainText('2027 Virtual Plenary')
+    await expect(results.first().locator('a.edoxen-search-filter__result-title'))
+      .toHaveAttribute('title', '2027 Virtual Plenary')
     await expect(results.first()).toContainText('🌐 Virtual')
     await expect(page).toHaveURL(/#.*countries=virtual/)
     await virtualChip.click()
@@ -329,8 +336,16 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(y2026).toContainText('(1)')
     await y2026.click()
     await expect(results).toHaveCount(1)
-    await expect(results.first()).toContainText('2026 Register Refs Plenary')
+    await expect(results.first()).toContainText('Geneva, Switzerland')
     await y2026.click()
+
+    // Meeting-type facet narrows by enum value and round-trips via hash.
+    // All three fixture meetings are type=plenary, so the chip matches all 3.
+    const plenaryChip = island.locator('.edoxen-search-filter__facet--meeting-type', { hasText: 'Plenary' })
+    await plenaryChip.click()
+    await expect(results).toHaveCount(3)
+    await expect(page).toHaveURL(/#.*types=plenary/)
+    await plenaryChip.click()
   })
 
   test('JSON data endpoints are served from the built site', async ({ request }) => {
@@ -352,11 +367,12 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     expect(meetings.ok()).toBeTruthy()
     const meetingsBody = (await meetings.json()) as { items: Array<Record<string, unknown>> }
     const m2025 = meetingsBody.items.find((i) => i['urn'] === 'urn:test:meeting:2025')
-    // The island searches the flattened title + committee code + city.
+    // The island searches the flattened title + committee code + city + type.
     expect(typeof m2025?.['title']).toBe('string')
     expect(m2025?.['committeeCode']).toBe('sc-1')
     expect(m2025?.['city']).toBe('DEBER')
     expect(m2025?.['countryCode']).toBe('DE')
+    expect(m2025?.['type']).toBe('plenary')
 
     const registers = await request.get('/data/registers.json')
     expect(registers.ok()).toBeTruthy()

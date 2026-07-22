@@ -1,7 +1,7 @@
 ---
 import type { MeetingListItem } from '../../data/index.js'
 import { isVirtualMeeting } from '../../data/index.js'
-import { pickLocalizedValue, formatDateRange, regionName, t } from '../../i18n/index.js'
+import { pickLocalizedValue, formatDateRange, regionName, t, meetingTypeLabel } from '../../i18n/index.js'
 import { urnToPath } from '../../urn.js'
 import { countryFlag } from '@edoxen/edoxen'
 import cfg from 'virtual:edoxen-config'
@@ -12,7 +12,7 @@ interface Props {
   urlPrefix?: string
 }
 const { item: m, lang = 'en', urlPrefix: prefix = '/' } = Astro.props
-const title = pickLocalizedValue(m.title, lang, m.urn)
+const fullTitle = pickLocalizedValue(m.title, lang, m.urn)
 const dateLabel = m.startDate ? formatDateRange(m.startDate, m.endDate, lang) : ''
 const virtual = isVirtualMeeting(m)
 const flag = !virtual && m.countryCode ? countryFlag(m.countryCode) : ''
@@ -20,6 +20,14 @@ const flag = !virtual && m.countryCode ? countryFlag(m.countryCode) : ''
 // the country renders as a localized name, not the raw alpha-2 code.
 const city = m.cityNames?.[lang] ?? m.cityNames?.[lang.slice(0, 2)] ?? m.cityNames?.en ?? m.city ?? ''
 const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
+// Browse views (index, home) compose the headline from place — matches the
+// original venue+year browse model and avoids restating dates/committee the
+// meta row already carries. Fall back to the entity title when no place.
+const placeLabel = virtual
+  ? t('meeting.virtual', lang, cfg.uiStrings, cfg.terminology)
+  : [city, country].filter(Boolean).join(', ')
+const headline = placeLabel || fullTitle
+const typeLabel = meetingTypeLabel(m.type, lang, cfg.terminology, cfg.uiStrings)
 ---
 
 <li class="edoxen-meeting-card edoxen-card">
@@ -28,6 +36,9 @@ const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
       <span class="edoxen-meeting-card__date">
         <time datetime={m.startDate}>{dateLabel}</time>
       </span>
+    )}
+    {typeLabel && (
+      <span class="edoxen-meeting-card__type">{typeLabel}</span>
     )}
     {m.status && (
       <span class="edoxen-badge edoxen-badge--status" data-status={m.status}>{m.status}</span>
@@ -41,18 +52,11 @@ const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
       </span>
     )}
   </div>
-  <a class="edoxen-meeting-card__title" href={`${prefix}meetings/${urnToPath(m.urn)}`}>{title}</a>
-  {virtual ? (
-    <p class="edoxen-meeting-card__place">
-      <span class="edoxen-meeting-card__flag" aria-hidden="true">🌐</span>
-      <span>{t('meeting.virtual', lang, cfg.uiStrings, cfg.terminology)}</span>
-    </p>
-  ) : (city || country) && (
-    <p class="edoxen-meeting-card__place">
-      {flag && <span class="edoxen-meeting-card__flag" aria-hidden="true">{flag}</span>}
-      <span>{[city, country].filter(Boolean).join(', ')}</span>
-    </p>
-  )}
+  <a class="edoxen-meeting-card__title" href={`${prefix}meetings/${urnToPath(m.urn)}`} title={fullTitle}>
+    {virtual && <span class="edoxen-meeting-card__flag" aria-hidden="true">🌐</span>}
+    {!virtual && flag && <span class="edoxen-meeting-card__flag" aria-hidden="true">{flag}</span>}
+    <span class="edoxen-meeting-card__headline">{headline}</span>
+  </a>
 </li>
 
 <style>
@@ -69,6 +73,14 @@ const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
   font-weight: 600;
   color: var(--edoxen-color-text);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.edoxen-meeting-card__type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--edoxen-color-muted);
   white-space: nowrap;
 }
 .edoxen-meeting-card__committee {
@@ -89,6 +101,9 @@ const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
   white-space: nowrap;
 }
 .edoxen-meeting-card__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
   font-family: var(--edoxen-font-display-resolved, "Iowan Old Style",
     "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif);
   font-size: 1.125rem;
@@ -102,20 +117,12 @@ const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
   color: var(--edoxen-color-accent);
   text-decoration: none;
 }
-.edoxen-meeting-card__place {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.9375rem;
-  color: var(--edoxen-color-muted);
+.edoxen-meeting-card__headline {
+  flex: 1 1 auto;
 }
 .edoxen-meeting-card__flag {
+  flex: 0 0 auto;
   font-size: 1.1em;
   line-height: 1;
-}
-.edoxen-meeting-card__country {
-  font-family: var(--edoxen-font-mono, ui-monospace, monospace);
-  font-size: 0.8125rem;
 }
 </style>
