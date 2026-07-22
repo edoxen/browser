@@ -353,7 +353,6 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     expect(decisions.ok()).toBeTruthy()
     const decisionsBody = (await decisions.json()) as {
       items: Array<Record<string, unknown>>
-      facetActions: string[]
     }
     expect(decisionsBody.items.length).toBeGreaterThan(0)
     const first = decisionsBody.items.find((i) => i['urn'] === 'urn:test:resolution:1')
@@ -361,27 +360,20 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     expect(first?.['date']).toBe('2024-06-15')
     expect(first?.['snippet']).toContain('Publishes the test standard')
     expect(first?.['meetingUrn']).toBe('urn:test:meeting:2025')
-    expect(decisionsBody.facetActions).toContain('publishes')
 
     const meetings = await request.get('/data/meetings.json')
     expect(meetings.ok()).toBeTruthy()
     const meetingsBody = (await meetings.json()) as {
       items: Array<Record<string, unknown>>
-      facetDecades?: number[]
-      facetBodies?: string[]
-      facetCountries?: string[]
-      facetTypes?: string[]
     }
     const m2025 = meetingsBody.items.find((i) => i['urn'] === 'urn:test:meeting:2025')
-    // The island searches the flattened title + committee code + city + type.
+    // The island searches the flattened title + committee code + city + type
+    // and computes all facet counts client-side from items[].
     expect(typeof m2025?.['title']).toBe('string')
     expect(m2025?.['committeeCode']).toBe('sc-1')
     expect(m2025?.['city']).toBe('DEBER')
     expect(m2025?.['countryCode']).toBe('DE')
     expect(m2025?.['type']).toBe('plenary')
-    // Wire shape stays consistent: every projected facet array on the model
-    // is mirrored on the wire, including the new Type facet.
-    expect(meetingsBody.facetTypes).toEqual(['plenary'])
 
     const registers = await request.get('/data/registers.json')
     expect(registers.ok()).toBeTruthy()
