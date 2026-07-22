@@ -155,27 +155,31 @@ function buildMeetingListItem(
   if (item.identifier) meta.appendChild(makeBadge(item.identifier, 'edoxen-search-filter__result-id'))
   const dates = formatRange(item.startDate, item.endDate, lang)
   if (dates) meta.appendChild(makeBadge(dates, 'edoxen-search-filter__result-date'))
+  if (item.type) meta.appendChild(makeBadge(humanize(item.type), 'edoxen-search-filter__result-meeting-type'))
   if (item.committeeCode) meta.appendChild(makeBadge(item.committeeCode, 'edoxen-badge'))
-  // Online meeting (no city/country): globe + localized "Virtual";
-  // otherwise flag + "City, Country" with UN/LOCODE resolved to a name.
-  if (!item.city && !item.countryCode) {
-    meta.appendChild(makeBadge(`\u{1F310} ${virtualLabel}`, 'edoxen-search-filter__result-date'))
-  } else {
-    const place = [cityName(item, lang), item.countryCode ? regionName(item.countryCode, lang) : '']
-      .filter(Boolean)
-      .join(', ')
-    const flag = item.countryCode ? flagEmoji(item.countryCode) : ''
-    if (place) meta.appendChild(makeBadge(`${flag ? `${flag} ` : ''}${place}`, 'edoxen-search-filter__result-date'))
-  }
   if (item.decisionCount != null && item.decisionCount > 0) {
     meta.appendChild(makeBadge(`${item.decisionCount} ${decisionsLabel}`, 'edoxen-badge'))
   }
   if (meta.childElementCount > 0) main.appendChild(meta)
 
+  // Headline mirrors MeetingCard: place (City, Country) when known, else
+  // localized "Virtual", else the entity title. The meta row already shows
+  // dates and committee — don't repeat them in the headline.
   const link = document.createElement('a')
   link.className = 'edoxen-search-filter__result-title'
   link.href = `${basePath}/${urnToPath(item.urn)}`
-  link.textContent = item.title || item.urn
+  const city = cityName(item, lang)
+  const country = item.countryCode ? regionName(item.countryCode, lang) : ''
+  const place = [city, country].filter(Boolean).join(', ')
+  const flag = item.countryCode ? flagEmoji(item.countryCode) : ''
+  if (!item.city && !item.countryCode) {
+    link.textContent = `\u{1F310} ${virtualLabel}`
+  } else if (place) {
+    link.textContent = flag ? `${flag} ${place}` : place
+  } else {
+    link.textContent = item.title || item.urn
+  }
+  if (item.title) link.title = item.title
   main.appendChild(link)
 
   li.appendChild(main)
@@ -372,6 +376,7 @@ class SearchFilter extends HTMLElement {
     const actions = new Map<string, number>()
     const years = new Map<number, number>()
     const countries = new Map<string, number>()
+    const types = new Map<string, number>()
     for (const item of this.items) {
       if (item.bodyType) bodies.set(item.bodyType, (bodies.get(item.bodyType) ?? 0) + 1)
       if (item.kind) kinds.set(item.kind, (kinds.get(item.kind) ?? 0) + 1)
@@ -380,6 +385,7 @@ class SearchFilter extends HTMLElement {
       // Meetings without a country code are online — the Virtual chip.
       const country = item.countryCode ?? (this.mode === 'meetings' ? VIRTUAL_COUNTRY : undefined)
       if (country) countries.set(country, (countries.get(country) ?? 0) + 1)
+      if (item.type) types.set(item.type, (types.get(item.type) ?? 0) + 1)
     }
     const lang = document.documentElement.lang || 'en'
     const groups: HTMLElement[] = []
@@ -393,6 +399,16 @@ class SearchFilter extends HTMLElement {
           this.render()
         })
         chip.classList.add('edoxen-search-filter__facet--year')
+        return chip
+      })
+      // Meeting-type chips: humanize the enum value (plenary → Plenary).
+      const typeChips = [...types.keys()].sort().map((type) => {
+        const chip = makeFacetChip(humanize(type), types.get(type) ?? 0, this.state.types.has(type), () => {
+          this.state = { ...this.state, types: toggle(this.state.types, type) }
+          this.syncHash()
+          this.render()
+        })
+        chip.classList.add('edoxen-search-filter__facet--meeting-type')
         return chip
       })
       // Location chips: flag + country name, "🌐 Virtual" sorted last.
@@ -412,8 +428,10 @@ class SearchFilter extends HTMLElement {
           return chip
         })
       const yearGroup = this.makeFacetGroup(this.groupYearLabel, yearChips)
+      const typeGroup = this.makeFacetGroup(this.groupTypeLabel, typeChips)
       const locationGroup = this.makeFacetGroup(this.groupLocationLabel, countryChips)
       if (yearGroup) groups.push(yearGroup)
+      if (typeGroup) groups.push(typeGroup)
       if (locationGroup) groups.push(locationGroup)
     }
 

@@ -18,6 +18,7 @@ import {
   formatDate,
   formatDateRange,
   humanizeVerb,
+  meetingTypeLabel,
   regionName,
   t,
   urlPrefix,
@@ -121,7 +122,7 @@ function hostLabel(h: HostRef): string {
 
 <header class="edoxen-meeting__header edoxen-enter" style="--nth: 2">
   <div class="edoxen-meta-row">
-    {meeting.type && <span class="edoxen-badge">{meeting.type}</span>}
+    {meeting.type && <span class="edoxen-badge">{meetingTypeLabel(meeting.type, locale, cfg.terminology, cfg.uiStrings)}</span>}
     {meeting.status && (
       <span class="edoxen-badge edoxen-badge--status" data-status={meeting.status}>{meeting.status}</span>
     )}

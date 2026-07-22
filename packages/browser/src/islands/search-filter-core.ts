@@ -20,6 +20,8 @@ export interface SearchableItem {
   /** Meeting start (or only) ISO date. */
   readonly startDate?: string
   readonly endDate?: string
+  /** MeetingType enum value (plenary, working_group, …). */
+  readonly type?: string
   readonly city?: string
   readonly countryCode?: string
   /** Localized names for the UN/LOCODE in `city` (from data.unlocodes). */
@@ -37,6 +39,8 @@ export interface FilterState {
   readonly actions: ReadonlySet<string>
   readonly decades: ReadonlySet<number>
   readonly countries: ReadonlySet<string>
+  /** MeetingType enum values (plenary, working_group, …). */
+  readonly types: ReadonlySet<string>
   /** Inclusive range bounds: an ISO date ('2024-06-15') or a bare year
       ('2024'). Either side may be omitted. */
   readonly dateFrom?: string
@@ -51,6 +55,7 @@ export const EMPTY_STATE: FilterState = {
   actions: new Set(),
   decades: new Set(),
   countries: new Set(),
+  types: new Set(),
 }
 
 export function decadeOfYear(year: number): number {
@@ -109,9 +114,10 @@ export function filterItems<T extends SearchableItem>(
     if (state.decades.size > 0 && !state.decades.has(typeof item.year === 'number' ? decadeOfYear(item.year) : -1)) return false
     // Items with no country code (online meetings) match the Virtual chip.
     if (state.countries.size > 0 && !state.countries.has(item.countryCode ?? VIRTUAL_COUNTRY)) return false
+    if (state.types.size > 0 && !state.types.has(item.type ?? '')) return false
     if (!inDateRange(item, state)) return false
     if (q) {
-      const hay = `${item.title} ${item.urn} ${item.identifier ?? ''} ${item.snippet ?? ''} ${item.committeeCode ?? ''} ${item.city ?? ''}`.toLowerCase()
+      const hay = `${item.title} ${item.urn} ${item.identifier ?? ''} ${item.snippet ?? ''} ${item.committeeCode ?? ''} ${item.city ?? ''} ${item.type ?? ''}`.toLowerCase()
       if (!hay.includes(q)) return false
     }
     return true
@@ -125,6 +131,7 @@ export interface FacetCounts {
   readonly actions: ReadonlyMap<string, number>
   readonly decades: ReadonlyMap<number, number>
   readonly countries: ReadonlyMap<string, number>
+  readonly types: ReadonlyMap<string, number>
 }
 
 export function countFacets<T extends SearchableItem>(items: readonly T[]): FacetCounts {
@@ -134,6 +141,7 @@ export function countFacets<T extends SearchableItem>(items: readonly T[]): Face
   const actions = new Map<string, number>()
   const decades = new Map<number, number>()
   const countries = new Map<string, number>()
+  const types = new Map<string, number>()
   for (const item of items) {
     if (item.bodyType) bodies.set(item.bodyType, (bodies.get(item.bodyType) ?? 0) + 1)
     if (item.kind) kinds.set(item.kind, (kinds.get(item.kind) ?? 0) + 1)
@@ -144,9 +152,10 @@ export function countFacets<T extends SearchableItem>(items: readonly T[]): Face
     }
     const country = item.countryCode ?? (item.startDate ? VIRTUAL_COUNTRY : undefined)
     if (country) countries.set(country, (countries.get(country) ?? 0) + 1)
+    if (item.type) types.set(item.type, (types.get(item.type) ?? 0) + 1)
     for (const a of item.actionTypes ?? []) actions.set(a, (actions.get(a) ?? 0) + 1)
   }
-  return { bodies, kinds, years, actions, decades, countries }
+  return { bodies, kinds, years, actions, decades, countries, types }
 }
 
 export function toggle<K>(set: ReadonlySet<K>, key: K): Set<K> {
@@ -165,6 +174,7 @@ export function encodeState(state: FilterState): string {
   if (state.actions.size > 0) params.set('actions', [...state.actions].sort().join(','))
   if (state.decades.size > 0) params.set('decades', [...state.decades].sort().map(String).join(','))
   if (state.countries.size > 0) params.set('countries', [...state.countries].sort().join(','))
+  if (state.types.size > 0) params.set('types', [...state.types].sort().join(','))
   if (state.dateFrom) params.set('from', state.dateFrom)
   if (state.dateTo) params.set('to', state.dateTo)
   const s = params.toString()
@@ -181,6 +191,7 @@ export function decodeState(hash: string): FilterState {
   const actions = (params.get('actions') ?? '').split(',').filter(Boolean)
   const decades = (params.get('decades') ?? '').split(',').filter(Boolean).map(Number).filter(Number.isFinite)
   const countries = (params.get('countries') ?? '').split(',').filter(Boolean)
+  const types = (params.get('types') ?? '').split(',').filter(Boolean)
   return {
     query: params.get('q') ?? '',
     bodies: new Set(bodies),
@@ -189,6 +200,7 @@ export function decodeState(hash: string): FilterState {
     actions: new Set(actions),
     decades: new Set(decades),
     countries: new Set(countries),
+    types: new Set(types),
     dateFrom: params.get('from') ?? undefined,
     dateTo: params.get('to') ?? undefined,
   }
@@ -203,5 +215,6 @@ function freshEmptyState(): FilterState {
     actions: new Set(),
     decades: new Set(),
     countries: new Set(),
+    types: new Set(),
   }
 }

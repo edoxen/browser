@@ -87,6 +87,7 @@ export {
   isRtl,
   availableUiLocales,
   applyTerminology,
+  meetingTypeLabel,
   DEFAULT_TERMINOLOGY,
   SUPPORTED_UI_LOCALES,
   LOCALE_LABELS,

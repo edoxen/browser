@@ -80,6 +80,8 @@ export interface MeetingListItem {
   readonly endDate?: string
   readonly year?: number
   readonly bodyType?: string
+  /** MeetingType enum value (plenary, working_group, …) — drives the type badge + facet. */
+  readonly type?: string
   readonly city?: string
   readonly countryCode?: string
   readonly status?: string
@@ -95,6 +97,7 @@ export interface MeetingListFacets {
   readonly decades: readonly number[]
   readonly bodies: readonly string[]
   readonly countries: readonly string[]
+  readonly types: readonly string[]
 }
 
 export interface MeetingListPayload {
@@ -238,6 +241,7 @@ function toMeetingListItem(m: Meeting, unlocodes?: UnlocodeNames): MeetingListIt
     endDate: m.scheduled_date_range?.end,
     year: year ?? undefined,
     bodyType: m.body_type,
+    type: m.type,
     city: m.city,
     countryCode: m.country_code,
     status: m.status,
@@ -280,6 +284,7 @@ export function prepareMeetingsList(project: EdoxenProject, unlocodes?: Unlocode
       decades: uniqSortedNumbers(decadesSet),
       bodies: uniqSorted(project.meetings.map((m) => m.body_type ?? '')),
       countries: uniqSorted(project.meetings.map((m) => m.country_code ?? '')),
+      types: uniqSorted(project.meetings.map((m) => m.type ?? '')),
     },
   }
 }
