@@ -4,6 +4,7 @@ import { generateCssTokens, resolveFooter } from '../../config/index.js'
 import { urlPrefix, pickLocalizedValue } from '../../i18n/index.js'
 import payloads from 'virtual:edoxen-payloads'
 import '../../../styles/base.css'
+import EdoxenBrandMark from '../components/EdoxenBrandMark.astro'
 // Print styles are gated on features.printStyles: imported as a raw
 // string and inlined only when the flag is on, so `false` omits the
 // print CSS from the output entirely.
@@ -212,7 +213,7 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
             <p class="edoxen-footer__copy">© {year} {committeeName}</p>
             {footer.showEdoxenAttribution && (
               <p class="edoxen-footer__attribution">
-                Powered by <a href="https://edoxen.github.io">Edoxen</a>.
+                Powered by <a href="https://www.edoxen.org" class="edoxen-footer__edoxen-link"><EdoxenBrandMark /></a>
               </p>
             )}
           </div>
@@ -231,7 +232,7 @@ const customCssImports = (config as EdoxenConfig & { customCssImports?: string[]
           <p class="edoxen-footer__copyright">{footer.copyright}</p>
           {footer.showEdoxenAttribution && (
             <p class="edoxen-footer__attribution">
-              Powered by <a href="https://edoxen.github.io">Edoxen</a>.
+              Powered by <a href="https://www.edoxen.org" class="edoxen-footer__edoxen-link"><EdoxenBrandMark /></a>
             </p>
           )}
         </>

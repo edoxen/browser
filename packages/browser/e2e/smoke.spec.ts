@@ -483,5 +483,11 @@ test.describe('fixture site — home, lists and data endpoints', () => {
     await expect(footer.locator('.edoxen-footer__links a', { hasText: 'Committee home' })).toHaveAttribute('href', 'https://example.org/committee')
     // Bottom bar
     await expect(footer.locator('.edoxen-footer__copy')).toContainText(`© ${new Date().getFullYear()} TEST/TC 1`)
+    // Edoxen attribution carries the brand mark (both theme variants inlined,
+    // CSS toggles visibility) and links to edoxen.org.
+    const edoxenLink = footer.locator('a.edoxen-footer__edoxen-link')
+    await expect(edoxenLink).toHaveAttribute('href', 'https://www.edoxen.org')
+    await expect(edoxenLink.locator('.edoxen-brand-mark__svg--light svg')).toBeVisible()
+    await expect(edoxenLink.locator('.edoxen-brand-mark__svg--dark svg')).toBeHidden()
   })
 })
