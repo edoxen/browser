@@ -88,6 +88,7 @@ export {
   availableUiLocales,
   applyTerminology,
   meetingTypeLabel,
+  loadYamlTranslations,
   DEFAULT_TERMINOLOGY,
   SUPPORTED_UI_LOCALES,
   LOCALE_LABELS,

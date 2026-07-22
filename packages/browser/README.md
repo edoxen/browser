@@ -234,11 +234,31 @@ tabs when a decision carries multiple spellings.
 
 ### Custom translations
 
-Provide translations via `uiStrings`; missing keys fall back to
-English. See [`docs/i18n-keys.yaml`](./docs/i18n-keys.yaml) for the full
-list of translatable strings — including section titles such as
-`section.adoptedDecisions` ("Resolutions"), which is how you rename the
-adopted-decisions section on meeting pages.
+Translations live in **YAML files** — one per locale. Translators work
+in YAML, not JS literals. Two ways to load them:
+
+**Option A — read the file in your `edoxen.config.ts` (recommended).**
+Reference paths you control; the build picks up changes on reload:
+
+```ts
+// edoxen.config.ts
+import { readFileSync } from 'node:fs'
+import { loadYamlTranslations } from '@edoxen/browser'
+
+const deu = loadYamlTranslations(readFileSync('./translations/deu.yaml', 'utf8'))
+const zho = loadYamlTranslations(readFileSync('./translations/zho.yaml', 'utf8'))
+
+export default {
+  // …
+  uiStrings: {
+    deu,
+    zho,
+  },
+}
+```
+
+**Option B — inline (still works for small overrides).** Use JS object
+literals directly when you only need to tweak a handful of strings:
 
 ```ts
 uiStrings: {
@@ -249,6 +269,20 @@ uiStrings: {
   },
 }
 ```
+
+Missing keys fall back to English automatically. See
+[`docs/i18n-keys.yaml`](./docs/i18n-keys.yaml) for the **translation
+template** — copy the block for your locale, fill in values, save as
+`<locale>.yaml`, point `uiStrings` at it. Built-in English + French
+ship in [`src/i18n/strings/`](./packages/browser/src/i18n/strings/) as
+YAML — translators can read those as worked examples.
+
+YAML escaping rules worth knowing:
+
+- Inside single-quoted scalars, escape a literal `'` by doubling it:
+  `'L''archive'`
+- Or use double-quoted scalars with backslash escapes: `"L'archive"`
+- Unicode is fine in either form: `'Plénière'`, `'全体会议'`
 
 ### Terminology — renaming "decisions" and "meetings"
 

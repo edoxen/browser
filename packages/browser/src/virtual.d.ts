@@ -11,3 +11,13 @@ declare module 'virtual:edoxen-payloads' {
 }
 
 declare module 'virtual:edoxen-custom-css'
+
+// Vite `?raw` imports — the file's contents as a string.
+declare module '*.yaml?raw' {
+  const contents: string
+  export default contents
+}
+declare module '*.yml?raw' {
+  const contents: string
+  export default contents
+}
