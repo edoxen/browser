@@ -33,7 +33,7 @@ pnpm dev
   canonical JSON Schemas.
 - [`edoxen/edoxen-js`](https://github.com/edoxen/edoxen-js) — TS data
   layer (`@edoxen/edoxen`, `@edoxen/astro`, `@edoxen/vue`).
-- [Docs](https://edoxen.github.io/) — format documentation.
+- [Docs](https://www.edoxen.org/) — format documentation.
 
 ## License
 
