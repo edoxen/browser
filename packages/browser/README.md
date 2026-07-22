@@ -309,10 +309,24 @@ terminology: {
       plenary: 'Plénière CIML',         // French committee style
       working_group: 'Groupe de travail CIML',
     },
-    zho: {
+    zho: {                              // Simplified Chinese (简体中文)
       plenary: '全体会议',
       working_group: '工作组',
+      subcommittee: '分技术委员会',
+      task_group: '任务组',
+      ad_hoc: '特设组',
+      joint: '联席会议',
+      other: '其他',
       // …translate as many of the 17 values as your committee uses
+    },
+    'zho-Hant': {                       // Traditional Chinese (繁體中文)
+      plenary: '全體會議',
+      working_group: '工作組',
+      subcommittee: '分技術委員會',
+      task_group: '任務組',
+      ad_hoc: '特設組',
+      joint: '聯席會議',
+      other: '其他',
     },
   },
 },
@@ -331,6 +345,16 @@ override just that one value and inherit the rest. The
 [`src/i18n/meeting-types.spec.ts`](packages/browser/src/i18n/meeting-types.spec.ts)
 drift guardrail fails the build if the gem adds a `MeetingType` value
 that neither your override nor the built-in table covers.
+
+> **Script variants note (e.g. 简体中文 vs 繁體中文)**: the built-in UI
+> locale table uses ISO 639-3 codes and `normalizeUiLocale` currently
+> truncates any code longer than 3 chars to its first 3 — so `zho-Hant`
+> resolves into the same `zho` bucket as Simplified. The translation
+> blocks above illustrate the labels you'd supply; serving both
+> simultaneously as distinct routed locales needs a small change to
+> `normalizeUiLocale` (preserve the script subtag) plus a `UiLocale`
+> type widening. File a feature request if you need both served as
+> separate `/zho-Hans/…` and `/zho-Hant/…` routes.
 
 The same data drives the `Type` facet in the search island (chip labels
 humanize on the client; pass localized labels to the island via
