@@ -31,6 +31,8 @@ interface Props {
 }
 const { decision, locale } = Astro.props
 const prefix = urlPrefix(cfg, locale)
+const sections = cfg.components.decisionDetail.sections
+const sectionVisible = (key: string): boolean => sections.includes(key as any)
 
 const identifiers = (decision.identifier ?? []).map((id) => `${id.prefix}-${id.number}`)
 const identifier = identifiers[0] ?? ''
@@ -148,7 +150,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   )}
 </div>
 
-{(decision.considering ?? []).length > 0 && (
+{sectionVisible('considering') && (decision.considering ?? []).length > 0 && (
   <section class="edoxen-enter" style="--nth: 4">
     <h2>{t('section.considering', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <p>
@@ -160,7 +162,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{actions.length > 0 && (
+{sectionVisible('actions') && actions.length > 0 && (
   <section class="edoxen-enter" style="--nth: 5">
     <h2>{t('section.actions', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-decision__cards">
@@ -190,7 +192,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{considerations.length > 0 && (
+{sectionVisible('considerations') && considerations.length > 0 && (
   <section class="edoxen-enter" style="--nth: 6">
     <h2>{t('section.considerations', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-decision__cards">
@@ -220,7 +222,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{approvals.length > 0 && (
+{sectionVisible('approvals') && approvals.length > 0 && (
   <section class="edoxen-enter" style="--nth: 7">
     <h2>{t('section.approvals', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-decision__cards">
@@ -246,7 +248,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{relations.length > 0 && (
+{sectionVisible('related') && relations.length > 0 && (
   <section class="edoxen-enter" style="--nth: 8">
     <h2>{t('section.related', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ul class="edoxen-decision__relations">
@@ -266,7 +268,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{categories.length > 0 && (
+{sectionVisible('categories') && categories.length > 0 && (
   <section class="edoxen-enter" style="--nth: 9">
     <h2>{t('section.categories', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <div class="edoxen-meta-row">
@@ -275,7 +277,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{dates.length > 1 && (
+{sectionVisible('dates') && dates.length > 1 && (
   <section class="edoxen-enter" style="--nth: 10">
     <h2>{t('section.dates', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <dl class="edoxen-deflist">
@@ -289,7 +291,7 @@ const navEntry = (i: (typeof ordered)[number] | undefined) =>
   </section>
 )}
 
-{urls.length > 0 && (
+{sectionVisible('referenceDocs') && urls.length > 0 && (
   <section class="edoxen-enter" style="--nth: 11">
     <h2>{t('section.referenceDocs', locale, cfg.uiStrings, cfg.terminology)}</h2>
     <ul>

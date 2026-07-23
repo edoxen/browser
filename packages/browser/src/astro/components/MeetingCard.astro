@@ -16,41 +16,43 @@ const fullTitle = pickLocalizedValue(m.title, lang, m.urn)
 const dateLabel = m.startDate ? formatDateRange(m.startDate, m.endDate, lang) : ''
 const virtual = isVirtualMeeting(m)
 const flag = !virtual && m.countryCode ? countryFlag(m.countryCode) : ''
-// UN/LOCODE city codes resolve to localized names via data.unlocodes;
-// the country renders as a localized name, not the raw alpha-2 code.
 const city = m.cityNames?.[lang] ?? m.cityNames?.[lang.slice(0, 2)] ?? m.cityNames?.en ?? m.city ?? ''
 const country = !virtual && m.countryCode ? regionName(m.countryCode, lang) : ''
-// Browse views (index, home) compose the headline from place — matches the
-// original venue+year browse model and avoids restating dates/committee the
-// meta row already carries. Fall back to the entity title when no place.
 const placeLabel = virtual
   ? t('meeting.virtual', lang, cfg.uiStrings, cfg.terminology)
   : [city, country].filter(Boolean).join(', ')
 const headline = placeLabel || fullTitle
 const typeLabel = meetingTypeLabel(m.type, lang, cfg.terminology, cfg.uiStrings)
+
+// Config-driven meta row. The renderer iterates in the configured order;
+// adding a new meta item type = extending the union + adding a renderer
+// below (OCP). Items not in the list are hidden.
+const metaItems = cfg.components.meetingCard.metaItems
+const countLabel = (m.decisionCount != null && m.decisionCount > 0)
+  ? `${m.decisionCount} ${t('section.adoptedDecisions', lang, cfg.uiStrings, cfg.terminology)}`
+  : ''
 ---
 
 <li class="edoxen-meeting-card edoxen-card">
   <div class="edoxen-meeting-card__meta edoxen-meta-row">
-    {dateLabel && (
-      <span class="edoxen-meeting-card__date">
-        <time datetime={m.startDate}>{dateLabel}</time>
-      </span>
-    )}
-    {typeLabel && (
-      <span class="edoxen-meeting-card__type">{typeLabel}</span>
-    )}
-    {m.status && (
-      <span class="edoxen-badge edoxen-badge--status" data-status={m.status}>{m.status}</span>
-    )}
-    {m.committeeCode && (
-      <span class="edoxen-meeting-card__committee">{m.committeeCode}</span>
-    )}
-    {m.decisionCount != null && m.decisionCount > 0 && (
-      <span class="edoxen-meeting-card__count">
-        {m.decisionCount} {t('section.adoptedDecisions', lang, cfg.uiStrings, cfg.terminology)}
-      </span>
-    )}
+    {metaItems.map((key) => {
+      if (key === 'date' && dateLabel) {
+        return <span class="edoxen-meeting-card__date"><time datetime={m.startDate}>{dateLabel}</time></span>
+      }
+      if (key === 'type' && typeLabel) {
+        return <span class="edoxen-meeting-card__type">{typeLabel}</span>
+      }
+      if (key === 'status' && m.status) {
+        return <span class="edoxen-badge edoxen-badge--status" data-status={m.status}>{m.status}</span>
+      }
+      if (key === 'committee' && m.committeeCode) {
+        return <span class="edoxen-meeting-card__committee">{m.committeeCode}</span>
+      }
+      if (key === 'count' && countLabel) {
+        return <span class="edoxen-meeting-card__count">{countLabel}</span>
+      }
+      return null
+    })}
   </div>
   <a class="edoxen-meeting-card__title" href={`${prefix}meetings/${urnToPath(m.urn)}`} title={fullTitle}>
     {virtual && <span class="edoxen-meeting-card__flag" aria-hidden="true">🌐</span>}

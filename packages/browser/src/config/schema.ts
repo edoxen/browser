@@ -201,6 +201,53 @@ export const FeaturesSchema = z.object({
 })
 export type FeaturesConfig = z.infer<typeof FeaturesSchema>
 
+// Config-driven component layout. Each list controls visibility AND
+// order for its component. Items not in the list are hidden; items in
+// the list render in the configured order.
+//
+// - `meetingCard.metaItems` iterates — fully reorderable.
+// - `meetingDetail.sections` / `decisionDetail.sections` currently
+//   filter via includes() — consumers can hide sections but the
+//   source order is fixed. Full reorder would require extracting each
+//   section to its own component file (tracked in #53).
+export const MeetingCardMetaItem = z.enum([
+  'date', 'type', 'status', 'committee', 'count',
+])
+export const MeetingDetailSection = z.enum([
+  'when', 'committee', 'venue', 'officers', 'hosts',
+  'schedule', 'deadlines', 'agenda', 'decisions',
+  'declarations', 'minutes', 'sourceDocs', 'note',
+])
+export const DecisionDetailSection = z.enum([
+  'considering', 'actions', 'considerations', 'approvals',
+  'related', 'categories', 'dates', 'referenceDocs',
+])
+
+export const ComponentsSchema = z.object({
+  meetingCard: z.object({
+    metaItems: z.array(MeetingCardMetaItem).default([
+      'date', 'type', 'status', 'committee', 'count',
+    ]),
+  }).default({}),
+  meetingDetail: z.object({
+    sections: z.array(MeetingDetailSection).default([
+      'when', 'committee', 'venue', 'officers', 'hosts',
+      'schedule', 'deadlines', 'agenda', 'decisions',
+      'declarations', 'minutes', 'sourceDocs', 'note',
+    ]),
+  }).default({}),
+  decisionDetail: z.object({
+    sections: z.array(DecisionDetailSection).default([
+      'considering', 'actions', 'considerations', 'approvals',
+      'related', 'categories', 'dates', 'referenceDocs',
+    ]),
+  }).default({}),
+})
+export type ComponentsConfig = z.infer<typeof ComponentsSchema>
+export type MeetingCardMetaItem = z.infer<typeof MeetingCardMetaItem>
+export type MeetingDetailSection = z.infer<typeof MeetingDetailSection>
+export type DecisionDetailSection = z.infer<typeof DecisionDetailSection>
+
 // Route segment of the decisions index + detail pages. Renaming it
 // (e.g. 'resolutions') moves every decision route and every generated
 // decision link; the /data/*.json endpoint names stay fixed.
@@ -217,6 +264,7 @@ export const EdoxenConfigSchema = z.object({
   social: z.array(SocialItemSchema).default([]),
   footer: FooterSchema.default({}),
   features: FeaturesSchema.default({}),
+  components: ComponentsSchema.default({}),
   uiStrings: z.record(z.string(), z.record(z.string(), z.string())).default({}),
   terminology: TerminologySchema.default({}),
   decisionsSlug: z.string().regex(SLUG_RE, 'lowercase letters, digits or -').default('decisions'),

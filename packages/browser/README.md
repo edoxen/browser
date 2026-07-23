@@ -520,21 +520,56 @@ commented reference implementation.
 | `features.printStyles` | boolean | `true` | `false` omits the print stylesheet from the output |
 | `features.pagination` | object | `{ enabled: false, pageSize: 50 }` | when enabled, the search island caps rendered results at `pageSize` behind a **'Show more'** control — full numbered pagination is not implemented; the noscript fallback always lists everything |
 | `features.home` | object | `{ stats: true, recentDecisions: 5, recentMeetings: 3, browseByDecade: true }` | home page: stat strip on/off, recent-item counts (`0` hides the section), browse-by-decade section on/off |
+| `components.meetingCard.metaItems` | string[] | `['date', 'type', 'status', 'committee', 'count']` | which meta items appear on meeting cards and in what order. Drop an item to hide it; reorder to taste. |
+| `components.meetingDetail.sections` | string[] | `['when', 'committee', 'venue', 'officers', 'hosts', 'schedule', 'deadlines', 'agenda', 'decisions', 'declarations', 'minutes', 'sourceDocs', 'note']` | which sections appear on the meeting detail page (visibility only — source order preserved) |
+| `components.decisionDetail.sections` | string[] | `['considering', 'actions', 'considerations', 'approvals', 'related', 'categories', 'dates', 'referenceDocs']` | which sections appear on the decision detail page (visibility only — source order preserved) |
 | `uiStrings` | record | `{}` | per-locale UI string overrides |
+
+### Component layout config
+
+`components` is the layout-customization surface. Three sub-objects, each a list of slot/section keys drawn from a closed enum (typo-guarded by Zod):
+
+```ts
+components: {
+  // Card meta row: iterates in the configured order — fully reorderable.
+  meetingCard: {
+    metaItems: ['date', 'type', 'committee', 'count'],
+    // 'status' dropped — hidden from cards on this site
+  },
+  // Meeting-detail sections: visibility only (source order preserved).
+  // Full reorder is tracked in https://github.com/edoxen/browser/issues/53.
+  meetingDetail: {
+    sections: ['when', 'venue', 'officers', 'agenda', 'decisions', 'note'],
+    // hides 'committee', 'hosts', 'schedule', 'deadlines', 'declarations', 'minutes', 'sourceDocs'
+  },
+  decisionDetail: {
+    sections: ['considering', 'actions', 'approvals', 'dates'],
+  },
+},
+```
+
+The defaults preserve current behavior — existing consumers see no change unless they opt in.
+
+**Why `meetingCard.metaItems` iterates but `meetingDetail.sections` only filters**: the card meta items are simple inline elements that fit cleanly in a `.map()`; the detail sections are 21 complex blocks with deep conditional logic. Full reorder for detail sections requires extracting each section to its own component file (tracked in [#53](https://github.com/edoxen/browser/issues/53)). Until that lands, visibility is config-driven and order is fixed in source.
 
 ## Known limitations
 
-The package is **config-driven**, not **component-driven**. It does
-not yet provide:
+The package is **config-driven**, not **component-driven**. The
+`components` config block exposes **visibility** (and order, for the
+meeting card meta row). It does **not** provide:
 
+- Per-section reorder on detail pages (each section is inline with
+  complex logic — extraction tracked in
+  [#53](https://github.com/edoxen/browser/issues/53))
 - Component slot/override mechanism (cannot swap `DecisionList` for a
   custom component without forking)
 - Render hooks or lifecycle callbacks
 - Programmatic data access API (querying decisions from consumer code)
 - Per-component behavior props (`pageSize`, `sortBy`, filter presets)
 
-Consumers who need full layout/behavior control should fork the
-components or wait for the planned component-override API.
+Consumers who need full layout/behavior control beyond the `components`
+config should fork the components or wait for the planned
+component-override API.
 
 ## Development
 
